@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "dgSpecHash": "9BWdirh7XRqFqlxfa7D+lQl4AL1SE6r7xPms9Ioq502ttUiQNEwKTJcF4hkJ+hyOnEoK2KdS9sTnLc/t1f7DCA==",
+  "success": true,
+  "projectFilePath": "c:\\src\\kidzi\\SmugMugSync\\SmugMugCoreSync\\SmugMugCoreSync.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft-windowsapicodepack-core\\1.1.5\\microsoft-windowsapicodepack-core.1.1.5.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft-windowsapicodepack-shell\\1.1.5\\microsoft-windowsapicodepack-shell.1.1.5.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft-windowsapicodepack-shellextensions\\1.1.5\\microsoft-windowsapicodepack-shellextensions.1.1.5.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.configuration\\8.0.0-preview.6.23329.7\\microsoft.extensions.configuration.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\8.0.0-preview.6.23329.7\\microsoft.extensions.configuration.abstractions.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.configuration.fileextensions\\8.0.0-preview.6.23329.7\\microsoft.extensions.configuration.fileextensions.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.configuration.json\\8.0.0-preview.6.23329.7\\microsoft.extensions.configuration.json.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\8.0.0-preview.6.23329.7\\microsoft.extensions.fileproviders.abstractions.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\8.0.0-preview.6.23329.7\\microsoft.extensions.fileproviders.physical.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\8.0.0-preview.6.23329.7\\microsoft.extensions.filesystemglobbing.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0-preview.6.23329.7\\microsoft.extensions.primitives.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\sixlabors.imagesharp\\3.0.1\\sixlabors.imagesharp.3.0.1.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\system.text.encodings.web\\8.0.0-preview.6.23329.7\\system.text.encodings.web.8.0.0-preview.6.23329.7.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\system.text.json\\8.0.0-preview.6.23329.7\\system.text.json.8.0.0-preview.6.23329.7.nupkg.sha512"
+  ],
+  "logs": []
+}
