@@ -40,9 +40,17 @@ namespace SmugMug.Net.Service
         /// <param name="filename"></param>
         public Data.ImageUpload UploadNewImage(int albumId, Data.ImageContent imageMetadata)
         {
-            var imageTask = UploadNewImageAsync(albumId, imageMetadata);
-            imageTask.Wait();
-            return imageTask.Result;
+            try
+            {
+                var imageTask = UploadNewImageAsync(albumId, imageMetadata);
+                imageTask.Wait();
+                return imageTask.Result;
+            }
+            catch (AggregateException agg)
+            {
+                // There will only be one possibe exception in here, so throw the first one. 
+                throw agg.InnerExceptions[0];
+            }
         }
 
         /// <summary>
@@ -52,9 +60,17 @@ namespace SmugMug.Net.Service
         /// <param name="filename"></param>
         public Data.ImageUpload UploadUpdatedImage(int albumId, long imageId, Data.ImageContent imageMetadata)
         {
-            var imageTask = UploadUpdatedImageAsync(albumId: albumId, imageId: imageId, imageMetadata:  imageMetadata);
-            imageTask.Wait();
-            return imageTask.Result;
+            try
+            {
+                var imageTask = UploadUpdatedImageAsync(albumId: albumId, imageId: imageId, imageMetadata:  imageMetadata);
+                imageTask.Wait();
+                return imageTask.Result;
+            }
+            catch (AggregateException agg)
+            {
+                // There will only be one possibe exception in here, so throw the first one. 
+                throw agg.InnerExceptions[0];
+            }
         }
 
 

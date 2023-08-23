@@ -16,21 +16,20 @@ namespace SmugMugCoreSync.Utility
         private readonly object obj = new();
         private DateTime _timeStart;
         private bool _lineStart = true;
-        private LoggingConfig _loggingConfig = null;
+        private LoggingConfig _loggingConfig;
 
         /// <summary>
         /// Provide a log file suffix
         /// </summary>
-        public void SetupAppLog(LoggingConfig loggingConfig)
+        public AppLogger(LoggingConfig loggingConfig)
         {
             _loggingConfig = loggingConfig;
-            SetupAppLog("");
         }
 
         /// <summary>
         /// Sets up the log for the particular thread.
         /// </summary>
-        public void SetupAppLog(string logSuffix)
+        public void SetupAppLog(string logSuffix = "")
         {
             // Record the name of the app which setup this error handler manager
             var sf = new StackFrame(1);

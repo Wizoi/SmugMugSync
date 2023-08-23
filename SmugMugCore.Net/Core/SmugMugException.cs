@@ -11,15 +11,20 @@ namespace SmugMug.Net.Core
     /// </summary>
     public class SmugMugException: Exception
     {
+        public SmugMugException()
+        {
+            this.ErrorResponse = new();
+            this.ParamData = new();
+        }
         /// <summary>
         /// Parameter Information
         /// </summary>
-        public QueryParameterList? ParamData = null;
+        public QueryParameterList ParamData;
 
         /// <summary>
         /// Error Response Object from SmugMug
         /// </summary>
-        public Data.SmugmugError ErrorResponse = null;
+        public Data.SmugmugError ErrorResponse;
         
         /// <summary>
         /// Method which generated the error
@@ -46,8 +51,7 @@ namespace SmugMug.Net.Core
             : base(string.Format("Error: {0} - {1} calling {2}", errorResponse.Code, errorResponse.Message, methodName))
         {
             this.ParamData = paramData;
-            if (this.ParamData != null)
-                this.QueryString = paramData.GenerateQueryString("");
+            this.QueryString = paramData.GenerateQueryString("");
             if (requestDetail != null)
                 this.RequestDetail = requestDetail;
 

@@ -13,23 +13,30 @@ namespace SmugMug.Net.Data
     [Serializable()]
     public class Family
     {
+        public Family()
+        {
+            this.Name = string.Empty;
+            this.NickName = string.Empty;
+            this.URL = string.Empty;
+        }
+
         /// <summary>
         /// The Name for this user
         /// </summary>
         [XmlAttribute("Name")]
-        public string? Name;
+        public string Name;
 
         /// <summary>
         /// The NickName for this user
         /// </summary>
         [XmlAttribute("NickName")]
-        public string? NickName;
+        public string NickName;
 
         /// <summary>
         /// The homepage URL for this user
         /// </summary>
         [XmlAttribute("URL")]
-        public string? URL;
+        public string URL;
 
         /// <summary>
         /// Copy this object
