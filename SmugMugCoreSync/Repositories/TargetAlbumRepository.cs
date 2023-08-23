@@ -5,13 +5,13 @@ using SmugMug.Net.Data.Domain.Album;
 using SmugMug.Net.Service;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
-using SmugMugCoreSync.Processor;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Text;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
@@ -40,6 +40,19 @@ namespace SmugMugCoreSync.Repositories
             Trace.WriteLine($"{_targetAlbums.Count} found.");
         }
 
+        internal void VerifyLinkedFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
+        {
+            foreach (var f in sourceFolders.RetrieveLinkedFolders())
+            {
+                if (!_targetAlbums.ContainsKey(f.AlbumKey))
+                {
+                    // Folder is marked as linkedto an album which does not  match
+                    f.UnlinkFromAlbum();
+                    sourceFolders.RemoveLinkedFolder(f);
+                }
+            }
+        }
+
         internal void ResyncAlbumTitlesFromFolderNames(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
         {
             foreach (AlbumDetail album in _targetAlbums.Values)
@@ -52,8 +65,8 @@ namespace SmugMugCoreSync.Repositories
                         case OperationLevel.Normal:
                             // Update SmugMug
                             album.Title = albumTitle;
-                            _smCore.AlbumService.UpdateAlbum(album);
-                            Trace.WriteLine("Album Renamed: " + albumTitle);
+                            //_smCore.AlbumService.UpdateAlbum(album);
+                            Trace.WriteLine("Album NOT Renamed (api deprecated): " + albumTitle);
                             break;
                         case OperationLevel.NoneLog:
                             Trace.WriteLine("..? Rename Suppressed: " + albumTitle);
@@ -110,8 +123,10 @@ namespace SmugMugCoreSync.Repositories
             }
         }
 
-        internal async void SyncFolderFiles(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
+        internal async Task SyncFolderFiles(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
         {
+            var uploadThrottler = new SemaphoreSlim(runtimeFlags.ImageUploadThrottle);
+
             foreach (var targetAlbum in _targetAlbums.Values)
             {
                 Trace.WriteLine(" ... " + targetAlbum.Title);
@@ -203,10 +218,9 @@ namespace SmugMugCoreSync.Repositories
                 foreach (var name in newFilenames)
                 {
                     var sourceImage = sourceFileNameLookup[name];
-                    ProcessNewRemoteMedia(runtimeFlags, sourceImage, targetAlbum);
                     Trace.WriteLine($"Process {sourceImage.FileName}");
+                    taskList.Add(ProcessNewRemoteMedia(runtimeFlags, sourceImage, targetAlbum, uploadThrottler));    
                 }
-                await Task.WhenAll(taskList);
 
                 // Check existing files to see if they need to be updated
                 foreach (var name in existingFilenames)
@@ -216,51 +230,61 @@ namespace SmugMugCoreSync.Repositories
 
                     if (!targetImage.IsDeleted)
                     {
-                        ProcessExistingRemoteMedia(runtimeFlags, sourceImage, targetAlbum, targetImage);
+                        taskList.Add(ProcessExistingRemoteMedia(runtimeFlags, sourceImage, targetAlbum, targetImage, uploadThrottler));
                     }
                 }
+                Task.WaitAll(taskList.ToArray());
             }
         }
 
-        private void ProcessExistingRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, ImageDetail targetImage)
+        private async Task ProcessExistingRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, ImageDetail targetImage, SemaphoreSlim uploadThrottler)
         {
             var reDownloadImage = false;
 
             // Load the metadata for the existing source image
             ImageContent sourceMetadata = ContentMetadataLoader.DiscoverMetadata(sourceImage.FullFileName);
 
-            // Scenario 1: Filelength = 0; Redownload
-            if (!reDownloadImage && (sourceImage.FileLength == 0))
+            await uploadThrottler.WaitAsync();
+            try
             {
-                Trace.WriteLine(" ** 0 Byte File Found on source: " + sourceImage.FileName);
-                reDownloadImage = true;
-            }
 
-            // Scenario 2: Filelength is different (targetupdate)
-            if (!reDownloadImage && sourceImage.IsImageUpdateable() &&
-                (sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
-            {
-                var imageReuploaded = RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
-                if (imageReuploaded)
+                // Scenario 1: Filelength = 0; Redownload
+                if (!reDownloadImage && (sourceImage.FileLength == 0))
                 {
-                    reDownloadImage = IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                    Trace.WriteLine(" ** 0 Byte File Found on source: " + sourceImage.FileName);
+                    reDownloadImage = true;
+                }
+
+                // Scenario 2: Filelength is different (targetupdate)
+                if (!reDownloadImage && sourceImage.IsImageUpdateable() &&
+                    (sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
+                {
+                    var imageReuploaded = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
+                    if (imageReuploaded)
+                    {
+                        reDownloadImage = IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                    }
+                }
+                else
+                {
+                    UpdateMetadata(runtimeFlags, sourceMetadata, targetImage);
+                    reDownloadImage = false;
+                }
+
+                // If the MD5 Image is not matching, but should, we redownload the image with a smugmug in the filename 
+                // to provide the option of viewing the different image (and possibly overwrite to have it match)
+                if (reDownloadImage)
+                {
+                    RedownloadMedia(runtimeFlags, sourceImage, targetImage);
                 }
             }
-            else
+            finally
             {
-                UpdateMetadata(runtimeFlags, sourceMetadata, targetImage);
-                reDownloadImage = false;
-            }
-
-            // If the MD5 Image is not matching, but should, we redownload the image with a smugmug in the filename 
-            // to provide the option of viewing the different image (and possibly overwrite to have it match)
-            if (reDownloadImage)
-            {
-                RedownloadMedia(runtimeFlags, sourceImage, targetImage);
+                uploadThrottler.Release();
             }
         } 
 
-        private void ProcessNewRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum)
+        private async Task<bool> ProcessNewRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, SemaphoreSlim uploadThrottler)
         {
             bool continueToAdd = true;
 
@@ -296,9 +320,18 @@ namespace SmugMugCoreSync.Repositories
                 switch (runtimeFlags.TargetCreate)
                 {
                     case OperationLevel.Normal:
-                        UploadNewMedia(_smCore, targetAlbum, sourceMetadata);
-                        Trace.WriteLine(" ... Uploaded " + sourceImage.FileName);
-                        break;
+                        await uploadThrottler.WaitAsync();
+                        try
+                        {
+                            await UploadNewMedia(_smCore, targetAlbum, sourceMetadata);
+                            Trace.WriteLine(" ... Uploaded " + sourceImage.FileName);
+                        }
+                        finally
+                        {
+                            uploadThrottler.Release();
+                        }
+
+                        return true;
                     case OperationLevel.NoneLog:
                         Trace.WriteLine("..? Upload Suppressed: " + sourceImage.FileName);
                         break;
@@ -306,9 +339,11 @@ namespace SmugMugCoreSync.Repositories
                         break;
                 }
             }
+
+            return false;
         }
 
-        private bool RefreshRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, AlbumDetail targetAlbum, ImageDetail targetImage)
+        private async Task<bool> RefreshRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, AlbumDetail targetAlbum, ImageDetail targetImage)
         {
             sourceMetadata.MD5Checksum = sourceImage.LoadMd5Checksum();
 
@@ -323,7 +358,7 @@ namespace SmugMugCoreSync.Repositories
                         }
                         else
                         {
-                            UploadMedia(_smCore, targetAlbum, targetImage, sourceMetadata);
+                            await UploadMedia(_smCore, targetAlbum, targetImage, sourceMetadata);
                             return true;
                         }
                         break;
@@ -418,12 +453,12 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
-        private static ImageUpload UploadNewMedia(SmugMugCore core, AlbumDetail targetAlbum, ImageContent targetMetadata)
+        private async static Task<ImageUpload> UploadNewMedia(SmugMugCore core, AlbumDetail targetAlbum, ImageContent targetMetadata)
         {
-            return UploadMedia(core, targetAlbum, null, targetMetadata);
+            return await UploadMedia(core, targetAlbum, null, targetMetadata);
         }
 
-        private static ImageUpload UploadMedia(SmugMugCore core, AlbumDetail targetAlbum, ImageDetail targetImage, ImageContent targetMetadata)
+        private async static Task<ImageUpload> UploadMedia(SmugMugCore core, AlbumDetail targetAlbum, ImageDetail? targetImage, ImageContent targetMetadata)
         {
             long targetImageId = 0;
             if (targetImage != null)
@@ -434,30 +469,40 @@ namespace SmugMugCoreSync.Repositories
             try
             {
                 // Attempt #1
-                return core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
+                return await core.ImageUploaderService.UploadUpdatedImageAsync(targetAlbum.AlbumId, targetImageId, targetMetadata);
             }
-            catch (SmugMugException smugex)
+            catch (AggregateException agg)
             {
-                // Unknown File Type - skip
-                if (smugex.ErrorResponse.Code == 64)
+                SmugMugException? smugex = agg.InnerExceptions[0] as SmugMugException;
+                WebException? webEx = agg.InnerExceptions[0] as WebException;
+                
+                if (smugex != null)
                 {
-                    Trace.WriteLine("... SKIP - ERROR 64 (Invalid File Type): " + smugex.QueryString);
-                    throw new ApplicationException("Invalid File Type");
+                    // Unknown File Type - skip
+                    if (smugex.ErrorResponse.Code == 64)
+                    {
+                        Trace.WriteLine("... SKIP - ERROR 64 (Invalid File Type): " + smugex.QueryString);
+                        throw new ApplicationException("Invalid File Type");
+                    }
+                    else
+                    {
+                        // Attempt #2 (then blow up and escalate higher)
+                        Trace.WriteLine("... RETRY - ERROR " + smugex.ErrorResponse.Code + " Query=" + smugex.QueryString);
+                        System.Threading.Thread.Sleep(1000);
+                        return await core.ImageUploaderService.UploadUpdatedImageAsync(targetAlbum.AlbumId, targetImageId, targetMetadata);
+                    }
+                }
+                else if (webEx != null)
+                {
+                    // Non-Smugmug Exception - Retry just once (possibly network related)
+                    Trace.WriteLine("... RETRY, WebException = " + webEx.Message);
+                    System.Threading.Thread.Sleep(1000);
+                    return await core.ImageUploaderService.UploadUpdatedImageAsync(targetAlbum.AlbumId, targetImageId, targetMetadata);
                 }
                 else
                 {
-                    // Attempt #2 (then blow up and escalate higher)
-                    Trace.WriteLine("... RETRY - ERROR " + smugex.ErrorResponse.Code + " Query=" + smugex.QueryString);
-                    System.Threading.Thread.Sleep(1000);
-                    return core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
+                    throw;                    
                 }
-            }
-            catch (WebException ex)
-            {
-                // Non-Smugmug Exception - Retry just once (possibly network related)
-                Trace.WriteLine("... RETRY, WebException = " + ex.Message);
-                System.Threading.Thread.Sleep(1000);
-                return core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
             }
         }
 

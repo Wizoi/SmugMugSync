@@ -19,6 +19,7 @@ namespace SmugMugCoreSync.Configuration
             this.SourceVideoRedownload = ParseOperationLevelConfig(configuration.GetSection("sourceVideoRedownload"));
             this.IncludeVideos = bool.Parse(configuration.GetSection("includeVideos").Value ?? "false");
             this.ForceRefresh = bool.Parse(configuration.GetSection("forceRefresh").Value ?? "false");
+            this.ImageUploadThrottle = int.Parse(configuration.GetSection("imageUploadThrottle").Value ?? "1");
         }
 
         private static OperationLevel ParseOperationLevelConfig(IConfigurationSection section)
@@ -36,5 +37,6 @@ namespace SmugMugCoreSync.Configuration
         public OperationLevel SourceVideoRedownload { get; }
         public bool IncludeVideos       { get; }
         public bool ForceRefresh        { get; }
+        public int ImageUploadThrottle  { get; }
     }
 }

@@ -204,7 +204,13 @@ namespace SmugMug.Net.Core
             if (String.IsNullOrWhiteSpace(tagList))
                 tagList = string.Empty;
 
-            var targetKeywordList = TagSplitRegex().Split(tagList.Replace("; ", ";")) ?? Array.Empty<string>();
+            string[] targetKeywordList;
+
+            string targetKeywordString = tagList.Replace("; ", ";").Trim();
+            if (targetKeywordString.Length == 0)
+                targetKeywordList = Array.Empty<string>();
+            else
+                targetKeywordList = TagSplitRegex().Split(targetKeywordString);
 
             if (sourceImage.Keywords.Except(targetKeywordList).Any())
                 return true;

@@ -115,5 +115,12 @@ namespace SmugMugCoreSync.Repositories
             _sourceUnlinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
             _sourceLinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);
         }
+
+        internal void RemoveLinkedFolder(SourceDirectoryData newLinkedFolder)
+        {
+            _sourceLinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
+            _sourceUnlinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);
+        }
+
     }
 }

@@ -35,6 +35,16 @@ namespace SmugMugCoreSync.Data
                 SaveIni();
             }
         }
+
+        public void UnlinkFromAlbum()
+        {
+            this.IsLinked = false;
+            AlbumKey = string.Empty;
+            AlbumId = 0;
+
+            // Do not save the updated INI until it  is overwritten by  a valid album
+        }
+
         private bool LinkToAlbumInternal(int albumId, string albumKey)
         {
             if (!IsLinked)
@@ -83,6 +93,10 @@ namespace SmugMugCoreSync.Data
                 var elementAlbumKey = new System.Xml.Linq.XElement("albumKey") { Value = AlbumKey };
                 root.Add(elementAlbumId);
                 root.Add(elementAlbumKey);
+
+                // If it is being remapped to a new folder (allbum removed to be resynced), then this may exist and should be removed.
+                if (File.Exists(smugMugIniPath))
+                    File.Delete(smugMugIniPath);
 
                 using (var xmlWriter = XmlWriter.Create(smugMugIniPath, new XmlWriterSettings() { Indent = true }))
                 {
