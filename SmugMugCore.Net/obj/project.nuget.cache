@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "4cXvzu2Wz58PZELERHYk3U9qmaqz6fiH3XkNpCrExsey/SBNCovBsjARLOiWp74YoL03dfIp6Tgr0xDj7uEp/w==",
+  "success": true,
+  "projectFilePath": "c:\\src\\kidzi\\SmugMugSync\\SmugMugCore.Net\\SmugMugCore.Net.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft-windowsapicodepack-core\\1.1.5\\microsoft-windowsapicodepack-core.1.1.5.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft-windowsapicodepack-shell\\1.1.5\\microsoft-windowsapicodepack-shell.1.1.5.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\microsoft-windowsapicodepack-shellextensions\\1.1.5\\microsoft-windowsapicodepack-shellextensions.1.1.5.nupkg.sha512",
+    "C:\\Users\\kidzi\\.nuget\\packages\\sixlabors.imagesharp\\3.0.1\\sixlabors.imagesharp.3.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}
