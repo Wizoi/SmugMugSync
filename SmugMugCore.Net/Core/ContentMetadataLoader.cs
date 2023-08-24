@@ -199,23 +199,25 @@ namespace SmugMug.Net.Core
         /// <param name="sourceImage"></param>
         /// <param name="tagList"></param>
         /// <returns>True if differences are found</returns>
-        public static bool CompareKeywords(ImageContent sourceImage, string? tagList)
+        public static bool AreKeywordsDifferent(ImageContent sourceImage, string? tagList)
         {
             if (String.IsNullOrWhiteSpace(tagList))
                 tagList = string.Empty;
 
             string[] targetKeywordList;
 
-            string targetKeywordString = tagList.Replace("; ", ";").Trim();
+            string targetKeywordString = tagList.Replace("; ", ";").Replace(", ", ",").Trim();
             if (targetKeywordString.Length == 0)
                 targetKeywordList = Array.Empty<string>();
             else
                 targetKeywordList = TagSplitRegex().Split(targetKeywordString);
 
-            if (sourceImage.Keywords.Except(targetKeywordList).Any())
+            var sourceKeywordList = sourceImage.Keywords.Select(x => x.Trim()).Where(x => x.Length > 0);
+
+            if (sourceKeywordList.Except(targetKeywordList).Any())
                 return true;
 
-            if (targetKeywordList.Except(sourceImage.Keywords).Any())
+            if (targetKeywordList.Except(sourceKeywordList).Any())
                 return true;
 
             return false;
@@ -231,7 +233,7 @@ namespace SmugMug.Net.Core
             return keyword.Replace("&", "").Replace("-", "");
         }
 
-        [GeneratedRegex(";")]
+        [GeneratedRegex("[;,]")]
         private static partial Regex TagSplitRegex();
     }
 }

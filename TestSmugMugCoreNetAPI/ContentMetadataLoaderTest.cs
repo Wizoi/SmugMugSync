@@ -181,4 +181,65 @@ public class ContentMetadataLoaderTest
         Assert.AreEqual(true, actual.IsVideo, "IsVideo Flag");
         Assert.AreEqual("Test Wmv Video", actual.Caption, "Caption");
     }
+
+    /// <summary>
+    ///A test for Comparing Keywords
+    ///</summary>
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestVideoWmv.wmv")]
+    public void CompareKeywords_MatchingKeywords()
+    {
+        string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestVideoWmv.Wmv");
+        var actual = ContentMetadataLoader.DiscoverMetadata(filepath);
+        bool result = false;
+
+        actual.Keywords = new string[]{"this", "that"};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "this, that");
+        Assert.IsFalse(result, "Comparing this and that");
+
+        actual.Keywords = new string[]{"this", "that"};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "this; that");
+        Assert.IsFalse(result, "Comparing this and that");
+
+        actual.Keywords = Array.Empty<string>();
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "");
+        Assert.IsFalse(result, "Comparing an empty array");
+
+        actual.Keywords = new string[]{""};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "");
+        Assert.IsFalse(result, "Comparing an array with one string element");
+
+        actual.Keywords = new string[]{"  "};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "  ");
+        Assert.IsFalse(result, "Comparing an array with one string element");
+    }
+
+    /// <summary>
+    ///A test for Comparing Keywords
+    ///</summary>
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestVideoWmv.wmv")]
+    public void CompareKeywords_NotMatchingKeywords()
+    {
+        string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestVideoWmv.Wmv");
+        var actual = ContentMetadataLoader.DiscoverMetadata(filepath);
+
+        bool result = false;
+
+        actual.Keywords = new string[]{"this", "That"};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "This, That");
+        Assert.IsTrue(result, "Comparing this and that capitalized");
+
+        actual.Keywords = new string[]{"this", "That"};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, " this ,  that ");
+        Assert.IsTrue(result, "Comparing this and that (spaces)");
+
+        actual.Keywords = new string[]{"this", "That"};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "this;  that");
+        Assert.IsTrue(result, "Comparing this and that (semi-colon)");
+
+        actual.Keywords = new string[]{"this, that"};
+        result = ContentMetadataLoader.AreKeywordsDifferent(actual, "this;  that");
+        Assert.IsTrue(result, "Comparing this and that (semi-colon)");
+    }
 }
