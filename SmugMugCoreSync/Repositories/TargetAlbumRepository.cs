@@ -397,7 +397,7 @@ namespace SmugMugCoreSync.Repositories
         {
             // Scenario 3: Not forcing binary update, but will always update metadata if different
             bool isMetadataDifferent =
-                ContentMetadataLoader.CompareKeywords(sourceXmlMetadata, targetImage.Keywords) ||
+                ContentMetadataLoader.AreKeywordsDifferent(sourceXmlMetadata, targetImage.Keywords) ||
                 ((sourceXmlMetadata.Title ?? "") != System.Web.HttpUtility.HtmlDecode(targetImage.Title ?? "")) ||
                 ((sourceXmlMetadata.Caption ?? "") != System.Web.HttpUtility.HtmlDecode(targetImage.Caption ?? ""));
 
