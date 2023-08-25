@@ -4,6 +4,7 @@ using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Repositories;
 using SmugMugCoreSync.Utility;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using static System.Formats.Asn1.AsnWriter;
 
 /*
@@ -19,7 +20,7 @@ var smCore = new SmugMug.Net.Core.SmugMugCore(
     apiKey: keySettings.ApiKey, apiSecret: keySettings.ApiSecret);
 
 /* Load Source Files */
-var sourceFolders = new SmugMugCoreSync.Repositories.SourceFolderRepository(folderConfig: appSettings.FolderSyncPaths);
+var sourceFolders = new SmugMugCoreSync.Repositories.SourceFolderRepository(fileSystem:new FileSystem(), folderConfig: appSettings.FolderSyncPaths);
 sourceFolders.PopulateSourceFoldersAndFiles();
 
 /* Load Remote Albums */

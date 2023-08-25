@@ -2,6 +2,7 @@
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SmugMug.Net.Data;
 using SmugMug.Net.Data.Domain;
+using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
@@ -13,6 +14,8 @@ namespace SmugMug.Net.Core
     /// </summary>
     public static partial class ContentMetadataLoader
     {
+        public static FileSystem FileSystem = new FileSystem();
+
         public static ImageContent DiscoverMetadata(string filepath)
         {
             ImageContent content;
@@ -31,7 +34,7 @@ namespace SmugMug.Net.Core
             else
                 throw new ApplicationException("File " + filepath + " is not found.");
 
-            content.FileInfo = new FileInfo(filepath);
+            content.FileInfo = ContentMetadataLoader.FileSystem.FileInfo.New(filepath);
             return content;
         }
 
