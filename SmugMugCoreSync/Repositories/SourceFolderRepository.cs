@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,11 +20,13 @@ namespace SmugMugCoreSync.Repositories
         private readonly ConcurrentDictionary<string, SourceDirectoryData>  _sourceUnlinkedFolders = new ();
         private readonly HashSet<string> _directoriesToSkip;
         private readonly HashSet<string> _extensionsToSkip;
-        private readonly Func<FileSystemInfo, bool> _filterMediaFiles;
+        private readonly Func<IFileSystemInfo, bool> _filterMediaFiles;
+        private IFileSystem _filesystem;
 
-        public SourceFolderRepository(FolderSyncPathsConfig folderConfig) 
+        public SourceFolderRepository(IFileSystem fileSystem, FolderSyncPathsConfig folderConfig) 
         {
             _folderSyncPathsConfig = folderConfig;
+            _filesystem = fileSystem;
 
             // Set the root folder
             if (Directory.Exists(folderConfig.RootLocal))
@@ -72,23 +75,23 @@ namespace SmugMugCoreSync.Repositories
 
         public SourceMediaData[] LoadFolderMediaFiles(SourceDirectoryData sourceDirectory)
         {
-            return SourceMediaData.LoadFrom(sourceDirectory.DirectoryInfo.GetFileSystemInfos().Where(_filterMediaFiles));
+            return SourceMediaData.LoadFrom(fileSystem: _filesystem, fileList: sourceDirectory.DirectoryInfo.GetFileSystemInfos().AsQueryable().Where(_filterMediaFiles));
         }
 
         public void LoadFoldersAndFiles(string rootSyncFolder)
         {
-            var currentDirectory = new DirectoryInfo(rootSyncFolder);
+            var currentDirectory = _filesystem.DirectoryInfo.New(rootSyncFolder);
             if (_directoriesToSkip.Contains(currentDirectory.Name.ToUpper()))
                 return;
 
             // We ony need one file to to determine if this folder is important
-            bool filesFound = currentDirectory.GetFileSystemInfos().Where(_filterMediaFiles).Any();
+            bool filesFound = currentDirectory.GetFileSystemInfos().AsQueryable().Where(_filterMediaFiles).Any();
 
             if (filesFound)
             {
                 if (_folderSyncPathsConfig.FilterFolderName.Any() && currentDirectory.FullName.Contains(_folderSyncPathsConfig.FilterFolderName))
                 {
-                    var data = new SmugMugCoreSync.Data.SourceDirectoryData(directory: currentDirectory);
+                    var data = new SmugMugCoreSync.Data.SourceDirectoryData(fileSystem:_filesystem, directory: currentDirectory);
                     if (data.IsLinked)
                         _sourceLinkedFolders.TryAdd(data.AlbumKey, data);
                     else

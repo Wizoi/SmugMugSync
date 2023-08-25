@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -172,7 +173,7 @@ namespace SmugMug.Net.Service
         /// Add a MD5 Checksum tot he Image Content
         /// </summary>
         /// <param name="imageContent"></param>
-        public static string GetMd5Checksum(System.IO.FileInfo fileInfo)
+        public static string GetMd5Checksum(IFileInfo fileInfo)
         {
             var taskMd5Checksum = GetMd5ChecksumAsync(fileInfo);
             taskMd5Checksum.Wait();
@@ -183,7 +184,7 @@ namespace SmugMug.Net.Service
         /// Add a MD5 Checksum tot he Image Content
         /// </summary>
         /// <param name="imageContent"></param>
-        public static async Task<string> GetMd5ChecksumAsync(System.IO.FileInfo fileInfo)
+        public static async Task<string> GetMd5ChecksumAsync(IFileInfo fileInfo)
         {
             StringBuilder builder = new();
 

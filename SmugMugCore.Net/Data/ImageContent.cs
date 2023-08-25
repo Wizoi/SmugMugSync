@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +51,7 @@ namespace SmugMug.Net.Data
         /// <summary>
         /// Filesystem Properties for this Image
         /// </summary>
-        public FileInfo? FileInfo;
+        public IFileInfo? FileInfo;
 
         /// <summary>
         /// Computed MD5 Checksum for this image

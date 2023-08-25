@@ -6,30 +6,31 @@ using System.Linq;
 using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO.Abstractions;
 
 namespace SmugMugCoreSync.Data
 {
     internal class SourceMediaData
     {
 
-        private readonly FileSystemInfo _sourceFileSystemInfo;
-        private readonly FileInfo _sourceFileInfo;
+        private readonly IFileSystemInfo _sourceFileSystemInfo;
+        private readonly IFileInfo _sourceFileInfo;
         private string? _md5CacheData;
 
 
-        public static SourceMediaData[] LoadFrom(IEnumerable<FileSystemInfo> fileList)
+        public static SourceMediaData[] LoadFrom(IFileSystem fileSystem, IEnumerable<IFileSystemInfo> fileList)
         {
             List<SourceMediaData> list = new ();
             foreach (var f in fileList)
             {
-                list.Add(new SourceMediaData (f));
+                list.Add(new SourceMediaData (fileSystem: fileSystem, mediaFile: f));
             }
             return list.ToArray();
         }
 
-        public SourceMediaData(FileSystemInfo mediaFile) {
+        public SourceMediaData(IFileSystem fileSystem, IFileSystemInfo mediaFile) {
             _sourceFileSystemInfo = mediaFile;
-            _sourceFileInfo = new FileInfo(mediaFile.FullName);
+            _sourceFileInfo = fileSystem.FileInfo.New(mediaFile.FullName);
         }
 
         public bool IsImageUpdateable()
