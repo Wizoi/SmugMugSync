@@ -1,5 +1,6 @@
 ﻿using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
+using SmugMugCoreSync.Utility;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -22,11 +23,13 @@ namespace SmugMugCoreSync.Repositories
         private readonly HashSet<string> _extensionsToSkip;
         private readonly Func<IFileSystemInfo, bool> _filterMediaFiles;
         private IFileSystem _filesystem;
+        private XmlSystem _xmlSystem;
 
-        public SourceFolderRepository(IFileSystem fileSystem, FolderSyncPathsConfig folderConfig) 
+        public SourceFolderRepository(IFileSystem fileSystem, XmlSystem xmlSystem, FolderSyncPathsConfig folderConfig) 
         {
             _folderSyncPathsConfig = folderConfig;
             _filesystem = fileSystem;
+            _xmlSystem = xmlSystem;
 
             // Set the root folder
             if (Directory.Exists(folderConfig.RootLocal))
@@ -91,7 +94,7 @@ namespace SmugMugCoreSync.Repositories
             {
                 if (_folderSyncPathsConfig.FilterFolderName.Any() && currentDirectory.FullName.Contains(_folderSyncPathsConfig.FilterFolderName))
                 {
-                    var data = new SmugMugCoreSync.Data.SourceDirectoryData(fileSystem:_filesystem, directory: currentDirectory);
+                    var data = new SmugMugCoreSync.Data.SourceDirectoryData(fileSystem:_filesystem, xmlSystem: _xmlSystem, directory: currentDirectory);
                     if (data.IsLinked)
                         _sourceLinkedFolders.TryAdd(data.AlbumKey, data);
                     else
