@@ -5,11 +5,11 @@ namespace SmugMugCoreSync.Utility;
 
 public class XmlSystem
 {
-    public virtual void OutputXmlToFile(string targetFilePath, WrappedXElement rootNode)
+    public virtual void OutputXmlToFile(string targetFilePath, XElement rootNode)
     {
         using (var xmlWriter = XmlWriter.Create(targetFilePath, new XmlWriterSettings() { Indent = true }))
         {
-            rootNode.XElement.WriteTo(xmlWriter);
+            rootNode.WriteTo(xmlWriter);
         }
     }
 

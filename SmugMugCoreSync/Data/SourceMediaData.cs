@@ -10,7 +10,7 @@ using System.IO.Abstractions;
 
 namespace SmugMugCoreSync.Data
 {
-    internal class SourceMediaData
+    public class SourceMediaData
     {
 
         private readonly IFileSystemInfo _sourceFileSystemInfo;
