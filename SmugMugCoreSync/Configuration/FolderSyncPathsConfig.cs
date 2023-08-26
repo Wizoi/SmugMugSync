@@ -14,11 +14,11 @@ namespace SmugMugCoreSync.Configuration
             this.ExtensionsToSkip = SyncAppSettings.ReadSectionArrayEntries(configuration.GetSection("extensionsToSkip"));
         }
 
-        public string RootLocal { get; }
-        public string RootRemote { get; }
-        public string FilterFolderName { get; }
-        public string[] FolderNamesToSkip { get; }
-        public string[] ExtensionsToSkip { get; }
+        public virtual string RootLocal { get; }
+        public virtual string RootRemote { get; }
+        public virtual string FilterFolderName { get; }
+        public virtual string[] FolderNamesToSkip { get; }
+        public virtual string[] ExtensionsToSkip { get; }
 
     }
 }

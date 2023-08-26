@@ -98,12 +98,12 @@ public class DirectoryInfoTests
         fileSystemMock.Setup(x => x.File.SetAttributes(It.IsAny<string>(), FileAttributes.Hidden));   
 
         var xmlSystemMock = new Mock<XmlSystem>();
-        xmlSystemMock.Setup(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XmlSystem.WrappedXElement>()));
+        xmlSystemMock.Setup(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XElement>()));
 
         var sourceDirectoryData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
         sourceDirectoryData.LinkToAlbum(1, "fooBarAlbum");
 
-        xmlSystemMock.Verify(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XmlSystem.WrappedXElement>()));
+        xmlSystemMock.Verify(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XElement>()));
         Assert.IsTrue(sourceDirectoryData.IsLinked, "The object should be linked.");
         Assert.AreEqual(1, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("fooBarAlbum", sourceDirectoryData.AlbumKey, "Album Key should be empty");

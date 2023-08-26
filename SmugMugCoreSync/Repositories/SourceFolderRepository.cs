@@ -13,7 +13,7 @@ using System.Windows;
 
 namespace SmugMugCoreSync.Repositories
 {
-    internal class SourceFolderRepository
+    public class SourceFolderRepository
     {
         private readonly FolderSyncPathsConfig _folderSyncPathsConfig;
         private readonly string _rootSyncFolder;
@@ -32,9 +32,9 @@ namespace SmugMugCoreSync.Repositories
             _xmlSystem = xmlSystem;
 
             // Set the root folder
-            if (Directory.Exists(folderConfig.RootLocal))
+            if (fileSystem.Directory.Exists(folderConfig.RootLocal))
                 _rootSyncFolder = folderConfig.RootLocal;
-            else if (Directory.Exists(folderConfig.RootRemote))
+            else if (fileSystem.Directory.Exists(folderConfig.RootRemote))
                 _rootSyncFolder = folderConfig.RootRemote;
             else
                 throw new Exception("Invalid local or remote folders for reading source fiels.");
@@ -55,11 +55,10 @@ namespace SmugMugCoreSync.Repositories
         {
             Trace.Write("Populating Source Folder Details...");
             this.LoadFoldersAndFiles(rootSyncFolder: _rootSyncFolder);
-            //Trace.WriteLine($"Stopwatch: {sw.ElapsedMilliseconds}, found {_sourceLinkedFolders.Count }");
             Trace.WriteLine($"{_sourceLinkedFolders.Count} existing found, {_sourceUnlinkedFolders.Count} new found.");
         }
 
-        internal SourceDirectoryData? RetrieveLinkedFolderByKey(string albumKey)
+        public SourceDirectoryData? RetrieveLinkedFolderByKey(string albumKey)
         {
             if (_sourceLinkedFolders.ContainsKey(albumKey))
                 return _sourceLinkedFolders[albumKey];
@@ -67,11 +66,11 @@ namespace SmugMugCoreSync.Repositories
             return null;
         }
 
-        internal IEnumerable<SourceDirectoryData> RetrieveUnlinkedFolders()
+        public IEnumerable<SourceDirectoryData> RetrieveUnlinkedFolders()
         {
             return _sourceUnlinkedFolders.Values.OrderBy(o => o.FolderName);
         }
-        internal IEnumerable<SourceDirectoryData> RetrieveLinkedFolders()
+        public IEnumerable<SourceDirectoryData> RetrieveLinkedFolders()
         {
             return _sourceLinkedFolders.Values.OrderBy(o => o.FolderName);
         }
@@ -81,48 +80,56 @@ namespace SmugMugCoreSync.Repositories
             return SourceMediaData.LoadFrom(fileSystem: _filesystem, fileList: sourceDirectory.DirectoryInfo.GetFileSystemInfos().AsQueryable().Where(_filterMediaFiles));
         }
 
-        public void LoadFoldersAndFiles(string rootSyncFolder)
+        public bool LoadFoldersAndFiles(string rootSyncFolder)
         {
             var currentDirectory = _filesystem.DirectoryInfo.New(rootSyncFolder);
             if (_directoriesToSkip.Contains(currentDirectory.Name.ToUpper()))
-                return;
+                return false;
 
             // We ony need one file to to determine if this folder is important
             bool filesFound = currentDirectory.GetFileSystemInfos().AsQueryable().Where(_filterMediaFiles).Any();
 
             if (filesFound)
             {
-                if (_folderSyncPathsConfig.FilterFolderName.Any() && currentDirectory.FullName.Contains(_folderSyncPathsConfig.FilterFolderName))
+                if (currentDirectory.FullName.Contains(_folderSyncPathsConfig.FilterFolderName, StringComparison.OrdinalIgnoreCase))
                 {
                     var data = new SmugMugCoreSync.Data.SourceDirectoryData(fileSystem:_filesystem, xmlSystem: _xmlSystem, directory: currentDirectory);
                     if (data.IsLinked)
                         _sourceLinkedFolders.TryAdd(data.AlbumKey, data);
                     else
                         _sourceUnlinkedFolders.TryAdd(data.AlbumKey, data);
+
+                    return true;
                 }
+                else
+                    return false;
             }
             else // When there are no folders, recursively loop through the subfolders
             {
                 // If there are a  lot of directories, process them in parallel 
-                var directories = Directory.GetDirectories(rootSyncFolder).ToList();
+                var directories = _filesystem.Directory.GetDirectories(rootSyncFolder).ToList();
                 if (directories.Count > 10)
                 {
                     directories.AsParallel().ForAll(x => LoadFoldersAndFiles(x));                    
+                    return true;
                 }
-                else
+                else if (directories.Count > 0)
                 {
                     directories.ForEach(x => LoadFoldersAndFiles(x));
+                    return true;
                 }
+                else
+                    return false;
             }
         }
 
-        internal void AddNewLinkedFolder(SourceDirectoryData newLinkedFolder)
+        public void AddNewLinkedFolder(SourceDirectoryData newLinkedFolder)
         {
             _sourceUnlinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
             _sourceLinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);
         }
 
-        internal void RemoveLinkedFolder(SourceDirectoryData newLinkedFolder)
+        public void RemoveLinkedFolder(SourceDirectoryData newLinkedFolder)
         {
             _sourceLinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
             _sourceUnlinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);

@@ -102,7 +102,7 @@ namespace SmugMugCoreSync.Data
                 if (_fileSystem.File.Exists(smugMugIniPath))
                     _fileSystem.File.Delete(smugMugIniPath);
 
-                _xmlSystem.OutputXmlToFile(smugMugIniPath, new XmlSystem.WrappedXElement(root));
+                _xmlSystem.OutputXmlToFile(smugMugIniPath, root);
                 _fileSystem.File.SetAttributes(smugMugIniPath, FileAttributes.Hidden);
             }
             else
