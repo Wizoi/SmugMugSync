@@ -3,19 +3,22 @@ using System.Windows;
 using System.Xml;
 using System.IO.Abstractions;
 using System.Xml.Linq;
+using SmugMugCoreSync.Utility;
 
 namespace SmugMugCoreSync.Data
 {
     public class SourceDirectoryData
     {
         public const string META_FILE_SUFFIX = ".SMUGMUG.INI";
-        private IFileSystem _filesystem;
+        private IFileSystem _fileSystem;
+        private XmlSystem _xmlSystem;
 
-        public SourceDirectoryData(IFileSystem fileSystem, IDirectoryInfo directory) : base()
+        public SourceDirectoryData(IFileSystem fileSystem, XmlSystem xmlSystem, IDirectoryInfo directory) : base()
         {
             this.DirectoryInfo = directory;
 
-            _filesystem = fileSystem;
+            _fileSystem = fileSystem;
+            _xmlSystem = xmlSystem;
             FolderName = System.IO.Path.GetFileName(directory.FullName);
             Path = directory.FullName;
             AlbumKey = string.Empty;
@@ -73,9 +76,10 @@ namespace SmugMugCoreSync.Data
         {
             // Look for Smugmug ID Linkage File
             var smugMugIniPath = System.IO.Path.Combine(Path, META_FILE_SUFFIX);
-            if (_filesystem.File.Exists(smugMugIniPath))
+            if (_fileSystem.File.Exists(smugMugIniPath))
             {
-                System.Xml.Linq.XElement root = System.Xml.Linq.XElement.Load(smugMugIniPath);
+                string xmlData = _fileSystem.File.ReadAllText(smugMugIniPath);
+                System.Xml.Linq.XElement root = System.Xml.Linq.XElement.Parse(xmlData);
                 var albumIdNode = root.Element("albumId");
                 var albumKeyNode = root.Element("albumKey");
                 if (albumIdNode != null && albumKeyNode != null)
@@ -95,11 +99,11 @@ namespace SmugMugCoreSync.Data
                 XElement root = GenerateSyncXmNode();
 
                 // If it is being remapped to a new folder (allbum removed to be resynced), then this may exist and should be removed.
-                if (_filesystem.File.Exists(smugMugIniPath))
-                    _filesystem.File.Delete(smugMugIniPath);
+                if (_fileSystem.File.Exists(smugMugIniPath))
+                    _fileSystem.File.Delete(smugMugIniPath);
 
-                OutputIniFile(smugMugIniPath, root);
-                _filesystem.File.SetAttributes(smugMugIniPath, FileAttributes.Hidden);
+                _xmlSystem.OutputXmlToFile(smugMugIniPath, new XmlSystem.WrappedXElement(root));
+                _fileSystem.File.SetAttributes(smugMugIniPath, FileAttributes.Hidden);
             }
             else
                 throw new Exception("Cannot save an INI, there is no album currently linked.");
@@ -113,14 +117,6 @@ namespace SmugMugCoreSync.Data
             root.Add(elementAlbumId);
             root.Add(elementAlbumKey);
             return root;
-        }
-
-        private void OutputIniFile(string smugMugIniPath, XElement rootNode)
-        {
-            using (var xmlWriter = XmlWriter.Create(smugMugIniPath, new XmlWriterSettings() { Indent = true }))
-            {
-                rootNode.WriteTo(xmlWriter);
-            }
         }
     }
 }

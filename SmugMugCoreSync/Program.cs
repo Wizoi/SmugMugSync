@@ -20,7 +20,10 @@ var smCore = new SmugMug.Net.Core.SmugMugCore(
     apiKey: keySettings.ApiKey, apiSecret: keySettings.ApiSecret);
 
 /* Load Source Files */
-var sourceFolders = new SmugMugCoreSync.Repositories.SourceFolderRepository(fileSystem:new FileSystem(), folderConfig: appSettings.FolderSyncPaths);
+var sourceFolders = new SmugMugCoreSync.Repositories.SourceFolderRepository(
+    fileSystem:new FileSystem(), 
+    xmlSystem:new XmlSystem(),
+    folderConfig: appSettings.FolderSyncPaths);
 sourceFolders.PopulateSourceFoldersAndFiles();
 
 /* Load Remote Albums */
