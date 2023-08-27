@@ -433,4 +433,54 @@ public class SourceFolderRepositoryTest
         Assert.AreEqual(0, sourceFolderRepo.RetrieveLinkedFolders().Count(), "0 linked folders are expected");
         Assert.AreEqual(2, sourceFolderRepo.RetrieveUnlinkedFolders().Count(), "0 unlinked folders are expected");
     }
+
+    [TestMethod]
+    public void LoadFolderMediaFiles()
+    {
+        
+        // Create the Folder Repository
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
+
+        var xmlSystemMock = new Mock<XmlSystem>();
+
+         var inMemorySettings = new Dictionary<string, string?> {
+            {"extensionsToSkip:1", "txt"},
+        };
+       IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+
+        // Create the SourceDirectoryData objects to pass in
+
+        var fsiMock1 = new Mock<IFileSystemInfo>();
+        fsiMock1.SetupGet(x => x.FullName).Returns("A:\\Foo\\Filename.TXT");
+        fsiMock1.SetupGet(x => x.Name).Returns("Filename.TXT");
+        fsiMock1.SetupGet(x => x.Extension).Returns(".TXT");
+
+        var fsiMock2 = new Mock<IFileSystemInfo>();
+        fsiMock2.SetupGet(x => x.FullName).Returns("A:\\Foo\\Filename.JPG");
+        fsiMock2.SetupGet(x => x.Name).Returns("Filename.JPG");
+        fsiMock2.SetupGet(x => x.Extension).Returns(".JPG");
+
+        var directoryInfoMock = new Mock<IDirectoryInfo>();
+        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\FOO");
+        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(new []{fsiMock1.Object, fsiMock2.Object});
+
+        // For the mock to the SourceMediaData object
+        var fiMock = new Mock<IFileInfo>();
+
+        fileSystemMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(false);   
+        fileSystemMock.Setup(x => x.FileInfo.New(It.IsAny<string>())).Returns(fiMock.Object);           
+
+        // Create two objects
+        var sourceDirData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
+
+        // After the setup, run the test
+        var outputData = sourceFolderRepo.LoadFolderMediaFiles(sourceDirData);
+
+        Assert.AreEqual("FILENAME.JPG", outputData[0].FileName, "JPG Filename");
+        Assert.AreEqual(1, outputData.Count(), "1 Directory should be returned, other filtered due to being a TXT file.");
+    }
 }
