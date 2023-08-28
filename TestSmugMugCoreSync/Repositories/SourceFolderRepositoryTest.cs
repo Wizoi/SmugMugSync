@@ -4,7 +4,9 @@ using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
 using SmugMugCoreSync.Repositories;
 using SmugMugCoreSync.Utility;
+using System.Diagnostics;
 using System.IO.Abstractions;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
 
@@ -36,6 +38,68 @@ public class SourceFolderRepositoryTest
     }
 
     [TestMethod]
+    public void PopulateSourceFoldersAndFiles_TopLevelFunction_LocalRoot()
+    {
+        var directoryInfoMock = new Mock<IDirectoryInfo>();
+        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\FOODIRECTORY\\SKIPME");
+        directoryInfoMock.SetupGet(x => x.Name).Returns("SKIPME");
+
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.DirectoryInfo.New(It.IsAny<string>())).Returns(directoryInfoMock.Object);   
+        fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
+
+        var xmlSystemMock = new Mock<XmlSystem>();
+
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FOODIRECTORY"},
+            {"rootRemote", "A:\\ROOTFOLDER"},
+            {"folderNamesToSkip:2", "SKIPME"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+        var result = sourceFolderRepo.PopulateSourceFoldersAndFiles();
+
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\FOODIRECTORY"));
+        Assert.IsFalse(result, "Loading should not proceed if the folder is on skip list.");
+    }
+
+    [TestMethod]
+    public void PopulateSourceFoldersAndFiles_TopLevelFunction_RemoteRoot()
+    {
+        var directoryInfoMock = new Mock<IDirectoryInfo>();
+        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\FOODIRECTORY\\SKIPME");
+        directoryInfoMock.SetupGet(x => x.Name).Returns("SKIPME");
+
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.DirectoryInfo.New(It.IsAny<string>())).Returns(directoryInfoMock.Object);   
+        fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
+
+        // There are trace calls we want to verify are being made
+        var mockTrace = new Mock<TraceListener>();
+        Trace.Listeners.Add(mockTrace.Object);
+
+        var xmlSystemMock = new Mock<XmlSystem>();
+
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootRemote", "A:\\FOODIRECTORY"},
+            {"folderNamesToSkip:2", "SKIPME"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+        var result = sourceFolderRepo.PopulateSourceFoldersAndFiles();
+
+        mockTrace.Verify(x => x.Write(It.IsAny<string>()), Times.Exactly(1), "Expected a trace");
+        mockTrace.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Exactly(1), "Expected a trace");
+
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\FOODIRECTORY"));
+        Assert.IsFalse(result, "Loading should not proceed if the folder is on skip list.");
+    }
+
+    [TestMethod]
     public void LoadFolderAndFilesTest_SkipSameFolder()
     {
         var directoryInfoMock = new Mock<IDirectoryInfo>();
@@ -49,6 +113,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FOODIRECTORY"},
             {"folderNamesToSkip:1", "SKIPYOU"},
             {"folderNamesToSkip:2", "SKIPME"},
         };
@@ -82,6 +147,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
             {"extensionsToSkip:1", "txt"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
@@ -114,6 +180,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
@@ -146,6 +213,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FooBar"},
             {"filterFolderName", "Ignore"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
@@ -180,6 +248,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FooBar"},
             {"filterFolderName", "BAR"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
@@ -214,6 +283,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FooBar"},
             {"filterFolderName", "Bar"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
@@ -231,25 +301,26 @@ public class SourceFolderRepositoryTest
     public void LoadFolderAndFilesTest_Linked()
     {
         var fsiMock1 = new Mock<IFileSystemInfo>();
-        fsiMock1.SetupGet(x => x.FullName).Returns("A:\\FooBar\\Filename.JPG");
+        fsiMock1.SetupGet(x => x.FullName).Returns("A:\\Foo\\Filename.JPG");
         fsiMock1.SetupGet(x => x.Name).Returns("Filename.JPG");
         fsiMock1.SetupGet(x => x.Extension).Returns(".JPG");
 
         var directoryInfoMock = new Mock<IDirectoryInfo>();
-        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\FooBar");
-        directoryInfoMock.SetupGet(x => x.Name).Returns("FooBar");
+        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\Foo");
+        directoryInfoMock.SetupGet(x => x.Name).Returns("Foo");
         directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(new []{fsiMock1.Object});
 
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.DirectoryInfo.New(It.IsAny<string>())).Returns(directoryInfoMock.Object);           
-        fileSystemMock.Setup(x => x.File.Exists("A:\\FooBar\\.SMUGMUG.INI")).Returns(true);   
-        fileSystemMock.Setup(x => x.File.ReadAllText("A:\\FooBar\\.SMUGMUG.INI")).Returns(
+        fileSystemMock.Setup(x => x.File.Exists("A:\\Foo\\.SMUGMUG.INI")).Returns(true);   
+        fileSystemMock.Setup(x => x.File.ReadAllText("A:\\Foo\\.SMUGMUG.INI")).Returns(
             "<smugMugSyncData><albumId>1</albumId><albumKey>someKey</albumKey></smugMugSyncData>");   
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
@@ -266,8 +337,8 @@ public class SourceFolderRepositoryTest
     public void LoadFolderAndFilesTest_NoFilesOrFolders()
     {
         var directoryInfoMock = new Mock<IDirectoryInfo>();
-        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\FooBar");
-        directoryInfoMock.SetupGet(x => x.Name).Returns("FooBar");
+        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\Foo");
+        directoryInfoMock.SetupGet(x => x.Name).Returns("Foo");
         directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(Array.Empty<IFileSystemInfo>());
 
         var fileSystemMock = new Mock<IFileSystem>();
@@ -278,12 +349,13 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
-        var results = sourceFolderRepo.LoadFoldersAndFiles("A:\\FooBar");
+        var results = sourceFolderRepo.LoadFoldersAndFiles("A:\\Foo");
 
         Assert.IsFalse(results, "Nothing was found.");
     }
@@ -309,11 +381,14 @@ public class SourceFolderRepositoryTest
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.File.Exists("A:\\Foo\\Bar\\.SMUGMUG.INI")).Returns(false);   
-        fileSystemMock.Setup(x => x.DirectoryInfo.New(It.IsAny<string>())).Returns(subDirectoryInfoMock.Object);           
+        fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo")).Returns(directoryInfoMock.Object);           
+        fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo\\Bar")).Returns(subDirectoryInfoMock.Object);           
+        fileSystemMock.Setup(x => x.Directory.GetDirectories("A:\\Foo")).Returns(new []{"A:\\Foo\\Bar"});
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
@@ -321,6 +396,10 @@ public class SourceFolderRepositoryTest
         var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
         var results = sourceFolderRepo.LoadFoldersAndFiles("A:\\Foo");
 
+        // Check that we recursively wentover both folders
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo"));
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo\\Bar"));
+        // Check the results
         Assert.IsTrue(results, "Expected to load a file for the folder.");
         Assert.AreEqual(0, sourceFolderRepo.RetrieveLinkedFolders().Count(), "No linked folders should be loaded");
         var folders = sourceFolderRepo.RetrieveUnlinkedFolders();
@@ -360,6 +439,7 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
@@ -402,7 +482,9 @@ public class SourceFolderRepositoryTest
         // Setup the base repository
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
 
-        var inMemorySettings = new Dictionary<string, string?> {};
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
+        };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
@@ -425,6 +507,9 @@ public class SourceFolderRepositoryTest
         Assert.IsNotNull(actualFolder);
         Assert.AreEqual(1, actualFolder.AlbumId, "Album should be found and match theid");
 
+        var noActualFolder = sourceFolderRepo.RetrieveLinkedFolderByKey("someKeyMiss");
+        Assert.IsNull(noActualFolder);
+
 
         // TESTS:  Remove them and verify they become unlinked
         sourceFolderRepo.RemoveLinkedFolder(sourceDirData1);
@@ -445,9 +530,10 @@ public class SourceFolderRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
 
          var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
             {"extensionsToSkip:1", "txt"},
         };
-       IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);

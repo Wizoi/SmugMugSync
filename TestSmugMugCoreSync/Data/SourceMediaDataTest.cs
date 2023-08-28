@@ -1,4 +1,6 @@
 using Moq;
+using Moq.Protected;
+using SmugMug.Net.Service;
 using SmugMugCoreSync.Data;
 using System.IO.Abstractions;
 
@@ -8,7 +10,7 @@ namespace TestSmugMugCoreSync;
 public class SourceMediaDataTest
 {
     [TestMethod]
-    public void SourceMediaData_CoreFieldTest()
+    public void CoreFieldTest()
     {
         var fiMock = new Mock<IFileInfo>();
         fiMock.SetupGet(x => x.Length).Returns(1000);
@@ -32,7 +34,7 @@ public class SourceMediaDataTest
     }
 
     [TestMethod]
-    public void SourceMediaData_NotUpdatableTest()
+    public void NotUpdatableTest()
     {
         var fiMock = new Mock<IFileInfo>();
         var fsiMock = new Mock<IFileSystemInfo>();
@@ -47,7 +49,7 @@ public class SourceMediaDataTest
     }
 
     [TestMethod]
-    public void SourceMediaData_LoadFromAdapterTest()
+    public void LoadFromAdapterTest()
     {
         var fiMock = new Mock<IFileInfo>();
         var fileSystemMock = new Mock<IFileSystem>();
