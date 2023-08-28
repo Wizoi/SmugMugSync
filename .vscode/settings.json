@@ -1,3 +1,4 @@
 {
-    "dotnet.defaultSolution": "Smugmug.sln"
+    "dotnet.defaultSolution": "Smugmug.sln",
+    "coverage-gutters.showLineCoverage": true,
 }

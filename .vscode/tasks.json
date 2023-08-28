@@ -12,6 +12,24 @@
 				"isDefault": true
 			},
 			"label": "dotnet: build"
-		}
+		},
+		{
+            "label": "test",
+            "dependsOn": [],
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/TestSmugMugCoreSync/TestSmugMugCoreSync.csproj",
+                "/p:CollectCoverage=true",
+                "/p:CoverletOutputFormat=lcov",
+                "/p:CoverletOutput=../lcov.info"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
 	]
 }

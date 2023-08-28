@@ -32,9 +32,9 @@ namespace SmugMugCoreSync.Repositories
             _xmlSystem = xmlSystem;
 
             // Set the root folder
-            if (fileSystem.Directory.Exists(folderConfig.RootLocal))
+            if (folderConfig.RootLocal.Length > 0 && fileSystem.Directory.Exists(folderConfig.RootLocal))
                 _rootSyncFolder = folderConfig.RootLocal;
-            else if (fileSystem.Directory.Exists(folderConfig.RootRemote))
+            else if (folderConfig.RootRemote.Length > 0 && fileSystem.Directory.Exists(folderConfig.RootRemote))
                 _rootSyncFolder = folderConfig.RootRemote;
             else
                 throw new Exception("Invalid local or remote folders for reading source fiels.");
@@ -51,11 +51,13 @@ namespace SmugMugCoreSync.Repositories
                 && x.Extension != x.Name;
         }
 
-        public void PopulateSourceFoldersAndFiles()
+        public bool PopulateSourceFoldersAndFiles()
         {
             Trace.Write("Populating Source Folder Details...");
-            this.LoadFoldersAndFiles(rootSyncFolder: _rootSyncFolder);
+            var result = this.LoadFoldersAndFiles(rootSyncFolder: _rootSyncFolder);
             Trace.WriteLine($"{_sourceLinkedFolders.Count} existing found, {_sourceUnlinkedFolders.Count} new found.");
+            
+            return result;
         }
 
         public SourceDirectoryData? RetrieveLinkedFolderByKey(string albumKey)
