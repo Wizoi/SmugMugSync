@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Windows.Xps.Serialization;
 using SmugMug.Net;
 using SmugMug.Net.Data.Domain.Album;
 
@@ -158,6 +159,16 @@ namespace SmugMug.Net.Service
 
 
         /// <summary>
+        /// Retrieve a list of albums for a given user with a field list.  Will return empty albums, and ignore the nickname, and album passwords
+        /// </summary>
+        /// <param name="fieldList">Extra fields to load in an album list (use data object fieldnames)</param>
+        /// <returns></returns>
+        public virtual Data.AlbumDetail[] GetAlbumList(string[] fieldList)
+        {
+            return GetAlbumList(fieldList: fieldList, returnEmpty:true, nickName:string.Empty, sitePassword:string.Empty);
+        }
+
+        /// <summary>
         /// Retrieve a list of albums for a given user
         /// </summary>
         /// <param name="returnEmpty">Return empty albums, categories and subcategories</param>
@@ -165,7 +176,7 @@ namespace SmugMug.Net.Service
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <param name="fieldList">Extra fields to load in an album list (use data object fieldnames)</param>
         /// <returns></returns>
-        public Data.AlbumDetail[] GetAlbumList(string[] fieldList, bool returnEmpty = true, string nickName = "", string sitePassword = "")
+        public Data.AlbumDetail[] GetAlbumList(string[] fieldList, bool returnEmpty, string nickName, string sitePassword)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
