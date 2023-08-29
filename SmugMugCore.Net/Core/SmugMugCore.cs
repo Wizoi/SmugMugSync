@@ -36,7 +36,7 @@ namespace SmugMug.Net.Core
             }
         }
 
-        public AlbumService AlbumService
+        public virtual AlbumService AlbumService
         {
             get
             {

@@ -21,7 +21,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace SmugMugCoreSync.Repositories
 {
-    internal class TargetAlbumRepository
+    public class TargetAlbumRepository
     {
         private readonly FolderSyncPathsConfig _folderSyncPathsConfig;
         private readonly SmugMugCore _smCore;
@@ -31,6 +31,11 @@ namespace SmugMugCoreSync.Repositories
         {
             _smCore = core;
             _folderSyncPathsConfig = folderConfig;
+        }
+
+        public int TargetAlbumCount()
+        {
+            return _targetAlbums.Count;
         }
 
         public void PopulateTargetAlbums()
@@ -540,7 +545,7 @@ namespace SmugMugCoreSync.Repositories
             _targetAlbums.Clear();
 
             var albumService = _smCore.AlbumService;
-            var albumList = (from x in albumService.GetAlbumList(fieldList: new string[] { "Title" }, returnEmpty: true)
+            var albumList = (from x in albumService.GetAlbumList(fieldList: new string[] { "Title" })
                                 where x.Title != null && x.Title.Contains('-')
                                 && x.Title.ToUpper().Contains(_folderSyncPathsConfig.FilterFolderName.ToUpper())
                                 select x);
