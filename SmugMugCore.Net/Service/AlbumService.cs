@@ -147,7 +147,7 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="albumId">The id for a specific album</param>
         /// <returns></returns>
-        public bool DeleteAlbum(int albumId)
+        public virtual bool DeleteAlbum(int albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -197,10 +197,21 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="albumId">The id for a specific album</param>
         /// <param name="albumKey">The key for a specific album</param>
+        /// <returns></returns>
+        public virtual Data.AlbumDetail GetAlbumDetail(int albumId, string albumKey)
+        {
+            return GetAlbumDetailFull(albumId:albumId, albumKey:albumKey, albumPassword:"", sitePassword:"");
+        }
+
+        /// <summary>
+        /// Retrieve the information for an album
+        /// </summary>
+        /// <param name="albumId">The id for a specific album</param>
+        /// <param name="albumKey">The key for a specific album</param>
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public Data.AlbumDetail GetAlbumDetail(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
+        public Data.AlbumDetail GetAlbumDetailFull(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -288,7 +299,7 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="album">Album object to change settings on</param>
         /// <returns>New Album Album object with Key Information</returns>
-        public Data.AlbumDetail CreateAlbum(Data.AlbumDetail album)
+        public virtual Data.AlbumDetail CreateAlbum(Data.AlbumDetail album)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();

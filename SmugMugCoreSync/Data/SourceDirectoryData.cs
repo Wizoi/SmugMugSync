@@ -35,7 +35,7 @@ namespace SmugMugCoreSync.Data
 
         public bool IsLinked { get; private set; }
 
-        public void LinkToAlbum(int albumId, string albumKey)
+        public virtual void LinkToAlbum(int albumId, string albumKey)
         {
             if (LinkToAlbumInternal(albumId, albumKey))
             {
@@ -43,7 +43,7 @@ namespace SmugMugCoreSync.Data
             }
         }
 
-        public void UnlinkFromAlbum()
+        public virtual void UnlinkFromAlbum()
         {
             this.IsLinked = false;
             AlbumKey = string.Empty;
@@ -89,7 +89,7 @@ namespace SmugMugCoreSync.Data
             }
         }
 
-        public void SaveIni()
+        public virtual void SaveIni()
         {
             // Look for Smugmug ID Linkage File
             var smugMugIniPath = System.IO.Path.Combine(Path, META_FILE_SUFFIX);

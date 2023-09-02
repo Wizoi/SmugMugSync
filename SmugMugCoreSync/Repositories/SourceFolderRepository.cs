@@ -51,7 +51,7 @@ namespace SmugMugCoreSync.Repositories
                 && x.Extension != x.Name;
         }
 
-        public bool PopulateSourceFoldersAndFiles()
+        public virtual bool PopulateSourceFoldersAndFiles()
         {
             Trace.Write("Populating Source Folder Details...");
             var result = this.LoadFoldersAndFiles(rootSyncFolder: _rootSyncFolder);
@@ -60,7 +60,7 @@ namespace SmugMugCoreSync.Repositories
             return result;
         }
 
-        public SourceDirectoryData? RetrieveLinkedFolderByKey(string albumKey)
+        public virtual SourceDirectoryData? RetrieveLinkedFolderByKey(string albumKey)
         {
             if (_sourceLinkedFolders.ContainsKey(albumKey))
                 return _sourceLinkedFolders[albumKey];
@@ -68,21 +68,21 @@ namespace SmugMugCoreSync.Repositories
             return null;
         }
 
-        public IEnumerable<SourceDirectoryData> RetrieveUnlinkedFolders()
+        public virtual IEnumerable<SourceDirectoryData> RetrieveUnlinkedFolders()
         {
             return _sourceUnlinkedFolders.Values.OrderBy(o => o.FolderName);
         }
-        public IEnumerable<SourceDirectoryData> RetrieveLinkedFolders()
+        public virtual IEnumerable<SourceDirectoryData> RetrieveLinkedFolders()
         {
             return _sourceLinkedFolders.Values.OrderBy(o => o.FolderName);
         }
 
-        public SourceMediaData[] LoadFolderMediaFiles(SourceDirectoryData sourceDirectory)
+        public virtual SourceMediaData[] LoadFolderMediaFiles(SourceDirectoryData sourceDirectory)
         {
             return SourceMediaData.LoadFrom(fileSystem: _filesystem, fileList: sourceDirectory.DirectoryInfo.GetFileSystemInfos().AsQueryable().Where(_filterMediaFiles));
         }
 
-        public bool LoadFoldersAndFiles(string rootSyncFolder)
+        public virtual bool LoadFoldersAndFiles(string rootSyncFolder)
         {
             var currentDirectory = _filesystem.DirectoryInfo.New(rootSyncFolder);
             if (_directoriesToSkip.Contains(currentDirectory.Name.ToUpper()))
@@ -125,13 +125,13 @@ namespace SmugMugCoreSync.Repositories
             }
         }
 
-        public void AddNewLinkedFolder(SourceDirectoryData newLinkedFolder)
+        public virtual void AddNewLinkedFolder(SourceDirectoryData newLinkedFolder)
         {
             _sourceUnlinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
             _sourceLinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);
         }
 
-        public void RemoveLinkedFolder(SourceDirectoryData newLinkedFolder)
+        public virtual void RemoveLinkedFolder(SourceDirectoryData newLinkedFolder)
         {
             _sourceLinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
             _sourceUnlinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);

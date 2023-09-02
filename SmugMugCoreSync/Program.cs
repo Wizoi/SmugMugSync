@@ -30,7 +30,6 @@ sourceFolders.PopulateSourceFoldersAndFiles();
 var remoteAlbums = new SmugMugCoreSync.Repositories.TargetAlbumRepository(core: smCore, folderConfig: appSettings.FolderSyncPaths);
 remoteAlbums.PopulateTargetAlbums();
 remoteAlbums.VerifyLinkedFolders(appSettings.RuntimeFlags, sourceFolders);
-remoteAlbums.ResyncAlbumTitlesFromFolderNames(appSettings.RuntimeFlags, sourceFolders);
 remoteAlbums.SyncNewFolders(appSettings.RuntimeFlags, sourceFolders);
 remoteAlbums.SyncExistingFolders(appSettings.RuntimeFlags, sourceFolders);
 remoteAlbums.SyncFolderFiles(appSettings.RuntimeFlags, sourceFolders);
