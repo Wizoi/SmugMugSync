@@ -45,45 +45,20 @@ namespace SmugMugCoreSync.Repositories
             Trace.WriteLine($"{_targetAlbums.Count} found.");
         }
 
-        internal void VerifyLinkedFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
+        public void VerifyLinkedFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
         {
             foreach (var f in sourceFolders.RetrieveLinkedFolders())
             {
                 if (!_targetAlbums.ContainsKey(f.AlbumKey))
                 {
-                    // Folder is marked as linkedto an album which does not  match
+                    // Folder is marked as linked to an album which does not  match
                     f.UnlinkFromAlbum();
                     sourceFolders.RemoveLinkedFolder(f);
                 }
             }
         }
 
-        internal void ResyncAlbumTitlesFromFolderNames(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
-        {
-            foreach (AlbumDetail album in _targetAlbums.Values)
-            {
-                string? albumTitle = sourceFolders.RetrieveLinkedFolderByKey(album.AlbumKey)?.FolderName ?? null;
-                if (albumTitle != null && albumTitle != album.Title)
-                {
-                    switch (runtimeFlags.TargetUpdate)
-                    {
-                        case OperationLevel.Normal:
-                            // Update SmugMug
-                            album.Title = albumTitle;
-                            //_smCore.AlbumService.UpdateAlbum(album);
-                            Trace.WriteLine("Album NOT Renamed (api deprecated): " + albumTitle);
-                            break;
-                        case OperationLevel.NoneLog:
-                            Trace.WriteLine("..? Rename Suppressed: " + albumTitle);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-
-        internal void SyncNewFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
+        public void SyncNewFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
         {
             var newFolders = sourceFolders.RetrieveUnlinkedFolders();
 
@@ -124,6 +99,33 @@ namespace SmugMugCoreSync.Repositories
                         break;
                     default:
                         break;
+                }
+            }
+        }
+
+        public void SyncExistingFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
+        {
+            var existingFolders = sourceFolders.RetrieveLinkedFolders();
+            var keyHashList = existingFolders.ToLookup(x => x.AlbumKey); 
+
+            foreach (var albumKey in _targetAlbums.Keys)
+            {
+                if (!keyHashList.Contains(albumKey))
+                {
+                    switch (runtimeFlags.TargetDelete)
+                    {
+                        case OperationLevel.Normal:
+                            if (_smCore.AlbumService.DeleteAlbum(_targetAlbums[albumKey].AlbumId))
+                            {
+                                _targetAlbums.Remove(albumKey);
+                            }
+                            break;
+                        case OperationLevel.NoneLog:
+                            Trace.WriteLine($"..? Album Delete Suppressed: {albumKey} / {_targetAlbums[albumKey].Title}");
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -511,33 +513,6 @@ namespace SmugMugCoreSync.Repositories
             }
         }
 
-
-        internal void SyncExistingFolders(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
-        {
-            var existingFolders = sourceFolders.RetrieveLinkedFolders();
-            var keyHashList = existingFolders.ToLookup(x => x.AlbumKey); 
-
-            foreach (var albumKey in _targetAlbums.Keys)
-            {
-                if (!keyHashList.Contains(albumKey))
-                {
-                    switch (runtimeFlags.TargetDelete)
-                    {
-                        case OperationLevel.Normal:
-                            if (_smCore.AlbumService.DeleteAlbum(_targetAlbums[albumKey].AlbumId))
-                            {
-                                _targetAlbums.Remove(albumKey);
-                            }
-                            break;
-                        case OperationLevel.NoneLog:
-                            Trace.WriteLine($"..? Album Delete Suppressed: {albumKey} / {_targetAlbums[albumKey].Title}");
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
 
         private void LoadRemoteAlbums()
         {
