@@ -224,11 +224,23 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="albumId">The id for a specific album</param>
         /// <param name="albumKey">The key for a specific album</param>
+        /// <param name="fieldList">List of fields from Images within the Album to add to the resultset</param>
+        /// <returns></returns>
+        public virtual Data.AlbumDetail GetAlbumImages(string[] fieldList, int albumId, string albumKey)
+        {
+            return  GetAlbumImagesExt(fieldList:fieldList, albumId:albumId, albumKey:albumKey);
+        }
+
+        /// <summary>
+        /// Retrieve a list of images for an album.
+        /// </summary>
+        /// <param name="albumId">The id for a specific album</param>
+        /// <param name="albumKey">The key for a specific album</param>
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <param name="fieldList">List of fields from Images within the Album to add to the resultset</param>
         /// <returns></returns>
-        public Data.AlbumDetail GetAlbumImages(string[] fieldList, int albumId, string albumKey, string albumPassword = "", string sitePassword = "", bool loadAllImageInfo = false)
+        public Data.AlbumDetail GetAlbumImagesExt(string[] fieldList, int albumId, string albumKey, string albumPassword = "", string sitePassword = "", bool loadAllImageInfo = false)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();

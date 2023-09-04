@@ -129,7 +129,7 @@ namespace SmugMug.Net.Core
             }
         }
 
-        public ImageService ImageService
+        public virtual ImageService ImageService
         {
             get
             {
@@ -138,7 +138,7 @@ namespace SmugMug.Net.Core
                 return (ImageService)_serviceCatalog[keyName];
             }
         }
-        public ImageUploaderService ImageUploaderService
+        public virtual ImageUploaderService ImageUploaderService
         {
             get
             {
