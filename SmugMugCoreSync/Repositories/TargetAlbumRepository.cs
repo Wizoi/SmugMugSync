@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Text;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -198,12 +199,6 @@ namespace SmugMugCoreSync.Repositories
                 existingFilenames = targetFileNameLookup.Keys.Intersect(sourceFileNameLookup.Keys).ToArray();
                 dupeTargetImages = dupeFileNameList.ToArray();
 
-                // Update the stats
-                runtimeFileStats.DeletedFiles = deleteFilenames.Length;
-                runtimeFileStats.AddedFiles = newFilenames.Length;
-                runtimeFileStats.ResyncedFiles = existingFilenames.Length;
-                runtimeFileStats.DuplicateFiles = dupeTargetImages.Length;
-
                 // Delete old files
                 foreach (var targetName in deleteFilenames)
                 {
@@ -212,6 +207,7 @@ namespace SmugMugCoreSync.Repositories
                     {
                         case OperationLevel.Normal:
                             _ = await _smCore.ImageService.Delete(targetImage.ImageId, targetAlbum.AlbumId);
+                            runtimeFileStats.DeletedFiles++;
                             break;
                         case OperationLevel.NoneLog:
                             Trace.WriteLine("..? Delete Suppressed: " + targetImage.Title);
@@ -229,6 +225,7 @@ namespace SmugMugCoreSync.Repositories
                     {
                         case OperationLevel.Normal:
                             _ = await _smCore.ImageService.Delete(toDeleteImage.ImageId, targetAlbum.AlbumId);
+                            runtimeFileStats.DuplicateFiles++;
                             break;
                         case OperationLevel.NoneLog:
                             Trace.WriteLine("..? Delete of Dupe Suppressed: " + toDeleteImage.Title);
@@ -240,15 +237,16 @@ namespace SmugMugCoreSync.Repositories
                 }
 
                 // Add new files
-                var taskList = new List<Task>();
+                var taskListNew = new List<Task<bool>>();
                 foreach (var name in newFilenames)
                 {
                     var sourceImage = sourceFileNameLookup[name];
                     Trace.WriteLine($"Process {sourceImage.FileName}");
-                    taskList.Add(ProcessNewRemoteMedia(runtimeFlags, sourceImage, targetAlbum, uploadThrottler));    
+                    taskListNew.Add(ProcessNewRemoteMedia(runtimeFlags, sourceImage, targetAlbum, uploadThrottler));    
                 }
 
                 // Check existing files to see if they need to be updated
+                var taskListExisting = new List<Task<bool>>();
                 foreach (var name in existingFilenames)
                 {
                     var sourceImage = sourceFileNameLookup[name];
@@ -256,16 +254,23 @@ namespace SmugMugCoreSync.Repositories
 
                     if (!targetImage.IsDeleted)
                     {
-                        taskList.Add(ProcessExistingRemoteMedia(runtimeFlags, sourceImage, targetAlbum, targetImage, uploadThrottler));
+                        taskListExisting.Add(ProcessExistingRemoteMedia(runtimeFlags, sourceImage, targetAlbum, targetImage, uploadThrottler));
                     }
                 }
-                Task.WaitAll(taskList.ToArray());
+                Task.WaitAll(taskListNew.Concat(taskListExisting).ToArray());
+
+                foreach (var t in taskListNew)
+                    if (t.Result) runtimeFileStats.AddedFiles++;
+
+                foreach (var t in taskListExisting)
+                    if (t.Result) runtimeFileStats.ResyncedFiles++;
+
             }
 
             return runtimeStats;
         }
 
-        private async Task ProcessExistingRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, ImageDetail targetImage, SemaphoreSlim uploadThrottler)
+        public async virtual Task<bool> ProcessExistingRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, ImageDetail targetImage, SemaphoreSlim uploadThrottler)
         {
             var reDownloadImage = false;
 
@@ -310,9 +315,11 @@ namespace SmugMugCoreSync.Repositories
             {
                 uploadThrottler.Release();
             }
+
+            return true;
         } 
 
-        private async Task<bool> ProcessNewRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, SemaphoreSlim uploadThrottler)
+        public virtual async Task<bool> ProcessNewRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, SemaphoreSlim uploadThrottler)
         {
             bool continueToAdd = true;
 
@@ -371,7 +378,7 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
-        private async Task<bool> RefreshRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, AlbumDetail targetAlbum, ImageDetail targetImage)
+        public virtual  async Task<bool> RefreshRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, AlbumDetail targetAlbum, ImageDetail targetImage)
         {
             sourceMetadata.MD5Checksum = await sourceImage.LoadMd5Checksum();
 
@@ -401,7 +408,7 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
-        private async Task<bool> RedownloadMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageDetail targetImage)
+        public virtual  async Task<bool> RedownloadMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageDetail targetImage)
         {
             Trace.WriteLine(" ** Redownload Image Requested: " + sourceImage.FullFileName);
             var smugImage = await _smCore.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);
@@ -424,7 +431,7 @@ namespace SmugMugCoreSync.Repositories
             return isRedownloaded;
         }
 
-        private async Task<bool> UpdateMetadata(RuntimeFlagsConfig runtimeFlags, ImageContent sourceXmlMetadata, ImageDetail targetImage)
+        public virtual  async Task<bool> UpdateMetadata(RuntimeFlagsConfig runtimeFlags, ImageContent sourceXmlMetadata, ImageDetail targetImage)
         {
             // Scenario 3: Not forcing binary update, but will always update metadata if different
             bool isMetadataUpdated = false;
@@ -466,7 +473,7 @@ namespace SmugMugCoreSync.Repositories
             return isMetadataUpdated;
         }
 
-        private async static Task<bool> IsRedownloadNeeded(SmugMugCore core, SourceMediaData sourceImage, ImageDetail targetImage)
+        public async static Task<bool> IsRedownloadNeeded(SmugMugCore core, SourceMediaData sourceImage, ImageDetail targetImage)
         {
             // Now get the MD5 and see if it matches...
             var smugImage = await core.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);

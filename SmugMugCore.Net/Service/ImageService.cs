@@ -194,7 +194,7 @@ namespace SmugMug.Net.Service
         /// <param name="imageId">The id for a specific image</param>
         /// <param name="albumId">The id for the album that has the image</param>
         /// <returns></returns>
-        public async Task<bool> Delete(long imageId, int albumId)
+        public async virtual Task<bool> Delete(long imageId, int albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
