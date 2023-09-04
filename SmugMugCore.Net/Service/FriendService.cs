@@ -19,13 +19,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="nickName">The NickName for a specific user</param>
         /// <returns></returns>
-        public bool AddFriend(string nickName)
+        public async Task<bool> AddFriend(string nickName)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("NickName", nickName);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.friends.add", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.friends.add", queryParams, false);
 
             return true;
         }
@@ -35,12 +35,12 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of friends for a user
         /// </summary>
         /// <returns></returns>
-        public Data.SmugmugFriend[] GetFriendList()
+        public async Task<Data.SmugmugFriend[]> GetFriendList()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
 
-            var queryResponse = _core.QueryWebsite<Data.SmugmugFriend>("smugmug.friends.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.SmugmugFriend>("smugmug.friends.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -51,13 +51,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="nickName">The NickName for a specific user</param>
         /// <returns></returns>
-        public bool RemoveFriend(string nickName)
+        public async Task<bool> RemoveFriend(string nickName)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("NickName", nickName);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.friends.remove", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.friends.remove", queryParams, false);
 
             return true;
         }
@@ -66,12 +66,12 @@ namespace SmugMug.Net.Service
         /// Remove all users from a user's list of friends
         /// </summary>
         /// <returns></returns>
-        public bool RemoveAll()
+        public async Task<bool> RemoveAll()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.friends.removeAll", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.friends.removeAll", queryParams, false);
 
             return true;
         }

@@ -23,14 +23,14 @@ namespace SmugMug.Net.Service
         /// <param name="watermarkId">The id for a specific watermark</param>
         /// <returns></returns>
         [Obsolete("ApplyWatermark Method is no longer vaid")]
-        public bool ApplyWatermark(int albumId, int watermarkId)
+        public async Task<bool> ApplyWatermark(int albumId, int watermarkId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumID", albumId);
             queryParams.Add("WatermarkID", watermarkId);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.applyWatermark", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.applyWatermark", queryParams, false);
             return true;
         }
 
@@ -40,13 +40,13 @@ namespace SmugMug.Net.Service
         /// <param name="albumId">The id for a specific album</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.removeWatermark no longer is working with v1.3.0 Smugmug API.")]
-        public bool RemoveWatermark(int albumId)
+        public async Task<bool> RemoveWatermark(int albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumID", albumId);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.removeWatermark", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.removeWatermark", queryParams, false);
             return true;
         }
 
@@ -56,13 +56,13 @@ namespace SmugMug.Net.Service
         /// <param name="albumId">The id for a specific album</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.reSort no longer is working with v1.3.0 Smugmug API.")]
-        public bool Resort(int albumId)
+        public async Task<bool> Resort(int albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumID", albumId);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.reSort", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.reSort", queryParams, false);
             return true;
         }
 
@@ -74,7 +74,7 @@ namespace SmugMug.Net.Service
         /// <param name="password">The password for the album</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.browse no longer is working with v1.3.0 Smugmug API.")]
-        public System.Uri Browse(int albumId, string albumKey, string password = "")
+        public async Task<System.Uri> Browse(int albumId, string albumKey, string password = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -82,7 +82,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("AlbumKey", albumKey);
             queryParams.Add("Password", password, "");
 
-            var results = _core.QueryWebsite<System.Uri>("smugmug.albums.browse", queryParams, false);
+            var results = await _core.QueryWebsite<System.Uri>("smugmug.albums.browse", queryParams, false);
             return results[0];
         }
 
@@ -96,7 +96,7 @@ namespace SmugMug.Net.Service
         /// Values: 0 - No Rating (default), 1 - 1 Star Rating, 2 - 2 Star Rating, 3 - 3 Star Rating, 4 - 4 Star Rating, 5 - 5 Star Rating</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.comments.add no longer is working with v1.3.0 Smugmug API.")]
-        public Data.Comment AddComment(int albumId, string albumKey, string[] fieldList, string comment, int rating = 0)
+        public async Task<Data.Comment> AddComment(int albumId, string albumKey, string[] fieldList, string comment, int rating = 0)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -106,7 +106,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Rating", rating, 0);
             queryParams.Add("Extras", Core.SmugMugCore.ConvertFieldListToXmlFields<Data.Comment>(fieldList) ?? "", "");
 
-            var response = _core.QueryWebsite<Data.Comment>("smugmug.albums.comments.add", queryParams, false);
+            var response = await _core.QueryWebsite<Data.Comment>("smugmug.albums.comments.add", queryParams, false);
             var retVal = response[0];
             retVal.Text = comment;
             retVal.Rating = rating;
@@ -123,7 +123,7 @@ namespace SmugMug.Net.Service
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.comments.get no longer is working with v1.3.0 Smugmug API.")]
-        public Data.Comment[] GetCommentList(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
+        public async Task<Data.Comment[]> GetCommentList(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -132,7 +132,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Password", albumPassword, "");
             queryParams.Add("SitePassword", sitePassword, "");
 
-            Data.AlbumDetail[]? response = _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.comments.get", queryParams, false);
+            Data.AlbumDetail[]? response = await _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.comments.get", queryParams, false);
             if (response != null && response.Length > 0)
             {
                 var responseDetail = response[0];
@@ -147,13 +147,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="albumId">The id for a specific album</param>
         /// <returns></returns>
-        public virtual bool DeleteAlbum(int albumId)
+        public virtual async Task<bool> DeleteAlbum(int albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumID", albumId);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.delete", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.albums.delete", queryParams, false);
             return true;
         }
 
@@ -163,9 +163,9 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="fieldList">Extra fields to load in an album list (use data object fieldnames)</param>
         /// <returns></returns>
-        public virtual Data.AlbumDetail[] GetAlbumList(string[] fieldList)
+        public async virtual Task<Data.AlbumDetail[]> GetAlbumList(string[] fieldList)
         {
-            return GetAlbumList(fieldList: fieldList, returnEmpty:true, nickName:string.Empty, sitePassword:string.Empty);
+            return await GetAlbumList(fieldList: fieldList, returnEmpty:true, nickName:string.Empty, sitePassword:string.Empty);
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace SmugMug.Net.Service
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <param name="fieldList">Extra fields to load in an album list (use data object fieldnames)</param>
         /// <returns></returns>
-        public Data.AlbumDetail[] GetAlbumList(string[] fieldList, bool returnEmpty, string nickName, string sitePassword)
+        public async Task<Data.AlbumDetail[]> GetAlbumList(string[] fieldList, bool returnEmpty, string nickName, string sitePassword)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -186,7 +186,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Heavy", false);
             queryParams.Add("Extras", Core.SmugMugCore.ConvertFieldListToXmlFields<Data.AlbumDetail>(fieldList) ?? "", "");
 
-            var queryResponse = _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -198,9 +198,9 @@ namespace SmugMug.Net.Service
         /// <param name="albumId">The id for a specific album</param>
         /// <param name="albumKey">The key for a specific album</param>
         /// <returns></returns>
-        public virtual Data.AlbumDetail GetAlbumDetail(int albumId, string albumKey)
+        public async virtual Task<Data.AlbumDetail> GetAlbumDetail(int albumId, string albumKey)
         {
-            return GetAlbumDetailExt(albumId:albumId, albumKey:albumKey, albumPassword:"", sitePassword:"");
+            return await GetAlbumDetailExt(albumId:albumId, albumKey:albumKey, albumPassword:"", sitePassword:"");
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace SmugMug.Net.Service
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public Data.AlbumDetail GetAlbumDetailExt(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
+        public async Task<Data.AlbumDetail> GetAlbumDetailExt(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -220,7 +220,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Password", albumPassword, "");
             queryParams.Add("SitePassword", sitePassword, "");
 
-            var queryResponse = _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.getInfo", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.getInfo", queryParams, false);
 
             // Return Results
             return queryResponse[0];
@@ -233,7 +233,7 @@ namespace SmugMug.Net.Service
         /// <param name="nickName">The NickName for a specific user</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public Data.AlbumDetail[] GetAlbumDetailList(bool returnEmpty, string nickName, string sitePassword = "")
+        public async Task<Data.AlbumDetail[]> GetAlbumDetailList(bool returnEmpty, string nickName, string sitePassword = "")
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -243,7 +243,7 @@ namespace SmugMug.Net.Service
 
             queryParams.Add("Heavy", true);
 
-            var queryResponse = _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -257,7 +257,7 @@ namespace SmugMug.Net.Service
         /// <param name="year">The year to retrieve statistics for</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.getStats no longer is working with v1.3.0 Smugmug API.")]
-        public Data.AlbumStats GetAlbumStats(int albumId, int month, int year, bool includImageInfo = false)
+        public async Task<Data.AlbumStats> GetAlbumStats(int albumId, int month, int year, bool includImageInfo = false)
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -267,7 +267,7 @@ namespace SmugMug.Net.Service
 
             queryParams.Add("Heavy", includImageInfo);
 
-            var queryResponse = _core.QueryWebsite<Data.AlbumStats>("smugmug.albums.getStats", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.AlbumStats>("smugmug.albums.getStats", queryParams, false);
             var albumStats = queryResponse[0];
             albumStats.AlbumId = albumId;
             albumStats.Month = month;
@@ -283,14 +283,14 @@ namespace SmugMug.Net.Service
         /// <param name="album">Album object to change settings on</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.changeSettings no longer is working with v1.3.0 Smugmug API.")]
-        public bool UpdateAlbum(Data.AlbumDetail album)
+        public async Task<bool> UpdateAlbum(Data.AlbumDetail album)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumID", album.AlbumId);
             AlbumService.AddAlbumParameters(queryParams, album);
 
-            _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.changeSettings", queryParams, false);
+            _ = await _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.changeSettings", queryParams, false);
             return true;
         }
 
@@ -299,13 +299,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="album">Album object to change settings on</param>
         /// <returns>New Album Album object with Key Information</returns>
-        public virtual Data.AlbumDetail CreateAlbum(Data.AlbumDetail album)
+        public async virtual Task<Data.AlbumDetail> CreateAlbum(Data.AlbumDetail album)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             AlbumService.AddAlbumParameters(queryParams, album);
 
-            var response = _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.create", queryParams, false);
+            var response = await _core.QueryWebsite<Data.AlbumDetail>("smugmug.albums.create", queryParams, false);
             
             // Return a copy of the original object
             var newAlbum = response[0];
@@ -418,6 +418,5 @@ namespace SmugMug.Net.Service
             queryParams.Add("X2Larges", album.ViewingLargeX2ImagesEnabled);
             queryParams.Add("X3Larges", album.ViewingLargeX3ImagesEnabled);
         }
-
     }
 }

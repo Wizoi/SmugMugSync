@@ -18,17 +18,15 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of communities for a user
         /// </summary>
         /// <returns></returns>
-        public Data.Community[] GetCommunityList()
+        public async Task<Data.Community[]> GetCommunityList()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
 
-            var queryResponse = _core.QueryWebsite<Data.Community>("smugmug.communities.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.Community>("smugmug.communities.get", queryParams, true);
 
             // Return Results
             return queryResponse;
         }
-
-
     }
 }

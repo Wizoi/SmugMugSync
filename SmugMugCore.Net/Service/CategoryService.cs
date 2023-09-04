@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using SmugMug.Net;
 
 namespace SmugMug.Net.Service
@@ -19,12 +20,12 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of categories
         /// </summary>
         /// <returns></returns>
-        public Data.Category[] GetCategoryList()
+        public async Task<Data.Category[]> GetCategoryList()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
 
-            var queryResponse = _core.QueryWebsite<Data.Category>("smugmug.categories.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.Category>("smugmug.categories.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -36,14 +37,14 @@ namespace SmugMug.Net.Service
         /// <param name="name">The name for the category</param>
         /// <param name="niceName">The nicename for the category</param>
         /// <returns></returns>
-        public Data.Category CreateCategory(string name, string niceName = "")
+        public async Task<Data.Category> CreateCategory(string name, string niceName = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("Name", name);
             queryParams.Add("NiceName", niceName, "");
 
-            var queryResponse = _core.QueryWebsite<Data.Category>("smugmug.categories.create", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.Category>("smugmug.categories.create", queryParams, false);
             var category = queryResponse[0];
             
             category.Name = name;
@@ -60,13 +61,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="categoryId">The id for a specific category</param>
         /// <returns></returns>
-        public bool DeleteCategory(long categoryId)
+        public async Task<bool> DeleteCategory(long categoryId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("CategoryID", categoryId);
 
-            _core.QueryWebsite<Data.Category>("smugmug.categories.delete", queryParams, false);
+            _ = await _core.QueryWebsite<Data.Category>("smugmug.categories.delete", queryParams, false);
 
             // Return True if no error is thrown
             return true;
@@ -78,14 +79,14 @@ namespace SmugMug.Net.Service
         /// <param name="categoryId">The id for a specific category</param>
         /// <param name="newName">The new name to associate with this category</param>
         /// <returns></returns>
-        public bool RenameCategory(long categoryId, string newName)
+        public async Task<bool> RenameCategory(long categoryId, string newName)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("CategoryID", categoryId);
             queryParams.Add("Name", newName);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.categories.rename", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.categories.rename", queryParams, false);
             return true;
         }
 

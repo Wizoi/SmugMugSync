@@ -20,13 +20,13 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of sharegroups without the Album detail
         /// </summary>
         /// <returns></returns>
-        public Data.User GetUser(string nickname)
+        public async Task<Data.User> GetUser(string nickname)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("NickName", nickname);
 
-            var queryResponse = _core.QueryWebsite<Data.User>("smugmug.users.getInfo", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.User>("smugmug.users.getInfo", queryParams, false);
 
             // Return Results
             return queryResponse[0];
@@ -38,7 +38,7 @@ namespace SmugMug.Net.Service
         /// <param name="month">The month to retrieve statistics for</param>
         /// <param name="year">The year to retrieve statistics for</param>
         /// <returns></returns>
-        public Data.UserStats GetUserStats(int month, int year, bool includeAlbums)
+        public async Task<Data.UserStats> GetUserStats(int month, int year, bool includeAlbums)
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -47,7 +47,7 @@ namespace SmugMug.Net.Service
 
             queryParams.Add("Heavy", includeAlbums);
 
-            var queryResponse = _core.QueryWebsite<Data.UserStats>("smugmug.users.getStats", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.UserStats>("smugmug.users.getStats", queryParams, false);
 
             // Return Results
             return queryResponse[0];
@@ -61,7 +61,7 @@ namespace SmugMug.Net.Service
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <param name="shareGroupTag">The tag (public id) for the sharegroup</param>
         /// <returns></returns>
-        public Data.UserTreeCategory[] GetUserTree(
+        public async Task<Data.UserTreeCategory[]> GetUserTree(
             bool returnAlbumDetail = false, bool returnEmpty = true, string nickname = "", string sitePassword = "", string shareGroupTag = "")
         {
             // Append the parameters from the request object
@@ -72,7 +72,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("ShareGroupTag", shareGroupTag, "");
             queryParams.Add("Heavy", returnAlbumDetail);
 
-            var queryResponse = _core.QueryWebsite<Data.UserTreeCategory>("smugmug.users.getTree", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.UserTreeCategory>("smugmug.users.getTree", queryParams, true);
 
             // Return Results
             return queryResponse;

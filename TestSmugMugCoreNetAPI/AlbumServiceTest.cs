@@ -41,7 +41,10 @@ public class AlbumServiceTest
         _iteration = _i++;
 
         var core = Utility.RetrieveSmugMugCore();
-        _albumTest = Utility.CreateArbitraryTestAlbum(core, "TestAlbum" + _iteration.ToString());
+        var createTestAlbumTask = Utility.CreateArbitraryTestAlbum(core, "TestAlbum" + _iteration.ToString());
+        createTestAlbumTask.Wait();
+        _albumTest = createTestAlbumTask.Result;
+
     }
 
     /// <summary>
@@ -51,7 +54,7 @@ public class AlbumServiceTest
     public void MyTestCleanup()
     {
         var core = Utility.RetrieveSmugMugCore();
-        Utility.RemoveArbitraryTestAlbum(core, "TestAlbum");
+        Utility.RemoveArbitraryTestAlbum(core, "TestAlbum").Wait();
     }
 
     /// <summary>
@@ -59,7 +62,7 @@ public class AlbumServiceTest
     ///</summary>
     [TestMethod(), Obsolete("Updating the album no llonger  supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-    public void UpdateAlbumTest()
+    public async Task UpdateAlbumTest()
     {
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album  for Testing is not properly set by the test runner.");
@@ -71,11 +74,11 @@ public class AlbumServiceTest
         album.Description = "This is a test";
 
         // Perform Update
-        bool actual = target.UpdateAlbum(album);
+        bool actual = await target.UpdateAlbum(album);
         Assert.AreEqual(expected, actual);
 
         // Reload album and verify change
-        var reloadedAlbum = target.GetAlbumDetail(album.AlbumId, album.AlbumKey);
+        var reloadedAlbum = await target.GetAlbumDetail(album.AlbumId, album.AlbumKey);
         Assert.AreEqual(album.Description, reloadedAlbum.Description);
     }
 
@@ -84,7 +87,7 @@ public class AlbumServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
-    public void AlbumImageUploadTest()
+    public async Task AlbumImageUploadTest()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -99,13 +102,11 @@ public class AlbumServiceTest
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = ContentMetadataLoader.DiscoverMetadata(filename);
         content.Caption = "First";
-        var imageFirstTask = uploader.UploadUpdatedImageAsync(albumId, 0, content);
-        imageFirstTask.Wait();
-        var imageFirst = imageFirstTask.Result;
+        var imageFirst = await uploader.UploadUpdatedImage(albumId, 0, content);
 
         // Verify the image 
         var imageService = new ImageService(core);
-        var imageList = imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
+        var imageList = await imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
         if (imageList.Images == null || imageList.ImageCount == 0)
             Assert.Fail("Images not found.");
 
@@ -118,7 +119,7 @@ public class AlbumServiceTest
     [TestMethod(), Obsolete("Updating the Image properties no longer supported")]
     [DeploymentItem(@"Content\TestImage.jpg")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-    public void ResortTest()
+    public async Task ResortTest()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");    
@@ -132,7 +133,7 @@ public class AlbumServiceTest
         // Set the sort default values
         album.SortDirectionDescending = false;
         album.SortMethod = SortMethod.FileName;
-        target.UpdateAlbum(album);
+        _ = await target.UpdateAlbum(album);
 
         // Put two images into the gallery
         var uploader = new ImageUploaderService(core);
@@ -140,18 +141,14 @@ public class AlbumServiceTest
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = ContentMetadataLoader.DiscoverMetadata(filename);
         content.Caption = "Second";
-        var imageSecondTask = uploader.UploadUpdatedImageAsync(albumId, 0, content);
-        imageSecondTask.Wait(); ;
-        var imageSecond = imageSecondTask.Result;
+        var imageSecond = await uploader.UploadUpdatedImage(albumId, 0, content);
 
         content.Caption = "First";
-        var imageFirstTask = uploader.UploadUpdatedImageAsync(albumId, 0, content);
-        imageFirstTask.Wait();
-        var imageFirst = imageFirstTask.Result;
+        var imageFirst = await uploader.UploadUpdatedImage(albumId, 0, content);
         
         // Verify the current image placement
         var imageService = new ImageService(core);
-        var imageList = imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
+        var imageList = await imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
         if (imageList.Images == null || imageList.ImageCount == 0)
             Assert.Fail("Images not found.");
 
@@ -161,15 +158,15 @@ public class AlbumServiceTest
         // Change the sort
         album.SortDirectionDescending = true;
         album.SortMethod = SortMethod.FileName;
-        target.UpdateAlbum(album);
+        _ = await target.UpdateAlbum(album);
 
         // Resort the album
         bool expected = true;
-        bool actual = target.Resort(album.AlbumId);
+        bool actual = await target.Resort(album.AlbumId);
         Assert.AreEqual(expected, actual);
 
         // Verify the current image placement
-        var imageAfterList = imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
+        var imageAfterList = await imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
         if (imageAfterList.Images == null || imageList.ImageCount == 0)
             Assert.Fail("Images not found.");
 
@@ -182,7 +179,7 @@ public class AlbumServiceTest
     ///</summary>
     [TestMethod(), Obsolete("Comment Lists no longer supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-    public void GetCommentListTest()
+    public async Task GetCommentListTest()
     {
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album  for Testing is not properly set by the test runner.");
@@ -192,9 +189,9 @@ public class AlbumServiceTest
         int albumId = _albumTest.AlbumId; 
         string albumKey = _albumTest.AlbumKey; 
 
-        target.AddComment(albumId, albumKey, Array.Empty<string>(), "Test Comment");
+        _ = await target.AddComment(albumId, albumKey, Array.Empty<string>(), "Test Comment");
 
-        var actual = target.GetCommentList(albumId, albumKey);
+        var actual = await target.GetCommentList(albumId, albumKey);
         if (actual.Length == 0)
         {
             Assert.Fail("Test comment was not found.");
@@ -206,7 +203,7 @@ public class AlbumServiceTest
     ///</summary>
     [TestMethod(), Obsolete("Album stats no longer supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-    public void GetAlbumStatsTest()
+    public async Task GetAlbumStatsTest()
     {
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album  for Testing is not properly set by the test runner.");
@@ -218,7 +215,7 @@ public class AlbumServiceTest
         int year = DateTime.Now.Year; 
         bool includImageInfo = true; 
         AlbumStats actual;
-        actual = target.GetAlbumStats(albumId, month, year, includImageInfo);
+        actual = await target.GetAlbumStats(albumId, month, year, includImageInfo);
         Assert.IsNotNull(actual);
         Assert.AreEqual(actual.AlbumId, albumId);
     }
@@ -227,14 +224,14 @@ public class AlbumServiceTest
     ///A test for GetAlbumList
     ///</summary>
     [TestMethod()]
-    public void GetAlbumListTest()
+    public async Task GetAlbumListTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core);
         bool returnEmpty = false; 
         string nickName = string.Empty; 
         string sitePassword = string.Empty; 
-        var actual = target.GetAlbumList(Array.Empty<string>(), returnEmpty, nickName, sitePassword);
+        var actual = await target.GetAlbumList(Array.Empty<string>(), returnEmpty, nickName, sitePassword);
         Assert.IsFalse(actual.Length == 0);
     }
 
@@ -242,14 +239,14 @@ public class AlbumServiceTest
     ///A test for GetAlbumList
     ///</summary>
     [TestMethod()]
-    public void GetAlbumListExtraTest()
+    public async Task GetAlbumListExtraTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core);
         bool returnEmpty = false;
         string nickName = string.Empty;
         string sitePassword = string.Empty;
-        var actual = target.GetAlbumList(new string[] { "Keywords", "ImageCount" }, returnEmpty, nickName, sitePassword);
+        var actual = await target.GetAlbumList(new string[] { "Keywords", "ImageCount" }, returnEmpty, nickName, sitePassword);
         Assert.IsFalse(actual.Length == 0);
     }
 
@@ -257,14 +254,14 @@ public class AlbumServiceTest
     ///A test for GetAlbumInfoList
     ///</summary>
     [TestMethod()]
-    public void GetAlbumInfoListTest()
+    public async Task GetAlbumInfoListTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core); 
         bool returnEmpty = false; 
         string nickName = string.Empty; 
         string sitePassword = string.Empty; 
-        var actual = target.GetAlbumDetailList(returnEmpty, nickName, sitePassword);
+        var actual = await target.GetAlbumDetailList(returnEmpty, nickName, sitePassword);
         Assert.IsFalse(actual.Length == 0);
     }
 
@@ -272,7 +269,7 @@ public class AlbumServiceTest
     ///A test for GetAlbumInfo
     ///</summary>
     [TestMethod()]
-    public void GetAlbumInfoTest()
+    public async Task GetAlbumInfoTest()
     {
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album  for Testing is not properly set by the test runner.");
@@ -280,7 +277,7 @@ public class AlbumServiceTest
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core); 
         var expected = _albumTest;
-        var actual = target.GetAlbumDetail(expected.AlbumId, expected.AlbumKey);
+        var actual = await target.GetAlbumDetail(expected.AlbumId, expected.AlbumKey);
         Assert.IsNotNull(actual);
         Assert.AreEqual(expected.Title, actual.Title);
     }
@@ -290,7 +287,7 @@ public class AlbumServiceTest
     ///A test for CreateAlbum
     ///</summary>
     [TestMethod()]
-    public void CreateDeleteAlbumTest()
+    public async void CreateDeleteAlbumTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core);
@@ -320,13 +317,12 @@ public class AlbumServiceTest
         AlbumDetail actual;
 
         // Remove the album if it already exists
-        Utility.RemoveArbitraryTestAlbum(core, "TestAlbumCreate");
+        await Utility.RemoveArbitraryTestAlbum(core, "TestAlbumCreate");
         
-        actual = target.CreateAlbum(album);
+        actual = await target.CreateAlbum(album);
 
         // Clean up the album afterwards
-        target.DeleteAlbum(actual.AlbumId);
-
+        _ = await target.DeleteAlbum(actual.AlbumId);
     }
 
     /// <summary>
@@ -363,14 +359,14 @@ public class AlbumServiceTest
     ///</summary>
     [TestMethod(), Obsolete("Watermarks no longer supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-    public void RemoveWatermarkTest()
+    public async Task RemoveWatermarkTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core); 
         int albumId = -1; 
         bool expected = false; 
         bool actual;
-        actual = target.RemoveWatermark(albumId);
+        actual = await target.RemoveWatermark(albumId);
         Assert.AreEqual(expected, actual);
     }
 
@@ -379,7 +375,7 @@ public class AlbumServiceTest
     ///</summary>
     [TestMethod(), Obsolete("Appplying watermarks no longer supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-    public void ApplyWatermarkTest()
+    public async Task ApplyWatermarkTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core); 
@@ -387,7 +383,7 @@ public class AlbumServiceTest
         int watermarkId = 0; 
         bool expected = false; 
         bool actual;
-        actual = target.ApplyWatermark(albumId, watermarkId);
+        actual = await target.ApplyWatermark(albumId, watermarkId);
         Assert.AreEqual(expected, actual);
         Assert.Inconclusive("Verify the correctness of this test method.");
     }

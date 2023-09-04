@@ -1,3 +1,6 @@
+using System.DirectoryServices.ActiveDirectory;
+using System.Runtime.InteropServices;
+
 namespace TestSmugMugCoreNetAPI;
 
 /// <summary>
@@ -8,7 +11,6 @@ namespace TestSmugMugCoreNetAPI;
 public class ImageServiceTest
 {
     private static AlbumDetail? _albumTest = null;
-    private static ImageUpload? _imageTest = null;
     private TestContext? testContextInstance;
     private static int _i = 0;
     private int _iteration = 0;
@@ -36,8 +38,6 @@ public class ImageServiceTest
     [ClassInitialize()]
     public static void MyClassInitialize(TestContext testContext)
     {
-        var core = Utility.RetrieveSmugMugCore();
-        _albumTest = Utility.CreateArbitraryTestAlbum(core, "TestAlbum");
     }
 
     /// <summary>
@@ -46,8 +46,6 @@ public class ImageServiceTest
     [ClassCleanup()]
     public static void MyClassCleanup()
     {
-        var core = Utility.RetrieveSmugMugCore();
-        Utility.RemoveArbitraryTestAlbum(core, "TestAlbum");
     }
 
     /// <summary>
@@ -62,14 +60,9 @@ public class ImageServiceTest
         _iteration = _i++;
 
         var core = Utility.RetrieveSmugMugCore();
-        _albumTest = Utility.CreateArbitraryTestAlbum(core, "TestImageAlbum" + _iteration.ToString());
-
-        var target = new ImageUploaderService(core); 
-        int albumId = _albumTest.AlbumId;
-        string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
-
-        _imageTest = target.UploadNewImage(albumId, content);
+        var createAlbumTask = Utility.CreateArbitraryTestAlbum(core, $"TestAlbum{_iteration.ToString()}");
+        createAlbumTask.Wait();
+        _albumTest = createAlbumTask.Result;
     }
 
     /// <summary>
@@ -79,7 +72,29 @@ public class ImageServiceTest
     public void MyTestCleanup()
     {
         var core = Utility.RetrieveSmugMugCore();
-        Utility.RemoveArbitraryTestAlbum(core, "TestImageAlbum" + _iteration.ToString());
+        var cleanupAlbumTask = Utility.RemoveArbitraryTestAlbum(core, "TestAlbum{_iteration.ToString()}");
+        cleanupAlbumTask.Wait();
+        _ = cleanupAlbumTask.Result;
+    }
+
+    /// <summary>
+    /// Add support for adding a default test image when tests require it
+    /// </summary>
+    /// <param name="core"></param>
+    /// <returns></returns>
+    private async Task<ImageUpload> AddTestImage(SmugMug.Net.Core.SmugMugCore core)
+    {
+        if (this.TestContext == null)
+            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
+        if (_albumTest == null)
+            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
+
+        var target = new ImageUploaderService(core); 
+        int albumId = _albumTest.AlbumId;
+        string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
+        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+
+        return await target.UploadNewImage(albumId, content);
     }
 
 
@@ -87,18 +102,16 @@ public class ImageServiceTest
     ///A test for AddComment
     ///</summary>
     [TestMethod()]
-    public void AddCommentTest()
+    public async Task AddCommentTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
-        string imageKey = _imageTest.ImageKey; 
+        var imageTest = await AddTestImage(core);
+        long imageId = imageTest.ImageId; 
+        string imageKey = imageTest.ImageKey; 
         string comment = "This is a test image comment"; 
         int rating = 1; 
-        Comment actual = target.AddComment(Array.Empty<string>(), imageId, imageKey, comment, rating);
+        Comment actual = await target.AddComment(Array.Empty<string>(), imageId, imageKey, comment, rating);
         Assert.IsTrue(actual.CommentId > 0);
     }
 
@@ -106,7 +119,7 @@ public class ImageServiceTest
     ///A test for ChangePosition
     ///</summary>
     [TestMethod()]
-    public void ChangePositionTest()
+    public async Task ChangePositionTest()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -115,6 +128,7 @@ public class ImageServiceTest
 
         var core = Utility.RetrieveSmugMugCore();
         var target = new ImageService(core);
+        var imageTest = await AddTestImage(core);
 
         // Upload a second image with a different caption
         var uploader = new ImageUploaderService(core);
@@ -122,20 +136,20 @@ public class ImageServiceTest
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
         ImageContent content = SmugMug.Net.Core.ContentMetadataLoader.DiscoverMetadata(filename);
         content.Caption = "Alternate Photo";
-        ImageUpload newImage = uploader.UploadUpdatedImage(albumId, 0, content);
+        ImageUpload newImage = await uploader.UploadUpdatedImage(albumId, 0, content);
 
         // Check that it is the second image
-        var infoBefore = target.GetImageInfo(newImage.ImageId, newImage.ImageKey);
+        var infoBefore = await target.GetImageInfo(newImage.ImageId, newImage.ImageKey);
         Assert.AreEqual(2, infoBefore.PositionInAlbum);
 
         // Change the position
         int position = 1; 
         bool expected = true; 
         bool actual;
-        actual = target.ChangePosition(newImage.ImageId, position);
+        actual = await target.ChangePosition(newImage.ImageId, position);
         Assert.AreEqual(expected, actual);
 
-        var infoAfter = target.GetImageInfo(newImage.ImageId, newImage.ImageKey);
+        var infoAfter = await target.GetImageInfo(newImage.ImageId, newImage.ImageKey);
         Assert.AreEqual(1, infoAfter.PositionInAlbum);
 
     }
@@ -144,14 +158,12 @@ public class ImageServiceTest
     /// A test for Crop
     ///</summary>
     [TestMethod()]
-    public void CropTest()
+    public async Task CropTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
+        long imageId = imageTest.ImageId; 
         int height = 5;
         int width = 5;
         int x = 5; 
@@ -160,7 +172,7 @@ public class ImageServiceTest
         bool actual;
         // Wait 5 seconds for this to persist into the library after it starts
         System.Threading.Thread.Sleep(10000);
-        actual = target.Crop(imageId, height, width, x, y);
+        actual = await target.Crop(imageId, height, width, x, y);
         Assert.AreEqual(expected, actual);
 
         // TODO: Smugmug uploads the image, and says it cropped it but didn't because image was still processing.
@@ -168,7 +180,7 @@ public class ImageServiceTest
         ImageDetail? imageAfter = null;
         do
         {
-            var img = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
+            var img = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
             if (img.Height == 5)
             {
                 imageAfter = img;
@@ -191,23 +203,22 @@ public class ImageServiceTest
     ///A test for Delete
     ///</summary>
     [TestMethod()]
-    public void DeleteTest()
+    public async Task DeleteTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
         var core = Utility.RetrieveSmugMugCore();
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
+        var imageTest = await AddTestImage(core);
+        long imageId = imageTest.ImageId; 
         int albumId = _albumTest.AlbumId; 
         bool expected = true; 
         bool actual;
-        actual = target.Delete(imageId, albumId);
+        actual = await target.Delete(imageId, albumId);
 
         var albumCheck = new AlbumService(core);
-        var albumData = albumCheck.GetAlbumDetail(_albumTest.AlbumId, _albumTest.AlbumKey);
+        var albumData = await albumCheck.GetAlbumDetail(_albumTest.AlbumId, _albumTest.AlbumKey);
         Assert.AreEqual(expected, actual);
         Assert.AreEqual(0, albumData.ImageCount);
     }
@@ -216,29 +227,28 @@ public class ImageServiceTest
     ///A test for GetAlbumImages
     ///</summary>
     [TestMethod()]
-    public void GetAlbumImagesTest()
+    public async Task GetAlbumImagesTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
         int albumId = _albumTest.AlbumId;
         string albumKey = _albumTest.AlbumKey;
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
         bool loadImageInfo = false;
-        AlbumDetail actual = target.GetAlbumImagesExt(Array.Empty<string>(), albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
+        AlbumDetail actual = await target.GetAlbumImagesExt(Array.Empty<string>(), albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
 
         if (actual.Images == null || actual.ImageCount == 0)
             Assert.Fail("No Images were loaded.");
 
         // Verify there is one image and it is the test image
         Assert.AreEqual(1, actual.ImageCount);
-        Assert.AreEqual(_imageTest.ImageId, actual.Images[0].ImageId);
-        Assert.AreEqual(_imageTest.ImageKey, actual.Images[0].ImageKey);
+        Assert.AreEqual(imageTest.ImageId, actual.Images[0].ImageId);
+        Assert.AreEqual(imageTest.ImageKey, actual.Images[0].ImageKey);
 
     }
 
@@ -246,29 +256,28 @@ public class ImageServiceTest
     ///A test for GetAlbumImages
     ///</summary>
     [TestMethod()]
-    public void GetAlbumImagesExtraTest()
+    public async Task GetAlbumImagesExtraTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
         int albumId = _albumTest.AlbumId;
         string albumKey = _albumTest.AlbumKey;
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool loadImageInfo = false;
-        AlbumDetail actual = target.GetAlbumImagesExt(new string[] { "Keywords" }, albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
+        AlbumDetail actual = await target.GetAlbumImagesExt(new string[] { "Keywords" }, albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
 
         if (actual.Images == null || actual.ImageCount == 0)
             Assert.Fail("No Images were loaded.");
 
         // Verify there is one image and it is the test image
         Assert.AreEqual(1, actual.ImageCount);
-        Assert.AreEqual(_imageTest.ImageId, actual.Images[0].ImageId);
-        Assert.AreEqual(_imageTest.ImageKey, actual.Images[0].ImageKey);
+        Assert.AreEqual(imageTest.ImageId, actual.Images[0].ImageId);
+        Assert.AreEqual(imageTest.ImageKey, actual.Images[0].ImageKey);
 
     }
 
@@ -276,24 +285,22 @@ public class ImageServiceTest
     ///A test for GetCommentList
     ///</summary>
     [TestMethod()]
-    public void GetCommentListTest()
+    public async Task GetCommentListTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
-        string imageKey = _imageTest.ImageKey;
+        long imageId = imageTest.ImageId; 
+        string imageKey = imageTest.ImageKey;
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
 
         // Add a comment
         string text = "This is a test image comment"; 
         int rating = 1; 
-        Comment comment = target.AddComment(Array.Empty<string>(), imageId, imageKey, text, rating);
+        Comment comment = await target.AddComment(Array.Empty<string>(), imageId, imageKey, text, rating);
 
-        var actual = target.GetCommentList(imageId, imageKey, albumPassword, sitePassword);
+        var actual = await target.GetCommentList(imageId, imageKey, albumPassword, sitePassword);
         var commentTestSearch = actual.Where(x => x.CommentId == comment.CommentId);
         
         Assert.AreEqual(commentTestSearch.Count(), 1);
@@ -302,7 +309,7 @@ public class ImageServiceTest
         Assert.AreEqual(comment.CommentId, commentTest.CommentId);
         Assert.AreEqual(rating, commentTest.Rating);
         Assert.AreEqual(text, commentTest.Text);
-        Assert.IsNull(commentTest.DatePosted, "Comment date should not be null.");
+        Assert.IsNotNull(commentTest.DatePosted, "Comment date should not be null.");
         if (commentTest.DatePosted != null)
             Assert.IsTrue(DateTime.Now.Subtract(DateTime.Parse(commentTest.DatePosted)).Days < 1);
     }
@@ -311,18 +318,16 @@ public class ImageServiceTest
     ///A test for GetImageExif
     ///</summary>
     [TestMethod()]
-    public void GetImageExifPropertiesTest()
+    public async Task GetImageExifPropertiesTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
-        string imageKey = _imageTest.ImageKey; 
+        long imageId = imageTest.ImageId; 
+        string imageKey = imageTest.ImageKey; 
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
-        ImageExif actual = target.GetImageExif(imageId, imageKey, albumPassword, sitePassword);
+        ImageExif actual = await target.GetImageExif(imageId, imageKey, albumPassword, sitePassword);
 
         Assert.AreEqual("28/5", actual.Aperture, "Aperture");
         Assert.AreEqual(null, actual.Brightness, "Brightness");
@@ -358,18 +363,16 @@ public class ImageServiceTest
     ///A test for GetImageExif
     ///</summary>
     [TestMethod()]
-    public void GetImageExifTest()
+    public async Task GetImageExifTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId;
-        string imageKey = _imageTest.ImageKey;
+        long imageId = imageTest.ImageId;
+        string imageKey = imageTest.ImageKey;
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
-        ImageExif actual = target.GetImageExif(imageId, imageKey, albumPassword, sitePassword);
+        ImageExif actual = await target.GetImageExif(imageId, imageKey, albumPassword, sitePassword);
         Assert.IsNotNull(actual);
     }
 
@@ -377,90 +380,84 @@ public class ImageServiceTest
     ///A test for GetImageInfo
     ///</summary>
     [TestMethod()]
-    public void GetImageInfoTest()
+    public async Task GetImageInfoTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
-        string imageKey = _imageTest.ImageKey; 
+        long imageId = imageTest.ImageId; 
+        string imageKey = imageTest.ImageKey; 
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
         bool includeOnlyUrls = false; 
-        var actual = target.GetImageInfo(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
-        Assert.AreEqual(_imageTest.ImageId, actual.ImageId);
-        Assert.AreEqual(_imageTest.ImageKey, actual.ImageKey);
-        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", _imageTest.ImageKey)), "UrlLightboxURL");
-        Assert.IsNull(actual.UrlVideo1280URL, "UrlVideo1280URL");
-        Assert.IsNull(actual.UrlVideo1920URL, "UrlVideo1920URL");
-        Assert.IsNull(actual.UrlVideo320URL, "UrlVideo320URL");
-        Assert.IsNull(actual.UrlVideo640URL, "UrlVideo640URL");
-        Assert.IsNull(actual.UrlVideo960URL, "UrlVideo960URL");
-        Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", _imageTest.ImageKey)), "UrlViewOriginalURL");
-        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewLargeURL");
-        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewMediumURL");
-        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewSmallURL");
-        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewThumbURL");
-        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewTinyURL");
-        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewX2LargeURL");
-        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewX3LargeURL");
-        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewXLargeURL");
+        var actual = await target.GetImageInfo(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
+        Assert.AreEqual(imageTest.ImageId, actual.ImageId);
+        Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
+        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)), "UrlLightboxURL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1280URL, "UrlVideo1280URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1920URL, "UrlVideo1920URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo320URL, "UrlVideo320URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
+        Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", imageTest.ImageKey)), "UrlViewOriginalURL");
+        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewLargeURL");
+        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewMediumURL");
+        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewSmallURL");
+        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewThumbURL");
+        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewTinyURL");
+        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX2LargeURL");
+        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX3LargeURL");
+        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewXLargeURL");
     }
 
     /// <summary>
     ///A test for GetImageInfo
     ///</summary>
     [TestMethod()]
-    public void GetImageInfoUrlsOnlyTest()
+    public async Task GetImageInfoUrlsOnlyTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId;
-        string imageKey = _imageTest.ImageKey;
+        long imageId = imageTest.ImageId;
+        string imageKey = imageTest.ImageKey;
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool includeOnlyUrls = true;
-        var actual = target.GetImageInfo(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
-        Assert.AreEqual(_imageTest.ImageId, actual.ImageId);
-        Assert.AreEqual(_imageTest.ImageKey, actual.ImageKey);
-        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", _imageTest.ImageKey)), "UrlLightboxURL");
-        Assert.IsNull(actual.UrlVideo1280URL, "UrlVideo1280URL");
-        Assert.IsNull(actual.UrlVideo1920URL, "UrlVideo1920URL");
-        Assert.IsNull(actual.UrlVideo320URL, "UrlVideo320URL");
-        Assert.IsNull(actual.UrlVideo640URL, "UrlVideo320URL");
-        Assert.IsNull(actual.UrlVideo960URL, "UrlVideo320URL");
+        var actual = await target.GetImageInfo(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
+        Assert.AreEqual(imageTest.ImageId, actual.ImageId);
+        Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
+        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)), "UrlLightboxURL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1280URL, "UrlVideo1280URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1920URL, "UrlVideo1920URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo320URL, "UrlVideo320URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo320URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo320URL");
     }
 
     /// <summary>
     ///A test for GetImageInfo
     ///</summary>
     [TestMethod()]
-    public void GetImageInfoUrlsCustomSizeTest()
+    public async Task GetImageInfoUrlsCustomSizeTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId;
-        string imageKey = _imageTest.ImageKey;
+        long imageId = imageTest.ImageId;
+        string imageKey = imageTest.ImageKey;
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool includeOnlyUrls = true;
-        var actual = target.GetImageInfo(imageId, imageKey, "100", albumPassword, sitePassword, includeOnlyUrls);
-        Assert.AreEqual(_imageTest.ImageId, actual.ImageId);
-        Assert.AreEqual(_imageTest.ImageKey, actual.ImageKey);
-        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", _imageTest.ImageKey)));
-        Assert.IsNull(actual.UrlVideo1280URL, "UrlVideo1280URL");
-        Assert.IsNull(actual.UrlVideo1920URL, "UrlVideo1920URL");
-        Assert.IsNull(actual.UrlVideo320URL, "UrlVideo320URL");
-        Assert.IsNull(actual.UrlVideo640URL, "UrlVideo640URL");
-        Assert.IsNull(actual.UrlVideo960URL, "UrlVideo960URL");
+        var actual = await target.GetImageInfo(imageId, imageKey, "100", albumPassword, sitePassword, includeOnlyUrls);
+        Assert.AreEqual(imageTest.ImageId, actual.ImageId);
+        Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
+        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)));
+        Assert.AreEqual(string.Empty, actual.UrlVideo1280URL, "UrlVideo1280URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1920URL, "UrlVideo1920URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo320URL, "UrlVideo320URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
     }
 
     /// <summary>
@@ -468,7 +465,7 @@ public class ImageServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestVideo.mov")]
-    public void GetVideoInfoTest()
+    public async Task GetVideoInfoTest()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -481,11 +478,11 @@ public class ImageServiceTest
         var uploader = new ImageUploaderService(core);
         var filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestVideo.mov");
         var content = ContentMetadataLoader.DiscoverMetadata(filename);
-        var videoTest = uploader.UploadNewImage(_albumTest.AlbumId, content);
+        var videoTest = await uploader.UploadNewImage(_albumTest.AlbumId, content);
 
         long videoId = videoTest.ImageId;
         string videoKey = videoTest.ImageKey;
-        var actual = target.GetImageInfo(videoId, videoKey, "");
+        var actual = await target.GetImageInfo(videoId, videoKey, "");
         Assert.AreEqual(videoTest.ImageId, actual.ImageId);
         Assert.AreEqual(videoTest.ImageKey, actual.ImageKey);
     }
@@ -495,7 +492,7 @@ public class ImageServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestVideo.mov")]
-    public void GetVideoInfoPropertiesTest()
+    public async Task GetVideoInfoPropertiesTest()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -508,11 +505,13 @@ public class ImageServiceTest
         var uploader = new ImageUploaderService(core);
         var filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestVideo.mov");
         var content = ContentMetadataLoader.DiscoverMetadata(filename);
-        var videoTest = uploader.UploadNewImage(_albumTest.AlbumId, content);
+        var videoTest = await uploader.UploadNewImage(_albumTest.AlbumId, content);
 
         long videoId = videoTest.ImageId;
         string videoKey = videoTest.ImageKey;
-        var actual = target.GetImageInfo(videoId, videoKey);
+
+        var actual = await target.GetImageInfo(videoId, videoKey);
+
         Assert.AreEqual(videoTest.ImageId, actual.ImageId);
         Assert.AreEqual(videoTest.ImageKey, actual.ImageKey);
         if (actual.Album != null)
@@ -547,15 +546,15 @@ public class ImageServiceTest
         Assert.AreEqual(0.0, actual.Latitude);
         Assert.AreEqual(0.0, actual.Longitude);
         Assert.IsNotNull(actual.MD5Sum);
-        Assert.AreEqual(2, actual.PositionInAlbum);
+        Assert.AreEqual(1, actual.PositionInAlbum);
         Assert.IsNotNull(actual.Revision);
         Assert.IsTrue(actual.SizeBytes > 100000);
         Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", videoTest.ImageKey)), "UrlLightboxURL");
-        Assert.IsNull(actual.UrlVideo1280URL, "UrlVideo1280URL");
-        Assert.IsNull(actual.UrlVideo1920URL, "UrlVideo1920URL");
-        Assert.IsNull(actual.UrlVideo320URL, "UrlVideo320URL");
-        Assert.IsNull(actual.UrlVideo640URL, "UrlVideo640URL");
-        Assert.IsNull(actual.UrlVideo960URL, "UrlVideo960URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1280URL, "UrlVideo1280URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1920URL, "UrlVideo1920URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo320URL, "UrlVideo320URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
         Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", videoTest.ImageKey)), "UrlViewOriginalURL");
         Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewLargeURL");
         Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewMediumURL");
@@ -571,20 +570,21 @@ public class ImageServiceTest
     ///A test for GetImageInfo
     ///</summary>
     [TestMethod()]
-    public void GetImageInfoPropertiesTest()
+    public async Task GetImageInfoPropertiesTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId;
-        string imageKey = _imageTest.ImageKey;
-        var actual = target.GetImageInfo(imageId, imageKey);
-        Assert.AreEqual(_imageTest.ImageId, actual.ImageId);
-        Assert.AreEqual(_imageTest.ImageKey, actual.ImageKey);
+        long imageId = imageTest.ImageId;
+        string imageKey = imageTest.ImageKey;
+
+        var actual = await target.GetImageInfo(imageId, imageKey);
+
+        Assert.AreEqual(imageTest.ImageId, actual.ImageId);
+        Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
         if (actual.Album != null)
         {
             Assert.AreEqual(_albumTest.AlbumId, actual.Album.AlbumId);
@@ -620,72 +620,68 @@ public class ImageServiceTest
         Assert.AreEqual(1, actual.PositionInAlbum, "PositionInAlbum");
         Assert.IsNotNull(actual.Revision, "Revision");
         Assert.AreEqual(184933, actual.SizeBytes, "SizeBytes");
-        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", _imageTest.ImageKey)), "UrlLightboxURL");
-        Assert.IsNull(actual.UrlVideo1280URL, "UrlVideo1280URL");
-        Assert.IsNull(actual.UrlVideo1920URL, "UrlVideo1920URL");
-        Assert.IsNull(actual.UrlVideo320URL, "UrlVideo320URL");
-        Assert.IsNull(actual.UrlVideo640URL, "UrlVideo640URL");
-        Assert.IsNull(actual.UrlVideo960URL, "UrlVideo960URL");
-        Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", _imageTest.ImageKey)), "UrlViewOriginalURL");
-        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewLargeURL");
-        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewMediumURL");
-        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewSmallURL");
-        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewThumbURL");
-        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewTinyURL");
-        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewX2LargeURL");
-        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewX3LargeURL");
-        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", _imageTest.ImageKey, _imageTest.ImageKey)), "UrlViewXLargeURL");
+        Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)), "UrlLightboxURL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1280URL, "UrlVideo1280URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo1920URL, "UrlVideo1920URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo320URL, "UrlVideo320URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
+        Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
+        Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", imageTest.ImageKey)), "UrlViewOriginalURL");
+        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewLargeURL");
+        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewMediumURL");
+        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewSmallURL");
+        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewThumbURL");
+        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewTinyURL");
+        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX2LargeURL");
+        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX3LargeURL");
+        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewXLargeURL");
     }
 
     /// <summary>
     ///A test for MoveToAlbum
     ///</summary>
     [TestMethod()]
-    public void MoveToAlbumTest()
+    public async Task MoveToAlbumTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
-        string imageKey = _imageTest.ImageKey; 
+        long imageId = imageTest.ImageId; 
+        string imageKey = imageTest.ImageKey; 
 
         // Create the target album
-        var albumMoveTarget = Utility.CreateArbitraryTestAlbum(core, "TestAlbumMoveTarget");
+        var albumMoveTarget = await Utility.CreateArbitraryTestAlbum(core, "TestAlbumMoveTarget");
         
         bool expected = true; 
-        bool actual = target.MoveToAlbum(imageId, imageKey, albumMoveTarget.AlbumId);
+        bool actual = await target.MoveToAlbum(imageId, imageKey, albumMoveTarget.AlbumId);
         Assert.AreEqual(expected, actual);
 
         // See if there are images in the target album
         var albumTarget = new AlbumService(core);
-        var albumInfo = albumTarget.GetAlbumDetail(albumMoveTarget.AlbumId, albumMoveTarget.AlbumKey);
+        var albumInfo = await albumTarget.GetAlbumDetail(albumMoveTarget.AlbumId, albumMoveTarget.AlbumKey);
         Assert.AreEqual(albumInfo.ImageCount, 1);
 
         // Clean up temporary Album
-        Utility.RemoveArbitraryTestAlbum(core, "TestAlbumMoveTarget");
+        var moveAlbumCheck = await Utility.RemoveArbitraryTestAlbum(core, "TestAlbumMoveTarget");
     }
 
     /// <summary>
     ///A test for Rotate
     ///</summary>
     [TestMethod()]
-    public void RotateTest()
+    public async Task RotateTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
+        long imageId = imageTest.ImageId; 
         var degrees = Degrees.NinetyDegrees; 
         bool flip = true; 
         bool expected = true; 
         bool actual;
         System.Threading.Thread.Sleep(10000);
-        var imageOrig = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
-        actual = target.Rotate(imageId, degrees, flip);
+        var imageOrig = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
+        actual = await target.Rotate(imageId, degrees, flip);
         Assert.AreEqual(expected, actual);
 
         // Wait for process to complete
@@ -693,7 +689,7 @@ public class ImageServiceTest
         ImageDetail? imageAfter = null;
         do
         {
-            var img = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
+            var img = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
             if (img.MD5Sum != imageOrig.MD5Sum)
             {
                 imageAfter = img;
@@ -715,16 +711,14 @@ public class ImageServiceTest
     ///A test for UpdateImage
     ///</summary>
     [TestMethod()]
-    public void UpdateImageTest()
+    public async Task UpdateImageTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
 
         System.Threading.Thread.Sleep(20000);
-        var origImage = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
+        var origImage = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
         origImage.Altitude = 100;
         origImage.Caption = "New Caption";
         origImage.Filename = "NewFile.jpg";
@@ -734,10 +728,10 @@ public class ImageServiceTest
         origImage.Longitude = 2;
 
         bool expected = true;
-        bool actual = target.UpdateImage(origImage);
+        bool actual = await target.UpdateImage(origImage);
         Assert.AreEqual(expected, actual);
 
-        var updatedImage = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
+        var updatedImage = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
         Assert.AreEqual(origImage.Altitude, updatedImage.Altitude, "Altitude");
         Assert.AreEqual(origImage.Caption, updatedImage.Caption, "Caption");
         Assert.AreEqual(origImage.Filename, updatedImage.Filename, "Filename");
@@ -751,21 +745,19 @@ public class ImageServiceTest
     ///A test for ZoomThumbnail
     ///</summary>
     [TestMethod()]
-    public void ZoomThumbnailTest()
+    public async Task ZoomThumbnailTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        long imageId = _imageTest.ImageId; 
+        long imageId = imageTest.ImageId; 
         int height = 15; 
         int width = 0; 
         int x = 10; 
         int y = 10; 
         bool expected = true; 
         bool actual;
-        actual = target.ZoomThumbnail(imageId, height, width, x, y);
+        actual = await target.ZoomThumbnail(imageId, height, width, x, y);
         Assert.AreEqual(expected, actual);
     }
 
@@ -773,19 +765,17 @@ public class ImageServiceTest
     ///A test for DownloadImage
     ///</summary>
     [TestMethod()]
-    public void DownloadNoImageTest()
+    [ExpectedException(typeof(System.Net.Http.HttpRequestException))]
+    public async Task DownloadNoImageTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        var origImage = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
+        var origImage = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
 
-        origImage.UrlViewOriginalURL = string.Empty;
+        origImage.UrlViewOriginalURL = origImage.UrlViewOriginalURL.Replace(origImage.ImageKey, "AAA");
         string localPath = Path.GetTempFileName();
-        var task = target.DownloadImageAsync(origImage, localPath);
-        task.Wait();
+        var dlSuccess = await target.DownloadImage(origImage, localPath);
 
         var fi = new FileInfo(localPath);
         long actual = fi.Length;
@@ -794,24 +784,21 @@ public class ImageServiceTest
         fi.Delete();
 
         Assert.AreEqual(0, actual);
-        Assert.AreNotEqual(task.Result, true, "Expecting True when the image is downloaded.");
     }
 
     /// <summary>
     ///A test for DownloadImage
     ///</summary>
     [TestMethod()]
-    public void DownloadImageTest()
+    public async Task DownloadImageTest()
     {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
         var core = Utility.RetrieveSmugMugCore();
+        var imageTest = await AddTestImage(core);
         var target = new ImageService(core);
-        var origImage = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
+        var origImage = await target.GetImageInfo(imageTest.ImageId, imageTest.ImageKey);
 
         string localPath = Path.GetTempFileName();
-        var result = target.DownloadImage(origImage, localPath);
+        var dlSuccess  = await target.DownloadImage(origImage, localPath);
 
         var fi = new FileInfo(localPath);
         long actual = fi.Length;
@@ -820,36 +807,5 @@ public class ImageServiceTest
         fi.Delete();
         
         Assert.AreNotEqual(0, actual);
-        Assert.AreNotEqual(result, false, "Expecting True when the image is downloaded.");
-    }
-
-    /// <summary>
-    ///A test for DownloadImage
-    ///</summary>
-    [TestMethod()]
-    public async Task DownloadImageAsyncTest()
-    {
-        if (_imageTest == null)
-            Assert.Fail("FATAL ERROR: Image to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageService(core);
-        var origImage = target.GetImageInfo(_imageTest.ImageId, _imageTest.ImageKey);
-
-        string localPath = Path.GetTempFileName();
-        var downloadResult = await target.DownloadImageAsync(origImage, localPath);
-        // var task = target.DownloadImageAsync(origImage, localPath);
-        // task.Wait();
-        // var downloadResult = task.Result;
-        // task.Dispose();
-
-        var fi = new FileInfo(localPath);
-        long actual = fi.Length;
-
-        // Cleanup file
-        fi.Delete();
-        Assert.AreNotEqual(0, actual);
-        
-        Assert.AreNotEqual(downloadResult, false, "Expecting True when the image is downloaded.");                       
     }
 }

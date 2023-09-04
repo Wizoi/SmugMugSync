@@ -39,50 +39,9 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="albumId"></param>
         /// <param name="filename"></param>
-        public Data.ImageUpload UploadNewImage(int albumId, Data.ImageContent imageMetadata)
+        public async Task<Data.ImageUpload> UploadNewImage(int albumId, Data.ImageContent imageMetadata)
         {
-            try
-            {
-                var imageTask = UploadNewImageAsync(albumId, imageMetadata);
-                imageTask.Wait();
-                return imageTask.Result;
-            }
-            catch (AggregateException agg)
-            {
-                // There will only be one possibe exception in here, so throw the first one. 
-                throw agg.InnerExceptions[0];
-            }
-        }
-
-        /// <summary>
-        /// Uploads new image content (no  existing imageid)
-        /// </summary>
-        /// <param name="albumId"></param>
-        /// <param name="filename"></param>
-        public Data.ImageUpload UploadUpdatedImage(int albumId, long imageId, Data.ImageContent imageMetadata)
-        {
-            try
-            {
-                var imageTask = UploadUpdatedImageAsync(albumId: albumId, imageId: imageId, imageMetadata:  imageMetadata);
-                imageTask.Wait();
-                return imageTask.Result;
-            }
-            catch (AggregateException agg)
-            {
-                // There will only be one possibe exception in here, so throw the first one. 
-                throw agg.InnerExceptions[0];
-            }
-        }
-
-
-        /// <summary>
-        /// Uploads new image content (no  existing imageid)
-        /// </summary>
-        /// <param name="albumId"></param>
-        /// <param name="filename"></param>
-        public async Task<Data.ImageUpload> UploadNewImageAsync(int albumId, Data.ImageContent imageMetadata)
-        {
-            return await UploadUpdatedImageAsync(albumId, 0, imageMetadata);
+            return await UploadUpdatedImage(albumId, 0, imageMetadata);
         }
 
         /// <summary>
@@ -91,13 +50,13 @@ namespace SmugMug.Net.Service
         /// <param name="albumId"></param>
         /// <param name="imageId"></param>
         /// <param name="imageMetadata"></param>
-        public async Task<Data.ImageUpload> UploadUpdatedImageAsync(int albumId, long imageId, Data.ImageContent imageMetadata)
+        public async Task<Data.ImageUpload> UploadUpdatedImage(int albumId, long imageId, Data.ImageContent imageMetadata)
         {
             if (imageMetadata.FileInfo == null)
                 throw new ApplicationException("Error - Image with no filename detected.");
 
             if (string.IsNullOrEmpty(imageMetadata.MD5Checksum))
-                imageMetadata.MD5Checksum = GetMd5Checksum(imageMetadata.FileInfo);
+                imageMetadata.MD5Checksum = await GetMd5Checksum(imageMetadata.FileInfo);
 
             var queryData = new Core.QueryParameterList();
             queryData.Add("X-Smug-Version", Version);
@@ -173,18 +132,7 @@ namespace SmugMug.Net.Service
         /// Add a MD5 Checksum tot he Image Content
         /// </summary>
         /// <param name="imageContent"></param>
-        public static string GetMd5Checksum(IFileInfo fileInfo)
-        {
-            var taskMd5Checksum = GetMd5ChecksumAsync(fileInfo);
-            taskMd5Checksum.Wait();
-            return taskMd5Checksum.Result;
-        }
-
-        /// <summary>
-        /// Add a MD5 Checksum tot he Image Content
-        /// </summary>
-        /// <param name="imageContent"></param>
-        public static async Task<string> GetMd5ChecksumAsync(IFileInfo fileInfo)
+        public static async Task<string> GetMd5Checksum(IFileInfo fileInfo)
         {
             StringBuilder builder = new();
 

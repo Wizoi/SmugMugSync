@@ -18,12 +18,12 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of fans for a user
         /// </summary>
         /// <returns></returns>
-        public Data.Fan[] GetFanList()
+        public  async Task<Data.Fan[]> GetFanList()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
 
-            var queryResponse = _core.QueryWebsite<Data.Fan>("smugmug.fans.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.Fan>("smugmug.fans.get", queryParams, true);
 
             // Return Results
             return queryResponse;

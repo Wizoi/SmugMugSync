@@ -22,7 +22,7 @@ namespace SmugMug.Net.Service
         /// <param name="status">The comma separated string of status values to filter results</param>
         /// <param name="type">The comma separated string of type values to filter results</param>
         /// <returns></returns>
-        public Data.CouponCore[] GetCouponList(string[] fieldList, string statusFilter = "", string typeFilter = "")
+        public async Task<Data.CouponCore[]> GetCouponList(string[] fieldList, string statusFilter = "", string typeFilter = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -31,7 +31,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Heavy", false);
             queryParams.Add("Extras", Core.SmugMugCore.ConvertFieldListToXmlFields<Data.CouponCore>(fieldList) ?? "", "");
 
-            var queryResponse = _core.QueryWebsite<Data.CouponCore>("smugmug.coupons.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.CouponCore>("smugmug.coupons.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -43,7 +43,7 @@ namespace SmugMug.Net.Service
         /// <param name="status">The comma separated string of status values to filter results</param>
         /// <param name="type">The comma separated string of type values to filter results</param>
         /// <returns></returns>
-        public Data.CouponInfo[] GetCouponInfoList(string statusFilter = "", string typeFilter = "")
+        public async Task<Data.CouponInfo[]> GetCouponInfoList(string statusFilter = "", string typeFilter = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -51,7 +51,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Type", typeFilter);
             queryParams.Add("Heavy", true);
 
-            var queryResponse = _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -62,14 +62,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="couponId">The id for a specific coupon</param>
         /// <returns></returns>
-        public Data.CouponInfo GetCoupon(string couponId)
+        public async Task<Data.CouponInfo> GetCoupon(string couponId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("CouponID", couponId);
 
-            var queryResponse = _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.getInfo", queryParams, false);
-
+            var queryResponse = await _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.getInfo", queryParams, false);
 
             // Return Results
             return queryResponse[0];
@@ -81,14 +80,14 @@ namespace SmugMug.Net.Service
         /// <param name="couponId">The id for a specific coupon</param>
         /// <param name="albumId">The id for a specific album</param>
         /// <returns></returns>
-        public bool AddAlbumRestrictionToCoupon(string couponId, string albumId)
+        public async Task<bool> AddAlbumRestrictionToCoupon(string couponId, string albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("CouponID", couponId);
             queryParams.Add("AlbumID", albumId);
 
-            _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.restrictions.albums.add", queryParams, false);
+            _ = await _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.restrictions.albums.add", queryParams, false);
 
             // Return Results
             return true;
@@ -100,14 +99,14 @@ namespace SmugMug.Net.Service
         /// <param name="couponId">The id for a specific coupon</param>
         /// <param name="albumId">The id for a specific album</param>
         /// <returns></returns>
-        public bool RemoveAlbumRestrictionFromCoupon(string couponId, string albumId)
+        public async Task<bool> RemoveAlbumRestrictionFromCoupon(string couponId, string albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("CouponID", couponId);
             queryParams.Add("AlbumID", albumId);
 
-            _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.restrictions.albums.remove", queryParams, false);
+            _ = await _core.QueryWebsite<Data.CouponInfo>("smugmug.coupons.restrictions.albums.remove", queryParams, false);
 
             // Return Results
             return true;
@@ -119,13 +118,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="coupon">Coupon object to create</param>
         /// <returns>New coupon object with Key Information</returns>
-        public Data.CouponInfo CreateCoupon(Data.CouponInfo coupon)
+        public async Task<Data.CouponInfo> CreateCoupon(Data.CouponInfo coupon)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             CouponService.AddCouponParameters(queryParams, coupon);
 
-            var response = _core.QueryWebsite<Data.CouponCore>("smugmug.coupons.create", queryParams, false);
+            var response = await _core.QueryWebsite<Data.CouponCore>("smugmug.coupons.create", queryParams, false);
 
             // Return a copy of the original object
             var newCoupon = response[0];
@@ -140,14 +139,14 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="coupon">Coupon object to change settings on</param>
         /// <returns></returns>
-        public bool UpdateCoupon(Data.CouponInfo coupon)
+        public async Task<bool> UpdateCoupon(Data.CouponInfo coupon)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("CouponID", coupon.CouponId);
             CouponService.AddCouponParameters(queryParams, coupon);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.coupons.modify", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.coupons.modify", queryParams, false);
             return true;
         }
 

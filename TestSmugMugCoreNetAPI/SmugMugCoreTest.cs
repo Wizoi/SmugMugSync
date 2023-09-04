@@ -12,11 +12,11 @@ public class SmugMugCoreTest
     ///A test for PingService
     ///</summary>
     [TestMethod()]
-    public void PingServiceTest()
+    public async Task PingServiceTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         bool expected = true;
-        bool actual = core.PingService();
+        bool actual = await core.PingService();
         Assert.AreEqual(expected, actual);
     }
 }

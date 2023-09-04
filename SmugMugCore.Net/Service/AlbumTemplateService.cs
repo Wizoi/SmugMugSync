@@ -19,12 +19,12 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of album templates
         /// </summary>
         /// <returns></returns>
-        public Data.AlbumTemplate[] GetAlbumTemplateList()
+        public async Task<Data.AlbumTemplate[]> GetAlbumTemplateList()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
 
-            var queryResponse = _core.QueryWebsite<Data.AlbumTemplate>("smugmug.albumtemplates.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.AlbumTemplate>("smugmug.albumtemplates.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -34,13 +34,13 @@ namespace SmugMug.Net.Service
         /// Create an album template
         /// </summary>
         /// <returns></returns>
-        public Data.AlbumTemplate CreateAlbumTemplate(Data.AlbumTemplate albumTemplate)
+        public async Task<Data.AlbumTemplate> CreateAlbumTemplate(Data.AlbumTemplate albumTemplate)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             AlbumTemplateService.AddAlbumTemplateParameters(queryParams, albumTemplate);
 
-            var queryResponse = _core.QueryWebsite<Data.AlbumTemplate>("smugmug.albumtemplates.create", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.AlbumTemplate>("smugmug.albumtemplates.create", queryParams, false);
             var albumTemplateResponse = queryResponse[0];
             var outAlbumTemplate = albumTemplate.Copy();
             outAlbumTemplate.AlbumTemplateId = albumTemplateResponse.AlbumTemplateId;
@@ -54,13 +54,13 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of album templates
         /// </summary>
         /// <returns></returns>
-        public bool DeleteAlbumTemplate(int albumTemplateId)
+        public async Task<bool> DeleteAlbumTemplate(int albumTemplateId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumTemplateID", albumTemplateId);
 
-            _core.QueryWebsite<Data.AlbumTemplate>("smugmug.albumtemplates.delete", queryParams, false);
+            _ = await _core.QueryWebsite<Data.AlbumTemplate>("smugmug.albumtemplates.delete", queryParams, false);
 
             // Return True if no error is thrown
             return true;
@@ -71,14 +71,14 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="album">Album template object to change settings on</param>
         /// <returns></returns>
-        public bool UpdateAlbumTemplate(Data.AlbumTemplate albumTemplate)
+        public async Task<bool> UpdateAlbumTemplate(Data.AlbumTemplate albumTemplate)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("AlbumTemplateID", albumTemplate.AlbumTemplateId);
             AlbumTemplateService.AddAlbumTemplateParameters(queryParams, albumTemplate);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.albumtemplates.changeSettings", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.albumtemplates.changeSettings", queryParams, false);
             return true;
         }
 
