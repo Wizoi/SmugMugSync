@@ -34,7 +34,7 @@ public class TargetAlbumRepositoryTest
     }
 
     [TestMethod]
-    public void PopulateTargetAlbums_LoadFolderWithDash()
+    public async Task PopulateTargetAlbums_LoadFolderWithDash()
     {
         // Setup: For the folder config
         var inMemorySettings = new Dictionary<string, string?> {
@@ -50,17 +50,17 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "Expecting to find a folder");
     }
 
     [TestMethod]
-    public void PopulateTargetAlbums_IgnoreFolderNoDate()
+    public async Task PopulateTargetAlbums_IgnoreFolderNoDate()
     {
         // Setup: For the folder config
         var inMemorySettings = new Dictionary<string, string?> {
@@ -76,17 +76,17 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "No Folders should be found");
     }
 
     [TestMethod]
-    public void PopulateTargetAlbums_IgnoreTitleNotFilteredFolder()
+    public async Task PopulateTargetAlbums_IgnoreTitleNotFilteredFolder()
     {
         // Setup: For the folder config
         var inMemorySettings = new Dictionary<string, string?> {
@@ -103,17 +103,17 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "No Folders should be found");
     }
 
     [TestMethod]
-    public void PopulateTargetAlbums_ValidFilteredFolder()
+    public async Task PopulateTargetAlbums_ValidFilteredFolder()
     {
         // Setup: For the folder config
         var inMemorySettings = new Dictionary<string, string?> {
@@ -130,11 +130,11 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "Expecting to find a folder");
     }
@@ -176,7 +176,7 @@ public class TargetAlbumRepositoryTest
     }
 
     [TestMethod]
-    public void VerifyLinkedFolder_UnlinkFolderNotMatching()
+    public async Task VerifyLinkedFolder_UnlinkFolderNotMatching()
     {
         var inMemoryFolderSettings = new Dictionary<string, string?> {{"rootLocal", "A:\\FOODIRECTORY"}};
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
@@ -209,14 +209,14 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestNonMatchKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         //
         // Actually setup the repository and run the test
         //
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
         targetAlbumRepository.VerifyLinkedFolders(runtimeConfig, sourceFolderRepo.Object);
         
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "There are no loaded albums.");
@@ -225,7 +225,7 @@ public class TargetAlbumRepositoryTest
     }
 
     [TestMethod]
-    public void SyncNewFolders_Validate()
+    public async Task SyncNewFolders_Validate()
     {
         var inMemoryFolderSettings = new Dictionary<string, string?> {{"rootLocal", "A:\\FOODIRECTORY"}};
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
@@ -253,9 +253,9 @@ public class TargetAlbumRepositoryTest
 
         // Album to Mock Load  
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
-        smAlbumServiceMock.Setup(x => x.CreateAlbum(It.IsAny<AlbumDetail>())).Returns(albDetail);
+        smAlbumServiceMock.Setup(x => x.CreateAlbum(It.IsAny<AlbumDetail>())).ReturnsAsync(albDetail);
         smAlbumServiceMock.Setup(x => x.GetAlbumDetail(albDetail.AlbumId, albDetail.AlbumKey))
-            .Returns(albDetail);
+            .ReturnsAsync(albDetail);
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         //
@@ -265,8 +265,8 @@ public class TargetAlbumRepositoryTest
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
-        targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
         
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "There should be a loaded albums.");
         sourceDirDataMock.Verify(x => x.LinkToAlbum(albDetail.AlbumId, albDetail.AlbumKey), "Link to Album should have been called.");
@@ -279,8 +279,8 @@ public class TargetAlbumRepositoryTest
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
         targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
-        targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
         
         Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "There should not be a loaded album.");
 
@@ -291,14 +291,14 @@ public class TargetAlbumRepositoryTest
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
         targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
-        targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
         
         Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "There should not be a loaded album.");
     }
 
     [TestMethod]
-    public void SyncExistingFolders_Validate()
+    public async Task SyncExistingFolders_Validate()
     {
         var inMemoryFolderSettings = new Dictionary<string, string?> {{"rootLocal", "A:\\FOODIRECTORY"}};
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
@@ -324,9 +324,9 @@ public class TargetAlbumRepositoryTest
 
         // Album to Mock Load  
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
-        smAlbumServiceMock.Setup(x => x.DeleteAlbum(It.IsAny<int>())).Returns(true);
+        smAlbumServiceMock.Setup(x => x.DeleteAlbum(It.IsAny<int>())).ReturnsAsync(true);
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
         //
@@ -336,9 +336,9 @@ public class TargetAlbumRepositoryTest
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "There should be a loaded albums.");
-        targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
+        _ = await targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
         Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "Album should no longer be loaded.");
         smAlbumServiceMock.Verify(x => x.DeleteAlbum(albDetail.AlbumId), "Link to Album should have been called.");
 
@@ -349,10 +349,10 @@ public class TargetAlbumRepositoryTest
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
         targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "There should be a loaded albums.");
-        targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
+        _ = await targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "Album should still be loaded.");
         
         //
@@ -362,10 +362,10 @@ public class TargetAlbumRepositoryTest
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
         targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "There should be a loaded albums.");
-        targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
+        _ = await targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "Album should still be loaded.");
     }
 
@@ -386,7 +386,7 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
 
@@ -407,7 +407,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.SkippedFolders, "Expecting to have a skipped folder");
@@ -431,11 +431,11 @@ public class TargetAlbumRepositoryTest
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
-            .Returns(new []{albDetail});
+            .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
         var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
         smImageServiceMock.Setup(x => x.GetAlbumImages(
-            It.IsAny<string[]>(), It.IsAny<int>(), It.IsAny<string>())).Returns(albDetail);
+            It.IsAny<string[]>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(albDetail);
         smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
 
 
@@ -464,7 +464,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");

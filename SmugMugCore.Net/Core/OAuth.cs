@@ -19,7 +19,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-
+using System.Net;
 
 namespace SmugMug.Net.Core
 {
@@ -222,7 +222,7 @@ namespace SmugMug.Net.Core
         /// <param name="method">The method you will use to send the message asking for a request token. </param> 
         /// <param name="oauthParams">Parameters for the request</param>
         /// <returns>A request object with the token and secret filled in.</returns>
-        public Data.OAuthRequest AcquireRequestToken(System.Uri uri, HttpMethod method, QueryParameterList oauthParams)
+        public async Task<Data.OAuthRequest> AcquireRequestToken(System.Uri uri, HttpMethod method, QueryParameterList oauthParams)
         {
             var oauthRequest = new Data.OAuthRequest { 
                 ConsumerKey = _consumerKey, 
@@ -230,7 +230,7 @@ namespace SmugMug.Net.Core
             };
 
             // Note this will append the oauth tokens to the request
-            return QueryWebsiteForOauthRequest(uri, method, oauthRequest, oauthParams);
+            return await QueryWebsiteForOauthRequest(uri, method, oauthRequest, oauthParams);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace SmugMug.Net.Core
         /// <param name="pin">The PIN returned by the "Application approval" page shown </param>
         /// <param name="oauthParams">Parameters for the request</param>
         /// <returns>A request object with the token and secret filled in.</returns>
-        public Data.OAuthRequest AcquireAccessToken(System.Uri uri, HttpMethod method, string pin, QueryParameterList oauthParams)
+        public async Task<Data.OAuthRequest> AcquireAccessToken(System.Uri uri, HttpMethod method, string pin, QueryParameterList oauthParams)
         {
             var oauthRequest = new Data.OAuthRequest
             {
@@ -278,7 +278,7 @@ namespace SmugMug.Net.Core
             };
 
             // Note this will append the oauth tokens to the request
-            return QueryWebsiteForOauthRequest(uri, method, oauthRequest, oauthParams);
+            return await QueryWebsiteForOauthRequest(uri, method, oauthRequest, oauthParams);
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace SmugMug.Net.Core
         /// <param name="oauthRequest"></param>
         /// <param name="oauthParams"></param>
         /// <returns></returns>
-        public static Data.OAuthRequest QueryWebsiteForOauthRequest(System.Uri uri, HttpMethod method, Data.OAuthRequest oauthRequest, QueryParameterList oauthParams)
+        public async static Task<Data.OAuthRequest> QueryWebsiteForOauthRequest(System.Uri uri, HttpMethod method, Data.OAuthRequest oauthRequest, QueryParameterList oauthParams)
         {
             using HttpClient httpClient = new(new HttpClientHandler
             {
@@ -297,12 +297,13 @@ namespace SmugMug.Net.Core
             });
             using HttpRequestMessage request = new(method, uri);
 
+            request.Version = HttpVersion.Version30;
             var authzHeader = GetAuthorizationHeader(oauthRequest, uri, method, "", oauthParams);
             httpClient.DefaultRequestHeaders.Add("Authorization", authzHeader);
-            var response = httpClient.Send(request);
+            var response = await httpClient.SendAsync(request);
 
-            using var reader = new System.IO.StreamReader(response.Content.ReadAsStream());
-            var r = new OAuthResponse(reader.ReadToEnd());
+            using var reader = new System.IO.StreamReader(await response.Content.ReadAsStreamAsync());
+            var r = new OAuthResponse(await reader.ReadToEndAsync());
 
             // Update the token with the new values from the response (if they exist)
             oauthRequest.Token = r["oauth_token"];

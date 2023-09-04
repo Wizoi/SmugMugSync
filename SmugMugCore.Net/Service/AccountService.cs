@@ -22,14 +22,14 @@ namespace SmugMug.Net.Service
         /// <param name="nickName">The NickName for a specific user</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public System.Uri Browse(string nickName, string sitePassword = "")
+        public async Task<System.Uri> Browse(string nickName, string sitePassword = "")
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("NickName", nickName);
             queryParams.Add("SitePassword", sitePassword, "");
 
-            var results = _core.QueryWebsite<System.Uri>("smugmug.accounts.browse", queryParams, false);
+            var results = await _core.QueryWebsite<System.Uri>("smugmug.accounts.browse", queryParams, false);
             return results[0];
         }
     }

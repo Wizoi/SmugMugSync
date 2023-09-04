@@ -19,7 +19,7 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of subcategories for a category
         /// </summary>
         /// <returns></returns>
-        public Data.SubCategory[] GetSubCategoryList(int categoryId, string nickName = "", string sitePassword = "")
+        public async Task<Data.SubCategory[]> GetSubCategoryList(int categoryId, string nickName = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -27,7 +27,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("NickName", nickName, "");
             queryParams.Add("SitePassword", sitePassword, "");
 
-            var queryResponse = _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -37,14 +37,14 @@ namespace SmugMug.Net.Service
         /// Retrieve all subcategories for a category
         /// </summary>
         /// <returns></returns>
-        public Data.SubCategory[] GetAllSubCategories(string nickName = "", string sitePassword = "")
+        public async Task<Data.SubCategory[]> GetAllSubCategories(string nickName = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("NickName", nickName, "");
             queryParams.Add("SitePassword", sitePassword, "");
 
-            var queryResponse = _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.getAll", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.getAll", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -57,7 +57,7 @@ namespace SmugMug.Net.Service
         /// <param name="name">The name for the subcategory</param>
         /// <param name="unique">Create a subcategory if one of the same name doesn't already exist in the current hierarchy</param>
         /// <returns></returns>
-        public Data.SubCategory CreateSubCategory(int categoryId, string name, bool unique = false)
+        public async  Task<Data.SubCategory> CreateSubCategory(int categoryId, string name, bool unique = false)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -65,7 +65,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Name", name);
             queryParams.Add("Unique", unique, false);
 
-            var queryResponse = _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.create", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.create", queryParams, false);
             var subCategory = queryResponse[0];
             subCategory.Name = name;
 
@@ -79,13 +79,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="subCategoryId">The id for a specific subcategory</param>
         /// <returns></returns>
-        public bool DeleteSubCategory(long subCategoryId)
+        public async Task<bool> DeleteSubCategory(long subCategoryId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("SubCategoryID", subCategoryId);
 
-            _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.delete", queryParams, false);
+            _ = await  _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.delete", queryParams, false);
 
             // Return True if no error is thrown
             return true;
@@ -97,14 +97,14 @@ namespace SmugMug.Net.Service
         /// <param name="subCategoryId">The id for a specific subcategory</param>
         /// <param name="newName">The new name to associate with this subcategory</param>
         /// <returns></returns>
-        public bool RenameSubCategory(long subCategoryId, string newName)
+        public async Task<bool> RenameSubCategory(long subCategoryId, string newName)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("SubCategoryID", subCategoryId);
             queryParams.Add("Name", newName);
 
-            _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.rename", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SubCategory>("smugmug.subcategories.rename", queryParams, false);
             
             return true;
         }

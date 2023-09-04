@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 using SmugMug.Net;
 using SmugMug.Net.Data.Domain.Printmark;
 
@@ -20,14 +21,14 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of printmarks
         /// </summary>
         /// <returns></returns>
-        public Data.PrintmarkInfo[] GetPrintmarkList(string[] fieldList)
+        public async Task<Data.PrintmarkInfo[]> GetPrintmarkList(string[] fieldList)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("Extras", Core.SmugMugCore.ConvertFieldListToXmlFields<Data.PrintmarkInfo>(fieldList) ?? "", ""); 
             queryParams.Add("Heavy", false);
 
-            var queryResponse = _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.printmarks.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.printmarks.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -37,13 +38,13 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of printmarks with full information
         /// </summary>
         /// <returns></returns>
-        public Data.PrintmarkInfo[] GetPrintmarkInfoList()
+        public async Task<Data.PrintmarkInfo[]> GetPrintmarkInfoList()
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("Heavy", true);
 
-            var queryResponse = _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.printmarks.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.printmarks.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -54,13 +55,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="printmarkId">The id for a specific printmark</param>
         /// <returns></returns>
-        public Data.PrintmarkInfo GetPrintmark(string printmarkId)
+        public async Task<Data.PrintmarkInfo> GetPrintmark(string printmarkId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("PrintmarkID", printmarkId);
 
-            var queryResponse = _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.coupons.getInfo", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.coupons.getInfo", queryParams, false);
 
 
             // Return Results
@@ -72,13 +73,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="printmarkId">Printmark ID to delete</param>
         /// <returns>True if deleted</returns>
-        public bool DeletePrintmark(int printmarkId)
+        public async Task<bool> DeletePrintmark(int printmarkId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("PrintmarkID", printmarkId);
 
-            _core.QueryWebsite<Data.CouponCore>("smugmug.coupons.delete", queryParams, false);
+            _ = await _core.QueryWebsite<Data.CouponCore>("smugmug.coupons.delete", queryParams, false);
             return true;
         }
 
@@ -89,13 +90,13 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="coupon">Printmark object to create</param>
         /// <returns>Created Printmark</returns>
-        public Data.PrintmarkInfo CreatePrintmark(Data.PrintmarkInfo printmark)
+        public async Task<Data.PrintmarkInfo> CreatePrintmark(Data.PrintmarkInfo printmark)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             PrintmarkService.AddPrintmarkParameters(queryParams, printmark);
 
-            var response = _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.printmark.create", queryParams, false);
+            var response = await _core.QueryWebsite<Data.PrintmarkInfo>("smugmug.printmark.create", queryParams, false);
             // Return a copy of the original object
             var newPrintmark = response[0];
             var outPrintmarkInfo = (Data.PrintmarkInfo) printmark.Copy();
@@ -110,14 +111,14 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="coupon">Printmark object to change settings on</param>
         /// <returns></returns>
-        public bool UpdatePrintmark(Data.PrintmarkInfo printmark)
+        public async Task<bool> UpdatePrintmark(Data.PrintmarkInfo printmark)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("PrintmarkID", printmark.PrintmarkId);
             PrintmarkService.AddPrintmarkParameters(queryParams, printmark);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.printmark.modify", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.printmark.modify", queryParams, false);
             return true;
         }
 

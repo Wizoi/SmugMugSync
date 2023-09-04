@@ -29,11 +29,11 @@ public class CommunityServiceTest
     ///A test for GetCommunityList
     ///</summary>
     [TestMethod()]
-    public void GetCommunityListTest()
+    public async Task GetCommunityListTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         CommunityService target = new CommunityService(core); 
-        var actual = target.GetCommunityList();
+        var actual = await target.GetCommunityList();
         
         // Not sure what to validate more specifically, but if it doens't error for now, then I'm OK with that :)
     }

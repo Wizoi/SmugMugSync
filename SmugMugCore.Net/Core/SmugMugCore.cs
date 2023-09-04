@@ -306,12 +306,12 @@ namespace SmugMug.Net.Core
         /// Ping the service, throw an exception if there are problems
         /// </summary>
         /// <returns>True if service is pingable</returns>
-        public bool PingService()
+        public async Task<bool> PingService()
         {
             var paramList = new Core.QueryParameterList();
             paramList.Add("APIKey", _smugMugApiKey);
 
-            QueryWebsite<Data.SmugmugError>("smugmug.service.ping", paramList, false);
+            _ = await QueryWebsite<Data.SmugmugError>("smugmug.service.ping", paramList, false);
             return true;
         }
 
@@ -322,9 +322,8 @@ namespace SmugMug.Net.Core
         /// <param name="localPath"></param>
         internal async Task<Boolean> DownloadContentAsync(string targetUrl, string localPath)
         {
-            var paramData = new QueryParameterList();
-            var uri = new System.Uri(targetUrl);
-            var httpResponse = RetrieveHttpRequestForGet(uri, paramData, new TimeSpan(0, 5, 0));
+            var paramData = new QueryParameterList();            var uri = new System.Uri(targetUrl);
+            var httpResponse = await RetrieveHttpRequestForGetAsync(uri, paramData, new TimeSpan(0, 5, 0));
 
             System.IO.Stream? stream = null;
             try
@@ -358,7 +357,7 @@ namespace SmugMug.Net.Core
         /// <param name="methodName">Name of the SmugMug API to Invoke</param>
         /// <param name="paramData">Parameters to pass into API</param>
         /// <returns></returns>
-        internal T[] QueryWebsite<T>(string methodName, QueryParameterList paramData, bool returnArray)
+        internal async Task<T[]> QueryWebsite<T>(string methodName, QueryParameterList paramData, bool returnArray)
         {
             bool allowDebuggingOutput = this.EnableRequestLogging;
             string baseUri = "https://api.smugmug.com/services/api/rest/1.3.0/";
@@ -370,7 +369,7 @@ namespace SmugMug.Net.Core
 
             paramData.Add("method", methodName);
             var uri = new System.Uri(baseUri);
-            var httpResponse = RetrieveHttpRequestForGet(uri, paramData, new TimeSpan(0, 0, 30));
+            var httpResponse = await RetrieveHttpRequestForGetAsync(uri, paramData, new TimeSpan(0, 0, 30));
 
             System.IO.Stream? stream = null;
             try
@@ -378,7 +377,7 @@ namespace SmugMug.Net.Core
                 // If debugging, allow a second req to pull the XML for validation
                 if (allowDebuggingOutput)
                 {
-                    var preStream = httpResponse.Content.ReadAsStream();
+                    var preStream = await httpResponse.Content.ReadAsStreamAsync();
                     var streamReader = new System.IO.StreamReader(preStream);
                     var xmlResponse = streamReader.ReadToEnd();
 
@@ -412,7 +411,7 @@ namespace SmugMug.Net.Core
                 }
                 else
                 {
-                    stream = httpResponse.Content.ReadAsStream();
+                    stream = await httpResponse.Content.ReadAsStreamAsync();
                     requestDetail = string.Empty;
                 }
 
@@ -552,6 +551,7 @@ namespace SmugMug.Net.Core
                 authUri += paramData.GenerateQueryString("?");
 
             var request = new HttpRequestMessage(method, authUri);
+            request.Version = HttpVersion.Version30;
             return request;
         }
 
@@ -585,7 +585,7 @@ namespace SmugMug.Net.Core
         /// <param name="uri"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        internal HttpResponseMessage RetrieveHttpRequestForGet(System.Uri baseUri, QueryParameterList? paramData, System.TimeSpan requestTimeout)
+        internal async Task<HttpResponseMessage> RetrieveHttpRequestForGetAsync(System.Uri baseUri, QueryParameterList? paramData, System.TimeSpan requestTimeout)
         {
             HttpClient? client = null;
             HttpRequestMessage? request = null;
@@ -597,7 +597,7 @@ namespace SmugMug.Net.Core
                 client.Timeout = requestTimeout;
 
                 request = this.BuildHttpRequestMessage(baseUri, HttpMethod.Get, paramData);
-                response = client.Send(request);
+                response = await client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
             }
             finally

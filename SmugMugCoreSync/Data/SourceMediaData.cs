@@ -66,9 +66,9 @@ namespace SmugMugCoreSync.Data
         /// This is generated, but cached since it only changes when the file would be changed, or  reloaded.
         /// </summary>
         /// <returns></returns>
-        public string LoadMd5Checksum()
+        public async Task<string> LoadMd5Checksum()
         {
-            _md5CacheData ??= ImageUploaderService.GetMd5Checksum(_sourceFileInfo);
+            _md5CacheData ??= await ImageUploaderService.GetMd5Checksum(_sourceFileInfo);
             return _md5CacheData;
         }
     }

@@ -28,8 +28,8 @@ sourceFolders.PopulateSourceFoldersAndFiles();
 
 /* Load Remote Albums */
 var remoteAlbums = new SmugMugCoreSync.Repositories.TargetAlbumRepository(core: smCore, folderConfig: appSettings.FolderSyncPaths);
-remoteAlbums.PopulateTargetAlbums();
+_ = await remoteAlbums.PopulateTargetAlbums();
 remoteAlbums.VerifyLinkedFolders(appSettings.RuntimeFlags, sourceFolders);
-remoteAlbums.SyncNewFolders(appSettings.RuntimeFlags, sourceFolders);
-remoteAlbums.SyncExistingFolders(appSettings.RuntimeFlags, sourceFolders);
-remoteAlbums.SyncFolderFiles(appSettings.RuntimeFlags, sourceFolders);
+_ = await remoteAlbums.SyncNewFolders(appSettings.RuntimeFlags, sourceFolders);
+_ = await remoteAlbums.SyncExistingFolders(appSettings.RuntimeFlags, sourceFolders);
+_ = await remoteAlbums.SyncFolderFiles(appSettings.RuntimeFlags, sourceFolders);

@@ -13,7 +13,7 @@ public class FriendServiceTest
     ///A test for AddFriend
     ///</summary>
     [TestMethod()]
-    public void AddRemoveFriendTest()
+    public async void AddRemoveFriendTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new FriendService(core);
@@ -21,13 +21,13 @@ public class FriendServiceTest
         bool actual;
 
         // Clean up old data
-        Utility.RemoveArbitraryTestFamilies(core, nickName);
+        var cleanup = Utility.RemoveArbitraryTestFamilies(core, nickName);
 
-        actual = target.AddFriend(nickName);
+        actual = await target.AddFriend(nickName);
         Assert.AreEqual(actual, true);
 
         // Clean up when done
-        Utility.RemoveArbitraryTestFriends(core, nickName);
+        cleanup = Utility.RemoveArbitraryTestFriends(core, nickName);
     }
 
     /// <summary>

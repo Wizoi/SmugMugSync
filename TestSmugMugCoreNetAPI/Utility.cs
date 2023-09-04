@@ -1,7 +1,10 @@
-﻿namespace TestSmugMugCoreNetAPI;
+﻿using System.Transactions;
+
+namespace TestSmugMugCoreNetAPI;
 
 public class Utility
 {
+    private static SmugMug.Net.Core.SmugMugCore? core = null;
 
     /// <summary>
     /// Authenticate and provide a smug mug core to test against
@@ -9,12 +12,16 @@ public class Utility
     /// <returns></returns>
     public static SmugMug.Net.Core.SmugMugCore RetrieveSmugMugCore()
     {
-        var settings = new Configuration.KeySecretsConfig();
-        var manager = new SmugMug.Net.Core.SmugMugCore(
-            userAuthToken:  settings.UserAuthToken, userAuthSecret: settings.UserAuthSecret,
-            apiKey: settings.ApiKey, apiSecret: settings.ApiSecret);
-        manager.EnableRequestLogging = true;
-        return manager;
+        if  (Utility.core == null)
+        {
+            var settings = new Configuration.KeySecretsConfig();
+            var manager = new SmugMug.Net.Core.SmugMugCore(
+                userAuthToken:  settings.UserAuthToken, userAuthSecret: settings.UserAuthSecret,
+                apiKey: settings.ApiKey, apiSecret: settings.ApiSecret);
+            manager.EnableRequestLogging = true;
+            Utility.core = manager;
+        }
+        return Utility.core;
     }
 
     /// <summary>
@@ -22,10 +29,10 @@ public class Utility
     /// </summary>
     /// <param name="core"></param>
     /// <returns></returns>
-    public static SmugMug.Net.Data.AlbumDetail CreateArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
+    public async static Task<SmugMug.Net.Data.AlbumDetail> CreateArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
     {
         // Remove it first if it exists from a prior run to clean up
-        RemoveArbitraryTestAlbum(core, title);
+        _ = await RemoveArbitraryTestAlbum(core, title);
 
         AlbumService service = new AlbumService(core); 
         var album = new AlbumDetail();
@@ -50,7 +57,7 @@ public class Utility
         album.NiceName = title + "NiceName";
         album.PackageBrandedOrdersEnabled = true;
         album.PublicDisplay = true;
-        var newAlbum = service.CreateAlbum(album);
+        var newAlbum = await service.CreateAlbum(album);
         return newAlbum;
     }
 
@@ -60,31 +67,38 @@ public class Utility
     /// <param name="core"></param>
     /// <param name="album"></param>
     /// <returns></returns>
-    public static void RemoveArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
+    public async static Task<bool> RemoveArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
     {
         var service = new AlbumService(core);
-        var albumData = service.GetAlbumList(Array.Empty<string>()).Where(x=>x.Title == title).ToArray();
+        var albumData = (await service.GetAlbumList(Array.Empty<string>())).Where(x=>x.Title == title).ToArray();
+        bool result = false;
         if (albumData.Length > 0)
-            service.DeleteAlbum(albumData[0].AlbumId);
+            result = await service.DeleteAlbum(albumData[0].AlbumId);
+
+        return result;
     }
 
-    public static void RemoveArbitraryTestFamilies(SmugMug.Net.Core.SmugMugCore core, string nickname)
+    public async static Task<bool> RemoveArbitraryTestFamilies(SmugMug.Net.Core.SmugMugCore core, string nickname)
     {
         var service = new FamilyService(core);
-        var data = service.GetFamilyList().Where(x => x.NickName.Contains(nickname)).ToArray();
+        var data = (await service.GetFamilyList()).Where(x => x.NickName.Contains(nickname)).ToArray();
         foreach (var d in data)
         {
-            service.RemoveFamily(d.NickName);
+            _ = await service.RemoveFamily(d.NickName);
         }
+
+        return true;
     }
 
-    public static void RemoveArbitraryTestFriends(SmugMug.Net.Core.SmugMugCore core, string nickname)
+    public async static Task<bool> RemoveArbitraryTestFriends(SmugMug.Net.Core.SmugMugCore core, string nickname)
     {
         var service = new FriendService(core);
-        var data = service.GetFriendList().Where(x => x.NickName.Contains(nickname)).ToArray();
+        var data = (await service.GetFriendList()).Where(x => x.NickName.Contains(nickname)).ToArray();
         foreach (var d in data)
         {
-            service.RemoveFriend(d.NickName);
+            _ = await service.RemoveFriend(d.NickName);
         }
+
+        return true;
     }
 }

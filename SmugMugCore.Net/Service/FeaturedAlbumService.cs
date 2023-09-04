@@ -22,7 +22,7 @@ namespace SmugMug.Net.Service
         /// <param name="nickName">The NickName for a specific user</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public Data.AlbumDetail[] GetFeaturedAlbumList(string[] fieldList, string nickName = "", string sitePassword = "")
+        public async Task<Data.AlbumDetail[]> GetFeaturedAlbumList(string[] fieldList, string nickName = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -31,7 +31,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Extras", Core.SmugMugCore.ConvertFieldListToXmlFields<Data.FeaturedAlbums>(fieldList) ?? "", "");
             queryParams.Add("Heavy", false);
 
-            var queryResponse = _core.QueryWebsite<Data.FeaturedAlbums>("smugmug.featured.albums.get", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.FeaturedAlbums>("smugmug.featured.albums.get", queryParams, false);
             if (queryResponse != null && queryResponse.Length > 0)
             {
                 var responseDetail = queryResponse[0];
@@ -48,7 +48,7 @@ namespace SmugMug.Net.Service
         /// <param name="nickName">The NickName for a specific user</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public Data.AlbumDetail[] GetFeaturedAlbumDetailList(string nickName = "", string sitePassword = "")
+        public async Task<Data.AlbumDetail[]> GetFeaturedAlbumDetailList(string nickName = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -56,7 +56,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("SitePassword", sitePassword, "");
             queryParams.Add("Heavy", true);
 
-            var queryResponse = _core.QueryWebsite<Data.FeaturedAlbums>("smugmug.featured.albums.get", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.FeaturedAlbums>("smugmug.featured.albums.get", queryParams, false);
             if (queryResponse != null && queryResponse.Length > 0)
             {
                 var responseDetail = queryResponse[0];

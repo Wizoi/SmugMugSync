@@ -27,14 +27,14 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of watermarks with optional album details
         /// </summary>
         /// <returns></returns>
-        public Data.Watermark[] GetWatermarkList(bool includeDetails, string[] fieldList)
+        public async Task<Data.Watermark[]> GetWatermarkList(bool includeDetails, string[] fieldList)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("Extras", Core.SmugMugCore.ConvertFieldListToXmlFields<Data.Comment>(fieldList) ?? "", ""); 
             queryParams.Add("Heavy", includeDetails);
 
-            var queryResponse = _core.QueryWebsite<Data.Watermark>("smugmug.watermarks.get", queryParams, true);
+            var queryResponse = await _core.QueryWebsite<Data.Watermark>("smugmug.watermarks.get", queryParams, true);
 
             // Return Results
             return queryResponse;
@@ -44,13 +44,13 @@ namespace SmugMug.Net.Service
         /// Retrieve a list of album templates
         /// </summary>
         /// <returns></returns>
-        public Data.Watermark GetWatermark(int watermarkId)
+        public async Task<Data.Watermark> GetWatermark(int watermarkId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("WatermarkID", watermarkId);
 
-            var queryResponse = _core.QueryWebsite<Data.Watermark>("smugmug.watermarks.getInfo", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.Watermark>("smugmug.watermarks.getInfo", queryParams, false);
 
             // Return Results
             return queryResponse[0];
@@ -62,13 +62,13 @@ namespace SmugMug.Net.Service
         /// Required: ImageID and a Name
         /// </summary>
         /// <returns></returns>
-        public Data.Watermark CreateWatermark(Data.Watermark watermark)
+        public async Task<Data.Watermark> CreateWatermark(Data.Watermark watermark)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             AddWatermarkParameters(queryParams, watermark);
 
-            var queryResponse = _core.QueryWebsite<Data.Watermark>("smugmug.albumtemplates.create", queryParams, false);
+            var queryResponse = await _core.QueryWebsite<Data.Watermark>("smugmug.albumtemplates.create", queryParams, false);
             var respWatermark = queryResponse[0];
             var outWatermark = watermark.Copy();
             outWatermark.WatermarkId = respWatermark.WatermarkId;
@@ -82,13 +82,13 @@ namespace SmugMug.Net.Service
         /// Delete a watermark
         /// </summary>
         /// <returns></returns>
-        public bool DeleteWatermark(int watermarkId)
+        public async Task<bool> DeleteWatermark(int watermarkId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("WatermarkID", watermarkId);
 
-            _core.QueryWebsite<Data.AlbumTemplate>("smugmug.watermarks.delete", queryParams, false);
+            _ = await _core.QueryWebsite<Data.AlbumTemplate>("smugmug.watermarks.delete", queryParams, false);
 
             // Return True if no error is thrown
             return true;
@@ -99,14 +99,14 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="watermark">Watermark object to change settings on</param>
         /// <returns></returns>
-        public bool UpdateWatermark(Data.Watermark watermark)
+        public async Task<bool> UpdateWatermark(Data.Watermark watermark)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
             queryParams.Add("WatermarkID", watermark.WatermarkId);
             WatermarkService.AddWatermarkParameters(queryParams, watermark);
 
-            _core.QueryWebsite<Data.SmugmugError>("smugmug.watermarks.changeSettings", queryParams, false);
+            _ = await _core.QueryWebsite<Data.SmugmugError>("smugmug.watermarks.changeSettings", queryParams, false);
             return true;
         }
 
