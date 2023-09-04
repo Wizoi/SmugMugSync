@@ -230,7 +230,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
         bool loadImageInfo = false;
-        AlbumDetail actual = target.GetAlbumImages(Array.Empty<string>(), albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
+        AlbumDetail actual = target.GetAlbumImagesExt(Array.Empty<string>(), albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
 
         if (actual.Images == null || actual.ImageCount == 0)
             Assert.Fail("No Images were loaded.");
@@ -260,7 +260,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool loadImageInfo = false;
-        AlbumDetail actual = target.GetAlbumImages(new string[] { "Keywords" }, albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
+        AlbumDetail actual = target.GetAlbumImagesExt(new string[] { "Keywords" }, albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
 
         if (actual.Images == null || actual.ImageCount == 0)
             Assert.Fail("No Images were loaded.");

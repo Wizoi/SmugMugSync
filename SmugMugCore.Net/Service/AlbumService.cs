@@ -200,7 +200,7 @@ namespace SmugMug.Net.Service
         /// <returns></returns>
         public virtual Data.AlbumDetail GetAlbumDetail(int albumId, string albumKey)
         {
-            return GetAlbumDetailFull(albumId:albumId, albumKey:albumKey, albumPassword:"", sitePassword:"");
+            return GetAlbumDetailExt(albumId:albumId, albumKey:albumKey, albumPassword:"", sitePassword:"");
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace SmugMug.Net.Service
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public Data.AlbumDetail GetAlbumDetailFull(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
+        public Data.AlbumDetail GetAlbumDetailExt(int albumId, string albumKey, string albumPassword = "", string sitePassword = "")
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();

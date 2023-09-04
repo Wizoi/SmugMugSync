@@ -368,4 +368,113 @@ public class TargetAlbumRepositoryTest
         targetAlbumRepository.SyncExistingFolders(runtimeConfig, sourceFolderRepo.Object);
         Assert.AreEqual(1, targetAlbumRepository.TargetAlbumCount(), "Album should still be loaded.");
     }
+
+    [TestMethod]
+    public async Task SyncFolderFiles_FolderNotFound()
+    {
+        // Setup: For the folder config
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FOODIRECTORY"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        // Setup: Populate an album to load
+        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var albDetail = new AlbumDetail();
+        albDetail.Title = "2023 - TestTitle";
+        albDetail.AlbumKey = "TestKey";
+        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+            .Returns(new []{albDetail});
+        smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
+
+
+        // Mocks to setup the Source Folder Repo
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.Directory.Exists("A:\\FOODIRECTORY")).Returns(true);   
+        var xmlSystemMock = new Mock<XmlSystem>();
+        var sourceFolderRepo = new Mock<SourceFolderRepository>(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+
+        // Mocks to setup the Source Folders
+        var directoryInfoMock1 = new Mock<IDirectoryInfo>();
+        directoryInfoMock1.SetupGet(x => x.FullName).Returns("A:\\DIRECTORY1");
+        fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(false);   
+        var sourceDirDataMock = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
+        sourceFolderRepo.Setup(x => x.RetrieveLinkedFolderByKey("TestKey")).Returns((SourceDirectoryData?)null);
+
+        // START the test initiating the runtime config to use
+        var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
+        var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+        var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        targetAlbumRepository.PopulateTargetAlbums();
+
+        var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
+        Assert.AreEqual(1, actualStats.SkippedFolders, "Expecting to have a skipped folder");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
+    }
+
+    [TestMethod]
+    public async Task SyncFolderFiles_FolderWithNoFiles()
+    {
+        // Setup: For the folder config
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\2023 - TestTitle"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        // Setup: Populate an album to load
+        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var albDetail = new AlbumDetail();
+        albDetail.Title = "2023 - TestTitle";
+        albDetail.AlbumKey = "TestKey";
+        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+            .Returns(new []{albDetail});
+        smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
+        var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
+        smImageServiceMock.Setup(x => x.GetAlbumImages(
+            It.IsAny<string[]>(), It.IsAny<int>(), It.IsAny<string>())).Returns(albDetail);
+        smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
+
+
+        // Mocks to setup the Source Folder Repo
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.Directory.Exists("A:\\2023 - TestTitle")).Returns(true);   
+        var xmlSystemMock = new Mock<XmlSystem>();
+        var sourceFolderRepo = new Mock<SourceFolderRepository>(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+
+        // Mocks for the files we want to fake load
+//        var fiMock = new Mock<IFileInfo>();
+//        var fsiMock = new Mock<IFileSystemInfo>();
+//        fsiMock.SetupGet(x => x.Name).Returns("Filename.JPG");
+//        fileSystemMock.Setup(x => x.FileInfo.New("Filename.JPG")).Returns(fiMock.Object);   
+//        var sourceMediaData = new SourceMediaData(fileSystemMock.Object, fsiMock.Object);
+
+        // Mocks to setup the Source Folders
+        var directoryInfoMock1 = new Mock<IDirectoryInfo>();
+        directoryInfoMock1.SetupGet(x => x.FullName).Returns("A:\\DIRECTORY1");
+        fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(false);   
+        var sourceDirDataMock = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
+        sourceFolderRepo.Setup(x => x.RetrieveLinkedFolderByKey("TestKey")).Returns(sourceDirDataMock.Object);
+        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns(Array.Empty<SourceMediaData>());
+
+        // START the test initiating the runtime config to use
+        var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
+        var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+        var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        targetAlbumRepository.PopulateTargetAlbums();
+
+        var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
+        Assert.AreEqual(0, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
+        Assert.AreEqual(0, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
+        Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
+        
+    }
+
 }

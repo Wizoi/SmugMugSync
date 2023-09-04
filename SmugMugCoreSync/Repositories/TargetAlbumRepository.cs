@@ -130,16 +130,20 @@ namespace SmugMugCoreSync.Repositories
             }
         }
 
-        internal async Task SyncFolderFiles(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
+        public async Task<RuntimeFolderStats> SyncFolderFiles(RuntimeFlagsConfig runtimeFlags, SourceFolderRepository sourceFolders)
         {
             var uploadThrottler = new SemaphoreSlim(runtimeFlags.ImageUploadThrottle);
+            var runtimeStats = new RuntimeFolderStats();
 
             foreach (var targetAlbum in _targetAlbums.Values)
             {
+                runtimeStats.ProcessedFolders++;
+                
                 Trace.WriteLine(" ... " + targetAlbum.Title);
                 var sourceFolder = sourceFolders.RetrieveLinkedFolderByKey(targetAlbum.AlbumKey);
                 if (sourceFolder == null)
                 {
+                    runtimeStats.SkippedFolders++;
                     Trace.WriteLine("... X Source folder is not found / linked to this album.");
                     continue;
                 }
@@ -147,6 +151,9 @@ namespace SmugMugCoreSync.Repositories
                 //
                 // Load the source files and album images for the current linked album 
                 //
+                var runtimeFileStats = runtimeStats.StartNewFolderStats();
+                runtimeFileStats.FolderName = targetAlbum.Title ?? String.Empty;
+                
                 var sourceFiles = sourceFolders.LoadFolderMediaFiles(sourceFolder);
 
                 AlbumDetail albumImages = _smCore.ImageService.GetAlbumImages(albumId: targetAlbum.AlbumId, albumKey: targetAlbum.AlbumKey,
@@ -184,6 +191,12 @@ namespace SmugMugCoreSync.Repositories
                 newFilenames = sourceFileNameLookup.Keys.Except(targetFileNameLookup.Keys).ToArray();
                 existingFilenames = targetFileNameLookup.Keys.Intersect(sourceFileNameLookup.Keys).ToArray();
                 dupeTargetImages = dupeFileNameList.ToArray();
+
+                // Update the stats
+                runtimeFileStats.DeletedFiles = deleteFilenames.Length;
+                runtimeFileStats.AddedFiles = newFilenames.Length;
+                runtimeFileStats.ResyncedFiles = existingFilenames.Length;
+                runtimeFileStats.DuplicateFiles = dupeTargetImages.Length;
 
                 // Delete old files
                 foreach (var targetName in deleteFilenames)
@@ -242,6 +255,8 @@ namespace SmugMugCoreSync.Repositories
                 }
                 Task.WaitAll(taskList.ToArray());
             }
+
+            return runtimeStats;
         }
 
         private async Task ProcessExistingRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, AlbumDetail targetAlbum, ImageDetail targetImage, SemaphoreSlim uploadThrottler)
