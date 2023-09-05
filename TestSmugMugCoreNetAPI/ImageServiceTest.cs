@@ -92,7 +92,7 @@ public class ImageServiceTest
         var target = new ImageUploaderService(core); 
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
 
         return await target.UploadNewImage(albumId, content);
     }
@@ -134,7 +134,7 @@ public class ImageServiceTest
         var uploader = new ImageUploaderService(core);
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
-        ImageContent content = SmugMug.Net.Core.ContentMetadataLoader.DiscoverMetadata(filename);
+        ImageContent content = await core.ContentMetadataService.DiscoverMetadata(filename);
         content.Caption = "Alternate Photo";
         ImageUpload newImage = await uploader.UploadUpdatedImage(albumId, 0, content);
 
@@ -390,7 +390,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
         bool includeOnlyUrls = false; 
-        var actual = await target.GetImageInfo(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
+        var actual = await target.GetImageInfoExt(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
         Assert.AreEqual(imageTest.ImageId, actual.ImageId);
         Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
         Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)), "UrlLightboxURL");
@@ -424,7 +424,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool includeOnlyUrls = true;
-        var actual = await target.GetImageInfo(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
+        var actual = await target.GetImageInfoExt(imageId, imageKey, "", albumPassword, sitePassword, includeOnlyUrls);
         Assert.AreEqual(imageTest.ImageId, actual.ImageId);
         Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
         Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)), "UrlLightboxURL");
@@ -449,7 +449,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool includeOnlyUrls = true;
-        var actual = await target.GetImageInfo(imageId, imageKey, "100", albumPassword, sitePassword, includeOnlyUrls);
+        var actual = await target.GetImageInfoExt(imageId, imageKey, "100", albumPassword, sitePassword, includeOnlyUrls);
         Assert.AreEqual(imageTest.ImageId, actual.ImageId);
         Assert.AreEqual(imageTest.ImageKey, actual.ImageKey);
         Assert.IsTrue(actual.UrlLightboxURL.Contains(string.Format("i-{0}/A", imageTest.ImageKey)));
@@ -477,12 +477,12 @@ public class ImageServiceTest
 
         var uploader = new ImageUploaderService(core);
         var filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestVideo.mov");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var videoTest = await uploader.UploadNewImage(_albumTest.AlbumId, content);
 
         long videoId = videoTest.ImageId;
         string videoKey = videoTest.ImageKey;
-        var actual = await target.GetImageInfo(videoId, videoKey, "");
+        var actual = await target.GetImageInfoExt(videoId, videoKey, "");
         Assert.AreEqual(videoTest.ImageId, actual.ImageId);
         Assert.AreEqual(videoTest.ImageKey, actual.ImageKey);
     }
@@ -504,7 +504,7 @@ public class ImageServiceTest
 
         var uploader = new ImageUploaderService(core);
         var filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestVideo.mov");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var videoTest = await uploader.UploadNewImage(_albumTest.AlbumId, content);
 
         long videoId = videoTest.ImageId;

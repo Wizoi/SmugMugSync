@@ -22,7 +22,7 @@ namespace SmugMug.Net.Service
         /// <param name="imageId">The id for a specific image</param>
         /// <param name="watermarkId">The id for a specific watermark</param>
         /// <returns></returns>
-        public async Task<bool> ApplyWatermark(long imageId, int watermarkId)
+        public async virtual Task<bool> ApplyWatermark(long imageId, int watermarkId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -42,7 +42,7 @@ namespace SmugMug.Net.Service
         /// <param name="imageId">The id for a specific image</param>
         /// <param name="position">The position of the image (or video) within the album</param>
         /// <returns></returns>
-        public async Task<bool> ChangePosition(long imageId, int position)
+        public async virtual Task<bool> ChangePosition(long imageId, int position)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -60,7 +60,7 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="image"></param>
         /// <param name="localPath"></param>
-        public async Task<bool> DownloadImage(Data.ImageDetail image, string localPath)
+        public async virtual Task<bool> DownloadImage(Data.ImageDetail image, string localPath)
         {
             if (image.UrlViewOriginalURL == null)
                 return false;
@@ -73,7 +73,7 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="image">Image to update</param>
         /// <returns></returns>
-        public async Task<bool> UpdateImage(Data.ImageDetail image)
+        public async virtual Task<bool> UpdateImage(Data.ImageDetail image)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -93,7 +93,7 @@ namespace SmugMug.Net.Service
         /// <param name="imageKey">The key for a specific image</param>
         /// <param name="albumId">The id for a specific album</param>
         /// <returns>True if successful</returns>
-        public async Task<bool> MoveToAlbum(long imageId, string imageKey, int albumId)
+        public async virtual Task<bool> MoveToAlbum(long imageId, string imageKey, int albumId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -117,7 +117,7 @@ namespace SmugMug.Net.Service
         /// <param name="rating">The rating for the comment. 
         /// Values: 0 - No Rating (default), 1 - 1 Star Rating, 2 - 2 Star Rating, 3 - 3 Star Rating, 4 - 4 Star Rating, 5 - 5 Star Rating</param>
         /// <returns></returns>
-        public async Task<Data.Comment> AddComment(string[] fieldList, long imageId, string imageKey, string comment, int rating = 0)
+        public async virtual Task<Data.Comment> AddComment(string[] fieldList, long imageId, string imageKey, string comment, int rating = 0)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -142,7 +142,7 @@ namespace SmugMug.Net.Service
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public async Task<Data.Comment[]> GetCommentList(long imageId, string imageKey, string albumPassword = "", string sitePassword = "")
+        public async virtual Task<Data.Comment[]> GetCommentList(long imageId, string imageKey, string albumPassword = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -172,7 +172,7 @@ namespace SmugMug.Net.Service
         /// <param name="x">The x coordinate of the starting point</param>
         /// <param name="y">The y coordinate of the starting point</param>
         /// <returns></returns>
-        public async Task<bool> Crop(long imageId, int height, int width, int x = 0, int y = 0)
+        public async virtual Task<bool> Crop(long imageId, int height, int width, int x = 0, int y = 0)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -228,7 +228,7 @@ namespace SmugMug.Net.Service
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <param name="fieldList">List of fields from Images within the Album to add to the resultset</param>
         /// <returns></returns>
-        public async Task<Data.AlbumDetail> GetAlbumImagesExt(string[] fieldList, int albumId, string albumKey, string albumPassword = "", string sitePassword = "", bool loadAllImageInfo = false)
+        public async virtual Task<Data.AlbumDetail> GetAlbumImagesExt(string[] fieldList, int albumId, string albumKey, string albumPassword = "", string sitePassword = "", bool loadAllImageInfo = false)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -251,7 +251,7 @@ namespace SmugMug.Net.Service
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public async Task<Data.ImageExif> GetImageExif(long imageId, string imageKey, string albumPassword = "", string sitePassword = "")
+        public async virtual Task<Data.ImageExif> GetImageExif(long imageId, string imageKey, string albumPassword = "", string sitePassword = "")
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -269,10 +269,21 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="imageId">The id for a specific image</param>
         /// <param name="imageKey">The key for a specific image</param>
+        /// <returns></returns>
+        public async virtual Task<Data.ImageDetail> GetImageInfo(long imageId, string imageKey)
+        {
+            return await GetImageInfoExt(imageId, imageKey);
+        }
+
+        /// <summary>
+        /// Retrieve the information for an image.
+        /// </summary>
+        /// <param name="imageId">The id for a specific image</param>
+        /// <param name="imageKey">The key for a specific image</param>
         /// <param name="albumPassword">The password for the album</param>
         /// <param name="sitePassword">The site password for a specific user</param>
         /// <returns></returns>
-        public async Task<Data.ImageDetail> GetImageInfo(long imageId, string imageKey, string customSize = "", string albumPassword = "", string sitePassword = "", bool includeOnlyUrls = false)
+        public async virtual Task<Data.ImageDetail> GetImageInfoExt(long imageId, string imageKey, string customSize = "", string albumPassword = "", string sitePassword = "", bool includeOnlyUrls = false)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -302,7 +313,7 @@ namespace SmugMug.Net.Service
         /// <param name="year">The year to retrieve statistics for</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.images.getStats.get no longer is working with v1.3.0 Smugmug API.")]
-        public async Task<Data.ImageStats> GetImageStats(long imageId, int month, int year)
+        public async virtual Task<Data.ImageStats> GetImageStats(long imageId, int month, int year)
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -322,7 +333,7 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="imageId">The id for a specific image</param>
         /// <returns></returns>
-        public async Task<bool> RemoveWatermark(long imageId)
+        public async virtual Task<bool> RemoveWatermark(long imageId)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -340,7 +351,7 @@ namespace SmugMug.Net.Service
         /// <param name="degrees">The degrees of rotation: 90 - Left, 180 - Down, 270 - Right</param>
         /// <param name="flip">Mirror the image in the horizontal direction</param>
         /// <returns></returns>
-        public async Task<bool> Rotate(long imageId, Degrees degrees, bool flip)
+        public async virtual Task<bool> Rotate(long imageId, Degrees degrees, bool flip)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();
@@ -364,7 +375,7 @@ namespace SmugMug.Net.Service
         /// <param name="x">The x coordinate of the starting point</param>
         /// <param name="y">The y coordinate of the starting point</param>
         /// <returns></returns>
-        public async Task<bool> ZoomThumbnail(long imageId, int height, int width, int x = 0, int y = 0)
+        public async virtual Task<bool> ZoomThumbnail(long imageId, int height, int width, int x = 0, int y = 0)
         {
             // Append the parameters from the request object
             var queryParams = new Core.QueryParameterList();

@@ -16,7 +16,7 @@ namespace SmugMugCoreSync.Configuration
             this.TargetCreate = ParseOperationLevelConfig(configuration.GetSection("targetCreate"));
             this.TargetDelete = ParseOperationLevelConfig(configuration.GetSection("targetDelete"));
             this.TargetUpdate = ParseOperationLevelConfig(configuration.GetSection("targetUpdate"));
-            this.SourceVideoRedownload = ParseOperationLevelConfig(configuration.GetSection("sourceVideoRedownload"));
+            this.SourceRedownload = ParseOperationLevelConfig(configuration.GetSection("sourceRedownload"));
             this.IncludeVideos = bool.Parse(configuration.GetSection("includeVideos").Value ?? "false");
             this.ForceRefresh = bool.Parse(configuration.GetSection("forceRefresh").Value ?? "false");
             this.ImageUploadThrottle = int.Parse(configuration.GetSection("imageUploadThrottle").Value ?? "1");
@@ -34,7 +34,7 @@ namespace SmugMugCoreSync.Configuration
         public OperationLevel TargetCreate      { get; }
         public OperationLevel TargetDelete      { get; }
         public OperationLevel TargetUpdate      { get; }
-        public OperationLevel SourceVideoRedownload { get; }
+        public OperationLevel SourceRedownload { get; }
         public bool IncludeVideos       { get; }
         public bool ForceRefresh        { get; }
         public int ImageUploadThrottle  { get; }
