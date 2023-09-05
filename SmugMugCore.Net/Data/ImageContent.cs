@@ -83,7 +83,7 @@ namespace SmugMug.Net.Data
         /// </summary>
         public ContentOrientation Orientation;
 
-        internal ImageContent() {
+        public ImageContent() {
             this.Keywords = Array.Empty<string> ();
         }
     }

@@ -100,7 +100,7 @@ public class AlbumServiceTest
         var uploader = new ImageUploaderService(core);
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         content.Caption = "First";
         var imageFirst = await uploader.UploadUpdatedImage(albumId, 0, content);
 
@@ -139,7 +139,7 @@ public class AlbumServiceTest
         var uploader = new ImageUploaderService(core);
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(this.TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         content.Caption = "Second";
         var imageSecond = await uploader.UploadUpdatedImage(albumId, 0, content);
 

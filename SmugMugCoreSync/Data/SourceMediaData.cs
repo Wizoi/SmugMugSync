@@ -7,6 +7,7 @@ using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Abstractions;
+using System.Security.RightsManagement;
 
 namespace SmugMugCoreSync.Data
 {
@@ -15,6 +16,7 @@ namespace SmugMugCoreSync.Data
 
         private readonly IFileSystemInfo _sourceFileSystemInfo;
         private readonly IFileInfo _sourceFileInfo;
+        private readonly IFileSystem _fileSystem;
         private string? _md5CacheData;
 
 
@@ -31,6 +33,11 @@ namespace SmugMugCoreSync.Data
         public SourceMediaData(IFileSystem fileSystem, IFileSystemInfo mediaFile) {
             _sourceFileSystemInfo = mediaFile;
             _sourceFileInfo = fileSystem.FileInfo.New(mediaFile.FullName);
+            _fileSystem = fileSystem;
+        }
+
+        public IFileSystem FileSystem{
+            get { return _fileSystem; }
         }
 
         public bool IsImageUpdateable()

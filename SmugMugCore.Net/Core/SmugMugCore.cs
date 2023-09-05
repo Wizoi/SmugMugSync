@@ -27,7 +27,7 @@ namespace SmugMug.Net.Core
         private readonly System.Collections.Generic.Dictionary<string, object> _serviceCatalog = new();
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public AccountService AccountService 
+        public virtual AccountService AccountService 
         {
             get { 
                 string keyName = "AccountService";
@@ -47,7 +47,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public AlbumTemplateService AlbumTemplateService
+        public virtual AlbumTemplateService AlbumTemplateService
         {
             get
             {
@@ -58,7 +58,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public CategoryService CategoryService
+        public virtual CategoryService CategoryService
         {
             get
             {
@@ -68,7 +68,7 @@ namespace SmugMug.Net.Core
             }
         }
 
-        public CommunityService CommunityService
+        public virtual CommunityService CommunityService
         {
             get
             {
@@ -78,8 +78,18 @@ namespace SmugMug.Net.Core
             }
         }
 
+        public virtual ContentMetadataService ContentMetadataService
+        {
+            get
+            {
+                string keyName = "ContentMetadataService";
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new ContentMetadataService()); }
+                return (ContentMetadataService)_serviceCatalog[keyName];
+            }
+        }
+
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public CouponService CouponService
+        public virtual CouponService CouponService
         {
             get
             {
@@ -89,7 +99,7 @@ namespace SmugMug.Net.Core
             }
         }
 
-        public FamilyService FamilyService
+        public virtual FamilyService FamilyService
         {
             get
             {
@@ -98,7 +108,7 @@ namespace SmugMug.Net.Core
                 return (FamilyService)_serviceCatalog[keyName];
             }
         }
-        public FanService FanService
+        public virtual FanService FanService
         {
             get
             {
@@ -109,7 +119,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public FeaturedAlbumService FeaturedAlbumService
+        public virtual FeaturedAlbumService FeaturedAlbumService
         {
             get
             {
@@ -119,7 +129,7 @@ namespace SmugMug.Net.Core
             }
         }
 
-        public FriendService FriendService
+        public virtual FriendService FriendService
         {
             get
             {
@@ -149,7 +159,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public PrintmarkService PrintmarkService
+        public virtual PrintmarkService PrintmarkService
         {
             get
             {
@@ -160,7 +170,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public ShareGroupService ShareGroupService
+        public virtual ShareGroupService ShareGroupService
         {
             get
             {
@@ -171,7 +181,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public StyleService StyleService
+        public virtual StyleService StyleService
         {
             get
             {
@@ -182,7 +192,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public SubCategoryService SubCategoryService
+        public virtual SubCategoryService SubCategoryService
         {
             get
             {
@@ -193,7 +203,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public ThemeService ThemeService
+        public virtual ThemeService ThemeService
         {
             get
             {
@@ -204,7 +214,7 @@ namespace SmugMug.Net.Core
         }
 
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public UserService UserService
+        public virtual UserService UserService
         {
             get
             {
@@ -214,7 +224,7 @@ namespace SmugMug.Net.Core
             }
         }
         [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public WatermarkService WatermarkService
+        public virtual WatermarkService WatermarkService
         {
             get
             {

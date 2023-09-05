@@ -69,7 +69,7 @@ public class ImageUploaderServiceTest
         var target = new ImageUploaderService(core); 
         int albumId = _albumTest.AlbumId; 
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
 
         _ = await target.UploadNewImage(albumId, content);
     }
@@ -90,12 +90,12 @@ public class ImageUploaderServiceTest
         var target = new ImageUploaderService(core);
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
 
         var imageContent = await target.UploadNewImage(albumId, content);
 
         // Verify the properties
-        content = ContentMetadataLoader.DiscoverMetadata(filename);
+        content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var service = new ImageService(core);
         var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
         Assert.AreEqual(content.Caption, info.Caption, "Caption");
@@ -119,12 +119,12 @@ public class ImageUploaderServiceTest
         var target = new ImageUploaderService(core);
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
 
         var imageContent = await target.UploadNewImage(albumId, content);
 
         // Verify the properties
-        content = ContentMetadataLoader.DiscoverMetadata(filename);
+        content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var service = new ImageService(core);
         var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
         Assert.AreEqual(content.Caption, info.Caption);
@@ -147,7 +147,7 @@ public class ImageUploaderServiceTest
         var target = new ImageUploaderService(core);
         int albumId = _albumTest.AlbumId;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         _ =  await target.UploadNewImage(albumId, content);
     }
 
@@ -169,7 +169,7 @@ public class ImageUploaderServiceTest
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
 
         // Upload Initial Image
-        var imageMetadata = SmugMug.Net.Core.ContentMetadataLoader.DiscoverMetadata(filename);
+        var imageMetadata = await core.ContentMetadataService.DiscoverMetadata(filename);
         var imageUploaded = await target.UploadNewImage(albumId, imageMetadata);
 
         // Upload Updated Image
@@ -203,19 +203,19 @@ public class ImageUploaderServiceTest
 
         // Upload Jpeg Image
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestJpegImage.jpeg");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "JpegImage - ImageKey is empty, Image upload failed.");
 
         // Upload Png Image
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestPngImage.png");
-        content = ContentMetadataLoader.DiscoverMetadata(filename);
+        content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "PngImage - ImageKey is empty, Image upload failed.");
 
         // Upload Scanned Image
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestScannedImage.jpg");
-        content = ContentMetadataLoader.DiscoverMetadata(filename);
+        content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "ScannedImage - ImageKey is empty, Image upload failed.");
     }
@@ -242,7 +242,7 @@ public class ImageUploaderServiceTest
 
         // Upload Bmp Image
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestBmpImage.bmp");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "BmpImage - ImageKey is empty, Image upload failed.");
     }
@@ -269,7 +269,7 @@ public class ImageUploaderServiceTest
 
         // Upload Tif Image
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestTifImage.tif");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "TifImage - ImageKey is empty, Image upload failed.");
     }
@@ -293,7 +293,7 @@ public class ImageUploaderServiceTest
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
 
         // Upload Initial Image
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var imageUploaded = await target.UploadNewImage(albumId, content);
 
         // Upload Updated Image - EXCEPTION.
@@ -326,21 +326,20 @@ public class ImageUploaderServiceTest
 
         // Upload MP4 Video
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMp4.mp4");
-        var content = ContentMetadataLoader.DiscoverMetadata(filename);
+        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "Mp4Video - ImageKey is empty, Video upload failed.");
 
         // Upload MPG Video
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMpg.mpg");
-        content = ContentMetadataLoader.DiscoverMetadata(filename);
+        content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "MpgVideo - ImageKey is empty, Video upload failed.");
 
         // Upload Wmv Video
         filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoWmv.wmv");
-        content = ContentMetadataLoader.DiscoverMetadata(filename);
+        content = await core.ContentMetadataService.DiscoverMetadata(filename);
         imageUploaded = await target.UploadNewImage(albumId, content);
         Assert.IsNotNull(imageUploaded.ImageKey, "WmvVideo - ImageKey is empty, Video upload failed.");
     }
-
 }

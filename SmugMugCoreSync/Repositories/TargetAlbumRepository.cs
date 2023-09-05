@@ -275,7 +275,9 @@ namespace SmugMugCoreSync.Repositories
             var reDownloadImage = false;
 
             // Load the metadata for the existing source image
-            ImageContent sourceMetadata = ContentMetadataLoader.DiscoverMetadata(sourceImage.FullFileName);
+            ContentMetadataService metaSvc = _smCore.ContentMetadataService;
+            metaSvc.FileSystem = sourceImage.FileSystem;
+            ImageContent sourceMetadata = await metaSvc.DiscoverMetadata(sourceImage.FullFileName);
 
             await uploadThrottler.WaitAsync();
             try
@@ -289,19 +291,21 @@ namespace SmugMugCoreSync.Repositories
                 }
 
                 // Scenario 2: Filelength is different (targetupdate)
-                if (!reDownloadImage && sourceImage.IsImageUpdateable() &&
-                    (sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
+                if (!reDownloadImage && sourceImage.IsImageUpdateable())
                 {
-                    var imageReuploaded = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
-                    if (imageReuploaded)
+                    if ((sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
                     {
-                        reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                        var imageReuploaded = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
+                        if (imageReuploaded)
+                        {
+                            reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                        }
                     }
-                }
-                else
-                {
-                    _ = await UpdateMetadata(runtimeFlags, sourceMetadata, targetImage);
-                    reDownloadImage = false;
+                    else
+                    {
+                        _ = await UpdateMetadata(runtimeFlags, sourceMetadata, targetImage);
+                        reDownloadImage = false;
+                    }
                 }
 
                 // If the MD5 Image is not matching, but should, we redownload the image with a smugmug in the filename 
@@ -323,7 +327,9 @@ namespace SmugMugCoreSync.Repositories
         {
             bool continueToAdd = true;
 
-            var sourceMetadata = ContentMetadataLoader.DiscoverMetadata(sourceImage.FullFileName);
+            ContentMetadataService metaSvc = _smCore.ContentMetadataService;
+            metaSvc.FileSystem = sourceImage.FileSystem;
+            ImageContent sourceMetadata = await metaSvc.DiscoverMetadata(sourceImage.FullFileName);
 
             // Smugmug does not support Titles yet.
             sourceMetadata.Caption = sourceMetadata.Title;
@@ -415,7 +421,7 @@ namespace SmugMugCoreSync.Repositories
             bool isRedownloaded = false;
 
             // If this is a video, then only update the captions and keywords.
-            switch (runtimeFlags.SourceVideoRedownload)
+            switch (runtimeFlags.SourceRedownload)
             {
                 case OperationLevel.Normal:
                     Trace.WriteLine("... Redownloading: " + sourceImage.FileName);
@@ -437,7 +443,7 @@ namespace SmugMugCoreSync.Repositories
             bool isMetadataUpdated = false;
 
             bool isMetadataDifferent =
-                ContentMetadataLoader.AreKeywordsDifferent(sourceXmlMetadata, targetImage.Keywords) ||
+                _smCore.ContentMetadataService.AreKeywordsDifferent(sourceXmlMetadata, targetImage.Keywords) ||
                 ((sourceXmlMetadata.Title ?? "") != System.Web.HttpUtility.HtmlDecode(targetImage.Title ?? "")) ||
                 ((sourceXmlMetadata.Caption ?? "") != System.Web.HttpUtility.HtmlDecode(targetImage.Caption ?? ""));
 
