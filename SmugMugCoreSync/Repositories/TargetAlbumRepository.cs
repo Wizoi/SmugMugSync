@@ -393,8 +393,10 @@ namespace SmugMugCoreSync.Repositories
                 switch (runtimeFlags.TargetUpdate)
                 {
                     case OperationLevel.Normal:
-                        if ((sourceMetadata.IsVideo) && !runtimeFlags.IncludeVideos)
+                        if (sourceMetadata.IsVideo)
                         {
+                            // Per validation with smugmug, and integration tests, we cannot update a video
+                            // already uploaded. Would have to create+publish a whole new video (which I will not do automatically)
                             Trace.WriteLine("..? Update Suppressed (Photos Only): " + sourceImage.FileName);
                         }
                         else

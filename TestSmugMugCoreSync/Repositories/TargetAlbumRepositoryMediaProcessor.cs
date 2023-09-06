@@ -257,7 +257,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()));
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
     }
 
@@ -515,7 +515,7 @@ public class TargetAlbumRepositoryMediaProcessor
     }
 
     [TestMethod]
-    public async Task ProcessNewRemoteMedia_Base()
+    public async Task ProcessNewRemoteMedia_BaseMedia()
     {
         var inMemorySettings = new Dictionary<string, string?> {
             {"rootLocal", "A:\\2023 - TestTitle"},
@@ -525,20 +525,11 @@ public class TargetAlbumRepositoryMediaProcessor
         var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
-        // Setup the Target Image (ImageDetail)
-        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", Filename = "TestFile.JPG" };
-        var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
-        smImageServiceMock.Setup(x => x.GetImageInfo(
-            It.IsAny<long>(), It.IsAny<string>())).ReturnsAsync(targetImage);
-        smImageServiceMock.Setup(x => x.DownloadImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
-        smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
-
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
-        albDetail.Images = new []{targetImage};
         smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
             .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
@@ -566,25 +557,20 @@ public class TargetAlbumRepositoryMediaProcessor
         smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>())).ReturnsAsync(imageUploaded);
         smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
 
-        // Scenario Setup - Setup the length and size fields to be different, but the source is not 0
-        fiMock.SetupGet(x => x.Length).Returns(1);
-        targetImage.SizeBytes = 2;
-        // Scenario Setup - Setup the checksum to be  different
-        sourceMediaDataMock.Setup(x => x.LoadMd5Checksum()).ReturnsAsync("ChecksumData");
-        targetImage.MD5Sum = "ChecksumOrigData";
-        // Scenario Setup - Mark the date on the file and the local file to be the same
-        fiMock.SetupGet(x => x.LastWriteTime).Returns(DateTime.Parse("2020-01-01"));
-        targetImage.LastUpdatedDate = DateTime.Parse("2020-01-01").ToString();
-
         ////////////////////////////////////////////////
         // Perform the test AS NORMAL
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {
-            {"targetUpdate", "Normal"}
+            {"targetCreate", "Normal"}
         };
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
         var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        var result = await targetAlbumRepository.ProcessExistingRemoteMedia(
-            runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+
+        fiMock.SetupGet(x => x.Length).Returns(1);
+        targetMetadata.VideoLength = TimeSpan.FromMinutes(1);
+        targetMetadata.IsVideo = false;
+
+        var result = await targetAlbumRepository.ProcessNewRemoteMedia(
+            runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
         smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()));
@@ -593,51 +579,104 @@ public class TargetAlbumRepositoryMediaProcessor
         ////////////////////////////////////////////////
         // Perform the test AS NONELOG
         inMemoryRuntimeSettings = new Dictionary<string, string?> {
-            {"targetUpdate", "NoneLog"}
+            {"targetCreate", "NoneLog"}
         };
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
-        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        result = await targetAlbumRepository.ProcessExistingRemoteMedia(
-            runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+        fiMock.SetupGet(x => x.Length).Returns(1);
+        targetMetadata.VideoLength = TimeSpan.FromMinutes(1);
+        targetMetadata.IsVideo = false;
 
-        Assert.AreEqual(true, result, "Expected to process the remote media. ");
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        result = await targetAlbumRepository.ProcessNewRemoteMedia(
+            runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
+
+        Assert.AreEqual(false, result, "Expected to not process the remote media. ");
         smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
         // Perform the Image Video AS NORMAL with IncludeVideos = FALSE
         inMemoryRuntimeSettings = new Dictionary<string, string?> {
-            {"targetUpdate", "Normal"},
+            {"targetCreate", "Normal"},
             {"includeVideos", "false"},
         };
+
+        fiMock.SetupGet(x => x.Length).Returns(1);
+        targetMetadata.VideoLength = TimeSpan.FromMinutes(1);
         targetMetadata.IsVideo = true;
 
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
         targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        result = await targetAlbumRepository.ProcessExistingRemoteMedia(
-            runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+        result = await targetAlbumRepository.ProcessNewRemoteMedia(
+            runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
-        Assert.AreEqual(true, result, "Expected to process the remote media. ");
+        Assert.AreEqual(false, result, "Expected to not process the remote media. ");
         smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
         // Perform the Image Video AS NORMAL with IncludeVideos = TRUE
         inMemoryRuntimeSettings = new Dictionary<string, string?> {
-            {"targetUpdate", "Normal"},
+            {"targetCreate", "Normal"},
             {"includeVideos", "true"},
         };
+
+        fiMock.SetupGet(x => x.Length).Returns(1);
+        targetMetadata.VideoLength = TimeSpan.FromMinutes(1);
         targetMetadata.IsVideo = true;
 
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
         targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
-        result = await targetAlbumRepository.ProcessExistingRemoteMedia(
-            runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+        result = await targetAlbumRepository.ProcessNewRemoteMedia(
+            runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
         smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()));
         smImageUploaderSvcMock.Invocations.Clear();
+
+        ////////////////////////////////////////////////
+        // Perform the Image Video AS NORMAL with a Video over 20 minutes long
+        inMemoryRuntimeSettings = new Dictionary<string, string?> {
+            {"targetCreate", "Normal"},
+            {"includeVideos", "true"},
+        };
+
+        fiMock.SetupGet(x => x.Length).Returns(1);
+        targetMetadata.VideoLength = TimeSpan.FromMinutes(25);
+        targetMetadata.IsVideo = true;
+
+        runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        result = await targetAlbumRepository.ProcessNewRemoteMedia(
+            runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
+
+        Assert.AreEqual(false, result, "Expected to not process the remote media. ");
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Invocations.Clear();
+
+        ////////////////////////////////////////////////
+        // Perform the Image Video AS NORMAL with a Video over 2 Gigs in size
+        inMemoryRuntimeSettings = new Dictionary<string, string?> {
+            {"targetCreate", "Normal"},
+            {"includeVideos", "true"},
+        };
+
+        fiMock.SetupGet(x => x.Length).Returns(2000000001);
+        targetMetadata.VideoLength = TimeSpan.FromMinutes(1);
+        targetMetadata.IsVideo = true;
+        targetMetadata.FileInfo = fiMock.Object;
+
+        runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        result = await targetAlbumRepository.ProcessNewRemoteMedia(
+            runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
+
+        Assert.AreEqual(false, result, "Expected to not process the remote media. ");
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Invocations.Clear();
+
+
     }
 }
 
