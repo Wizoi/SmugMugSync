@@ -39,7 +39,7 @@ namespace SmugMug.Net.Service
         /// </summary>
         /// <param name="albumId"></param>
         /// <param name="filename"></param>
-        public async Task<Data.ImageUpload> UploadNewImage(int albumId, Data.ImageContent imageMetadata)
+        public async virtual Task<Data.ImageUpload> UploadNewImage(int albumId, Data.ImageContent imageMetadata)
         {
             return await UploadUpdatedImage(albumId, 0, imageMetadata);
         }
@@ -50,7 +50,7 @@ namespace SmugMug.Net.Service
         /// <param name="albumId"></param>
         /// <param name="imageId"></param>
         /// <param name="imageMetadata"></param>
-        public async Task<Data.ImageUpload> UploadUpdatedImage(int albumId, long imageId, Data.ImageContent imageMetadata)
+        public async virtual Task<Data.ImageUpload> UploadUpdatedImage(int albumId, long imageId, Data.ImageContent imageMetadata)
         {
             if (imageMetadata.FileInfo == null)
                 throw new ApplicationException("Error - Image with no filename detected.");

@@ -295,10 +295,10 @@ namespace SmugMugCoreSync.Repositories
                 {
                     if ((sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
                     {
-                        var imageReuploaded = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
-                        if (imageReuploaded)
+                        reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                        if (!reDownloadImage)
                         {
-                            reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                            _ = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
                         }
                     }
                     else
@@ -312,7 +312,7 @@ namespace SmugMugCoreSync.Repositories
                 // to provide the option of viewing the different image (and possibly overwrite to have it match)
                 if (reDownloadImage)
                 {
-                    _ = await RedownloadMedia(runtimeFlags, sourceImage, targetImage);
+                    _ = await RedownloadMedia(runtimeFlags, sourceImage, sourceMetadata, targetImage);
                 }
             }
             finally
@@ -393,7 +393,7 @@ namespace SmugMugCoreSync.Repositories
                 switch (runtimeFlags.TargetUpdate)
                 {
                     case OperationLevel.Normal:
-                        if ((sourceMetadata.IsVideo) && runtimeFlags.IncludeVideos)
+                        if ((sourceMetadata.IsVideo) && !runtimeFlags.IncludeVideos)
                         {
                             Trace.WriteLine("..? Update Suppressed (Photos Only): " + sourceImage.FileName);
                         }
@@ -414,7 +414,7 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
-        public virtual  async Task<bool> RedownloadMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageDetail targetImage)
+        public virtual  async Task<bool> RedownloadMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, ImageDetail targetImage)
         {
             Trace.WriteLine(" ** Redownload Image Requested: " + sourceImage.FullFileName);
             var smugImage = await _smCore.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);
@@ -424,8 +424,15 @@ namespace SmugMugCoreSync.Repositories
             switch (runtimeFlags.SourceRedownload)
             {
                 case OperationLevel.Normal:
-                    Trace.WriteLine("... Redownloading: " + sourceImage.FileName);
-                    isRedownloaded = await _smCore.ImageService.DownloadImage(smugImage, sourceImage.FileName);
+                    if ((sourceMetadata.IsVideo) && !runtimeFlags.IncludeVideos)
+                    {
+                        Trace.WriteLine("..? Update Suppressed (Photos Only): " + sourceImage.FileName);
+                    }
+                    else
+                    {
+                        Trace.WriteLine("... Redownloading: " + sourceImage.FileName);
+                        isRedownloaded = await _smCore.ImageService.DownloadImage(smugImage, sourceImage.FileName);
+                    }
                     break;
                 case OperationLevel.NoneLog:
                     Trace.WriteLine("..? Update to Source Suppressed: " + sourceImage.FileName);
