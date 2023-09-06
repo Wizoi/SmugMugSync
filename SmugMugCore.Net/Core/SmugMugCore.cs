@@ -270,39 +270,6 @@ namespace SmugMug.Net.Core
         }
 
         /// <summary>
-        /// Authenticates against SmugMug to get the user's access key
-        /// </summary>
-        public static void Authenticate()
-        {
-/*            Console.WriteLine("Create new instance of OAuth Manager");
-            var manager = new OAuthManager(_smugMugApiKey, _smugMugSecret);
-
-            Console.WriteLine("Aquire a request token from smugmug");
-            var requestToken = manager.AcquireRequestToken(new Uri("https://api.smugmug.com/services/oauth/getRequestToken.mg"), "GET");
-
-            string oauthToken = requestToken["oauth_token"];
-            Console.WriteLine(string.Format("oauthToken: {0}", oauthToken));
-            string oauthTokenSecret = requestToken["oauth_token_secret"];
-            Console.WriteLine(string.Format("oauthTokenSecret: {0}", oauthTokenSecret));
-            //Opens your default browser and authorize your request token
-            //Parameters: Access=[Public|Full], Permissions=[Read|Add|Modify]
-            System.Diagnostics.Process.Start(string.Format("https://api.smugmug.com/services/oauth/authorize.mg?oauth_token={0}&Access=Full&Permissions=Modify", oauthToken));
-
-            //Console.WriteLine("Please enter you credentials into the browser before continuing");
-            //Console.WriteLine("Press any key to continue...");
-            //Console.ReadLine();
-            
-            var accessToken = manager.AcquireAccessToken(new System.Uri("https://api.smugmug.com/services/oauth/getAccessToken.mg"), "GET", oauthTokenSecret);
-            
-            Console.WriteLine(string.Format("accessToken: {0}", accessToken["oauth_token"]));
-            Console.WriteLine(string.Format("accessTokenSecret: {0}", accessToken["oauth_token_secret"]));
-            Console.WriteLine("Press any key to continue.");
-            Console.ReadLine();
-            Authenticate(accessToken["oauth_token"], accessToken["oauth_token_secret"]);
-*/
-        }
-
-        /// <summary>
         /// Authenticate the user with their secret
         /// </summary>
         /// <param name="userAuthToken">User Authentication Token</param>
