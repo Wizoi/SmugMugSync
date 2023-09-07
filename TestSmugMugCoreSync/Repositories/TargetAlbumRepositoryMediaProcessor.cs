@@ -368,7 +368,7 @@ public class TargetAlbumRepositoryMediaProcessor
         smImageServiceMock.Invocations.Clear();    
 
         ////////////////////////////////////////////////
-        // Perform the Image Video AS NORMAL with IncludeVideos = TRUE
+        // Perform the Image Video AS NORMAL with IncludeVideos = TRUE, Regardless of setting, downloads of videos should NOT happen
         inMemoryRuntimeSettings = new Dictionary<string, string?> {
             {"sourceRedownload", "Normal"},
             {"includeVideos", "true"},
@@ -381,7 +381,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()));
+        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()), Times.Never());
         smImageServiceMock.Invocations.Clear();    
     }
 

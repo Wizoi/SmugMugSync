@@ -50,7 +50,7 @@ public class ContentMetadataServiceTest
         var core = Utility.RetrieveSmugMugCore();;
         string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestImage.jpg");
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
-        Assert.AreEqual("Pepper", actual.Caption);
+        Assert.AreEqual("Pepper", actual.Title);
         Assert.AreEqual("This is a multi-line comment.", actual.Comment);
         Assert.AreEqual(DateTime.Parse("2012-01-15 06:03:38 PM"), actual.DateTaken);
         Assert.AreEqual(false, actual.IsHidden);
@@ -74,7 +74,7 @@ public class ContentMetadataServiceTest
         var core = Utility.RetrieveSmugMugCore();;
         string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestJpegImage.jpeg");
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
-        Assert.AreEqual("Test Jpeg Photo", actual.Caption);
+        Assert.AreEqual("Test Jpeg Photo", actual.Title);
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class ContentMetadataServiceTest
         var core = Utility.RetrieveSmugMugCore();;
         string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestScannedImage.jpg");
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
-        Assert.AreEqual("Test Scanned Photo", actual.Caption);
+        Assert.AreEqual("Test Scanned Photo", actual.Title);
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class ContentMetadataServiceTest
         var core = Utility.RetrieveSmugMugCore();;
         string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestTifImage.tif");
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
-        Assert.AreEqual("Test Tif File", actual.Caption);
+        Assert.AreEqual("Test Tif File", actual.Title);
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public class ContentMetadataServiceTest
         var core = Utility.RetrieveSmugMugCore();;
         string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestVideo.mov");
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
-        Assert.AreEqual("This is a test Video", actual.Caption, "Caption");
+        Assert.AreEqual("This is a test Video", actual.Title, "Caption");
         Assert.AreEqual(false, actual.IsHidden, "IsHidden");
         Assert.AreEqual(true, actual.IsVideo, "IsVideo Flag");
         Assert.AreEqual(1, actual.Keywords.Length, "Count of Keywords");
@@ -159,7 +159,7 @@ public class ContentMetadataServiceTest
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
         Assert.AreNotEqual(new TimeSpan(0, 0, 0), actual.VideoLength, "Video Length is returning as 0");
         Assert.AreEqual(true, actual.IsVideo, "IsVideo Flag");
-        Assert.AreEqual("Test Mp4 Video", actual.Caption, "Caption");
+        Assert.AreEqual("Test Mp4 Video", actual.Title, "Caption");
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public class ContentMetadataServiceTest
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
         Assert.AreNotEqual(new TimeSpan(0, 0, 0), actual.VideoLength, "Video Length is returning as 0");
         Assert.AreEqual(true, actual.IsVideo, "IsVideo Flag");
-        Assert.AreEqual("Test Wmv Video", actual.Caption, "Caption");
+        Assert.AreEqual("Test Wmv Video", actual.Title, "Caption");
     }
 
     /// <summary>

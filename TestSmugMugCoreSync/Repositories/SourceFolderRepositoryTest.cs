@@ -93,7 +93,7 @@ public class SourceFolderRepositoryTest
         var result = sourceFolderRepo.PopulateSourceFoldersAndFiles();
 
         mockTrace.Verify(x => x.Write(It.IsAny<string>()), Times.Exactly(1), "Expected a trace");
-        mockTrace.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Exactly(1), "Expected a trace");
+        mockTrace.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Exactly(2), "Expected a trace");
 
         fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\FOODIRECTORY"));
         Assert.IsFalse(result, "Loading should not proceed if the folder is on skip list.");
