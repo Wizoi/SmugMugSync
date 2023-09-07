@@ -18,6 +18,7 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 ## Changelog
 2012 - App initially written with .Net 4.6.
 <various years of tweaks>
+
 2023-09 - App was rewritten to use .Net Core 7.0, VS Code, and includes full unit testing. Integration tests for the core library, and Moq testing for the primary application. Split out the secrets and made it more shareable.
 
 ## How to use
