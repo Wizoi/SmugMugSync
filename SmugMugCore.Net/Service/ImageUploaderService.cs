@@ -64,12 +64,15 @@ namespace SmugMug.Net.Service
             queryData.Add("X-Smug-AlbumID", albumId);
             queryData.Add("X-Smug-FileName", imageMetadata.FileInfo.Name);
             queryData.Add("Content-MD5", imageMetadata.MD5Checksum);
-            /*
-             * if (imageContent.Title != null)
-                            queryData.Add("X-Smug-Title", imageContent.Title);
-            */
+            if (imageMetadata.Title != null)
+                queryData.Add("X-Smug-Title", imageMetadata.Title);
             if (imageMetadata.Caption != null)
-                queryData.Add("X-Smug-Caption", imageMetadata.Caption);
+            {
+                if (imageMetadata.Caption != imageMetadata.Title)
+                    queryData.Add("X-Smug-Caption", imageMetadata.Caption);
+                else
+                    queryData.Add("X-Smug-Caption", "");
+            } 
             if (imageMetadata.IsHidden == true)
                 queryData.Add("X-Smug-Hidden", imageMetadata.IsHidden);
             if (imageId > 0)

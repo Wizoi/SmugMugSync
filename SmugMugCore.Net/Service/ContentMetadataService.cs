@@ -30,7 +30,7 @@ public partial class ContentMetadataService
         {
             try
             {
-                SixLabors.ImageSharp.ImageInfo imageInfo = await Image.IdentifyAsync(filepath);
+                SixLabors.ImageSharp.ImageInfo imageInfo = Image.Identify(filepath);
                 content = this.GetMetadataPropertiesWithImageInfo(imageInfo);
             }
             catch (UnknownImageFormatException)
@@ -58,10 +58,10 @@ public partial class ContentMetadataService
             propertyCollection = file.Properties;
             if (propertyCollection != null)
             {
-                IShellProperty propertyCaption = propertyCollection.GetProperty("System.Title");
-                if (propertyCaption != null)
+                IShellProperty propertyTitle = propertyCollection.GetProperty("System.Title");
+                if (propertyTitle != null)
                 {
-                    content.Caption = (string)propertyCaption.ValueAsObject;
+                    content.Title = (string)propertyTitle.ValueAsObject;
                 }
 
                 IShellProperty propertyDuration = propertyCollection.GetProperty("System.Media.Duration");
@@ -124,7 +124,7 @@ public partial class ContentMetadataService
             else
                 content.DateTaken = DateTime.MinValue;
 
-            content.Caption = ExtractExifString(exifData, ExifTag.XPTitle);
+            content.Title = ExtractExifString(exifData, ExifTag.XPTitle);
             content.Comment = ExtractExifString(exifData, ExifTag.XPComment);
             content.Keywords = SplitTagString(ExtractExifString(exifData, ExifTag.XPKeywords));
 

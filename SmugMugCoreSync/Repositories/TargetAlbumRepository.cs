@@ -88,6 +88,7 @@ namespace SmugMugCoreSync.Repositories
                 switch (runtimeFlags.TargetCreate)
                 {
                     case OperationLevel.Normal:
+                        Trace.WriteLine($"    > Creating Album: {alb.Title}");
                         var stubNewAlbum = await _smCore.AlbumService.CreateAlbum(alb);
                         var createdAlbum = await _smCore.AlbumService.GetAlbumDetail(stubNewAlbum.AlbumId, stubNewAlbum.AlbumKey);
                         
@@ -98,7 +99,7 @@ namespace SmugMugCoreSync.Repositories
 
                         break;
                     case OperationLevel.NoneLog:
-                        Trace.WriteLine($"..? Album Create Suppressed: {alb.Title}");
+                        Trace.WriteLine($"    >? Album Create Suppressed: {alb.Title}");
                         break;
                     default:
                         break;
@@ -120,13 +121,14 @@ namespace SmugMugCoreSync.Repositories
                     switch (runtimeFlags.TargetDelete)
                     {
                         case OperationLevel.Normal:
+                            Trace.WriteLine($"    > Deleting Album: {albumKey} / {_targetAlbums[albumKey].Title}");
                             if (await _smCore.AlbumService.DeleteAlbum(_targetAlbums[albumKey].AlbumId))
                             {
                                 _targetAlbums.Remove(albumKey);
                             }
                             break;
                         case OperationLevel.NoneLog:
-                            Trace.WriteLine($"..? Album Delete Suppressed: {albumKey} / {_targetAlbums[albumKey].Title}");
+                            Trace.WriteLine($"    >? Album Delete Suppressed: {albumKey} / {_targetAlbums[albumKey].Title}");
                             break;
                         default:
                             break;
@@ -146,12 +148,12 @@ namespace SmugMugCoreSync.Repositories
             {
                 runtimeStats.ProcessedFolders++;
                 
-                Trace.WriteLine(" ... " + targetAlbum.Title);
+                Trace.WriteLine($"  Album: {targetAlbum.Title}");
                 var sourceFolder = sourceFolders.RetrieveLinkedFolderByKey(targetAlbum.AlbumKey);
                 if (sourceFolder == null)
                 {
                     runtimeStats.SkippedFolders++;
-                    Trace.WriteLine("... X Source folder is not found / linked to this album.");
+                    Trace.WriteLine($"    > SKIP - Source folder is not found / linked to this album");
                     continue;
                 }
 
@@ -206,11 +208,12 @@ namespace SmugMugCoreSync.Repositories
                     switch (runtimeFlags.TargetDelete)
                     {
                         case OperationLevel.Normal:
+                            Trace.WriteLine($"    > Deleting Remote Media: {targetImage.ImageId} / {targetName}");
                             _ = await _smCore.ImageService.Delete(targetImage.ImageId, targetAlbum.AlbumId);
                             runtimeFileStats.DeletedFiles++;
                             break;
                         case OperationLevel.NoneLog:
-                            Trace.WriteLine("..? Delete Suppressed: " + targetImage.Title);
+                            Trace.WriteLine($"    >? Delete Suppressed: {targetImage.ImageId} / {targetName}");
                             break;
                         default:
                             break;
@@ -224,11 +227,12 @@ namespace SmugMugCoreSync.Repositories
                     switch (runtimeFlags.TargetDelete)
                     {
                         case OperationLevel.Normal:
+                            Trace.WriteLine("    > Deleting Duplicate Media: " + toDeleteImage.Title);
                             _ = await _smCore.ImageService.Delete(toDeleteImage.ImageId, targetAlbum.AlbumId);
                             runtimeFileStats.DuplicateFiles++;
                             break;
                         case OperationLevel.NoneLog:
-                            Trace.WriteLine("..? Delete of Dupe Suppressed: " + toDeleteImage.Title);
+                            Trace.WriteLine("    >? Delete of Dupe Suppressed: " + toDeleteImage.Title);
                             break;
                         default:
                             break;
@@ -241,7 +245,6 @@ namespace SmugMugCoreSync.Repositories
                 foreach (var name in newFilenames)
                 {
                     var sourceImage = sourceFileNameLookup[name];
-                    Trace.WriteLine($"Process {sourceImage.FileName}");
                     taskListNew.Add(ProcessNewRemoteMedia(runtimeFlags, sourceImage, targetAlbum, uploadThrottler));    
                 }
 
@@ -279,6 +282,10 @@ namespace SmugMugCoreSync.Repositories
             metaSvc.FileSystem = sourceImage.FileSystem;
             ImageContent sourceMetadata = await metaSvc.DiscoverMetadata(sourceImage.FullFileName);
 
+            // Smugmug does not support Titles yet.
+            sourceMetadata.Caption = sourceMetadata.Title;
+            sourceMetadata.Title = null;
+
             await uploadThrottler.WaitAsync();
             try
             {
@@ -286,7 +293,7 @@ namespace SmugMugCoreSync.Repositories
                 // Scenario 1: Filelength = 0; Redownload
                 if (!reDownloadImage && (sourceImage.FileLength == 0))
                 {
-                    Trace.WriteLine(" ** 0 Byte File Found on source: " + sourceImage.FileName);
+                    Trace.WriteLine("    > ERROR / REDOWNLOAD - 0 Byte File Found on source: " + sourceImage.FileName);
                     reDownloadImage = true;
                 }
 
@@ -295,10 +302,16 @@ namespace SmugMugCoreSync.Repositories
                 {
                     if ((sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
                     {
-                        reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
-                        if (!reDownloadImage)
+                        // Will not redownload a video based on the size being different, as it will be a 
+                        // lower quality. And Cannot re-upload a video 2x as Smugmug disallows refreshing, so skipping.
+                        if (!sourceMetadata.IsVideo)
                         {
-                            _ = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
+                            reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+
+                            if (!reDownloadImage)
+                            {
+                                _ = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
+                            }
                         }
                     }
                     else
@@ -339,19 +352,19 @@ namespace SmugMugCoreSync.Repositories
             {
                 if (sourceMetadata.VideoLength.TotalMinutes > 20)
                 {
-                    Trace.WriteLine(" ... SKIP (Video too long, > 20 minutes): " + sourceImage.FileName);
+                    Trace.WriteLine("    > SKIP (Video too long, > 20 minutes): " + sourceImage.FileName);
                     continueToAdd = false;
                 }
                 
                 if (sourceMetadata.FileInfo?.Length > 2000000000)
                 {
-                    Trace.WriteLine(" ... SKIP (Video size too large, > 2.0 gigs): " + sourceImage.FileName);
+                    Trace.WriteLine("    > SKIP (Video size too large, > 2.0 gigs): " + sourceImage.FileName);
                     continueToAdd = false;
                 }
                 
                 if (!runtimeFlags.IncludeVideos)
                 {
-                    Trace.WriteLine(" ... SKIP (Photos Only Enabled): " + sourceImage.FileName);
+                    Trace.WriteLine("    > SKIP (Photos Only Enabled): " + sourceImage.FileName);
                     continueToAdd = false;
                 }
             }
@@ -364,8 +377,8 @@ namespace SmugMugCoreSync.Repositories
                         await uploadThrottler.WaitAsync();
                         try
                         {
+                            Trace.WriteLine("    > Adding " + sourceImage.FileName);
                             await UploadNewMedia(_smCore, targetAlbum, sourceMetadata);
-                            Trace.WriteLine(" ... Uploaded " + sourceImage.FileName);
                         }
                         finally
                         {
@@ -374,7 +387,7 @@ namespace SmugMugCoreSync.Repositories
 
                         return true;
                     case OperationLevel.NoneLog:
-                        Trace.WriteLine("..? Upload Suppressed: " + sourceImage.FileName);
+                        Trace.WriteLine("    >? Adding Suppressed: " + sourceImage.FileName);
                         break;
                     default:
                         break;
@@ -384,29 +397,27 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
-        public virtual  async Task<bool> RefreshRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, AlbumDetail targetAlbum, ImageDetail targetImage)
+        public virtual async Task<bool> RefreshRemoteMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, AlbumDetail targetAlbum, ImageDetail targetImage)
         {
-            sourceMetadata.MD5Checksum = await sourceImage.LoadMd5Checksum();
+            if (sourceMetadata.IsVideo)
+            {
+                // Per validation with smugmug, and integration tests, we cannot update a video
+                // already uploaded. Would have to create+publish a whole new video (which I will not do automatically)
+                Trace.WriteLine("    > SKIP Update not supported for Videos: " + sourceImage.FileName);
+                return false;
+            }
 
+            sourceMetadata.MD5Checksum = await sourceImage.LoadMd5Checksum();
             if ((sourceMetadata.MD5Checksum != targetImage.MD5Sum))
             {
                 switch (runtimeFlags.TargetUpdate)
                 {
                     case OperationLevel.Normal:
-                        if (sourceMetadata.IsVideo)
-                        {
-                            // Per validation with smugmug, and integration tests, we cannot update a video
-                            // already uploaded. Would have to create+publish a whole new video (which I will not do automatically)
-                            Trace.WriteLine("..? Update Suppressed (Photos Only): " + sourceImage.FileName);
-                        }
-                        else
-                        {
-                            await UploadMedia(_smCore, targetAlbum, targetImage, sourceMetadata);
-                            return true;
-                        }
-                        break;
+                        Trace.WriteLine("    > Updating Remote Media: " + sourceImage.FileName);
+                        await UploadMedia(_smCore, targetAlbum, targetImage, sourceMetadata);
+                        return true;
                     case OperationLevel.NoneLog:
-                        Trace.WriteLine("..? Update Suppressed: " + sourceImage.FileName);
+                        Trace.WriteLine("    >? Update Suppressed: " + sourceImage.FileName);
                         break;
                     default:
                         break;
@@ -418,8 +429,6 @@ namespace SmugMugCoreSync.Repositories
 
         public virtual  async Task<bool> RedownloadMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, ImageContent sourceMetadata, ImageDetail targetImage)
         {
-            Trace.WriteLine(" ** Redownload Image Requested: " + sourceImage.FullFileName);
-            var smugImage = await _smCore.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);
             bool isRedownloaded = false;
 
             // If this is a video, then only update the captions and keywords.
@@ -428,16 +437,17 @@ namespace SmugMugCoreSync.Repositories
                 case OperationLevel.Normal:
                     if ((sourceMetadata.IsVideo) && !runtimeFlags.IncludeVideos)
                     {
-                        Trace.WriteLine("..? Update Suppressed (Photos Only): " + sourceImage.FileName);
+                        Trace.WriteLine("    >? Redownload to Source Suppressed (Photos Only): " + sourceImage.FullFileName);
                     }
                     else
                     {
-                        Trace.WriteLine("... Redownloading: " + sourceImage.FileName);
-                        isRedownloaded = await _smCore.ImageService.DownloadImage(smugImage, sourceImage.FileName);
+                        Trace.WriteLine("    > Redownloading (remote more recent): " + sourceImage.FullFileName);
+                        var smugImage = await _smCore.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);
+                        isRedownloaded = await _smCore.ImageService.DownloadImage(smugImage, sourceImage.FullFileName);
                     }
                     break;
                 case OperationLevel.NoneLog:
-                    Trace.WriteLine("..? Update to Source Suppressed: " + sourceImage.FileName);
+                    Trace.WriteLine("    >? Redownload to Source Suppressed: " + sourceImage.FullFileName);
                     break;
                 default:
                     break;
@@ -468,17 +478,17 @@ namespace SmugMugCoreSync.Repositories
                     case OperationLevel.Normal:
                         if (sourceXmlMetadata.IsVideo && (!runtimeFlags.IncludeVideos))
                         {
-                            Trace.WriteLine("... Suppressing Upload (Photos Only): " + targetImage.Filename);
+                            Trace.WriteLine("    >? Suppressing Meta Update (Photos Only): " + targetImage.Filename);
                         }
                         else
                         {
-                            Trace.WriteLine("... Updating Metadata: " + targetImage.Filename);
+                            Trace.WriteLine("    > Updating Metadata: " + targetImage.Filename);
                             isMetadataUpdated = await _smCore.ImageService.UpdateImage(targetImage);
                             return true;
                         }
                         break;
                     case OperationLevel.NoneLog:
-                        Trace.WriteLine("..? Update Suppressed: " + targetImage.Filename);
+                        Trace.WriteLine("    >? Updating Metadata Suppressed: " + targetImage.Filename);
                         break;
                     default:
                         break;
@@ -490,7 +500,6 @@ namespace SmugMugCoreSync.Repositories
 
         public async static Task<bool> IsRedownloadNeeded(SmugMugCore core, SourceMediaData sourceImage, ImageDetail targetImage)
         {
-            // Now get the MD5 and see if it matches...
             var smugImage = await core.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);
             if (smugImage.LastUpdatedDate == null)
             {
@@ -499,7 +508,7 @@ namespace SmugMugCoreSync.Repositories
             else
             {
                 var tsUpdated = sourceImage.LastWriteTime - DateTime.Parse(smugImage.LastUpdatedDate);
-                if (smugImage.MD5Sum != (await sourceImage.LoadMd5Checksum()) && (tsUpdated.TotalMilliseconds < 0))
+                if ((tsUpdated.TotalMilliseconds < 0) && smugImage.MD5Sum != (await sourceImage.LoadMd5Checksum()))
                 {
                     return true;
                 }
@@ -536,13 +545,13 @@ namespace SmugMugCoreSync.Repositories
                     // Unknown File Type - skip
                     if (smugex.ErrorResponse.Code == 64)
                     {
-                        Trace.WriteLine("... SKIP - ERROR 64 (Invalid File Type): " + smugex.QueryString);
+                        Trace.WriteLine("    > ERROR 64 (Invalid File Type): " + smugex.QueryString);
                         throw new ApplicationException("Invalid File Type");
                     }
                     else
                     {
                         // Attempt #2 (then blow up and escalate higher)
-                        Trace.WriteLine("... RETRY - ERROR " + smugex.ErrorResponse.Code + " Query=" + smugex.QueryString);
+                        Trace.WriteLine("    > RETRY ERROR " + smugex.ErrorResponse.Code + " Query=" + smugex.QueryString);
                         System.Threading.Thread.Sleep(1000);
                         return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
                     }
@@ -550,7 +559,7 @@ namespace SmugMugCoreSync.Repositories
                 else if (webEx != null)
                 {
                     // Non-Smugmug Exception - Retry just once (possibly network related)
-                    Trace.WriteLine("... RETRY, WebException = " + webEx.Message);
+                    Trace.WriteLine("    > RETRY, WebException = " + webEx.Message);
                     System.Threading.Thread.Sleep(1000);
                     return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
                 }

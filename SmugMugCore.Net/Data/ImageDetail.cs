@@ -272,6 +272,28 @@ namespace SmugMug.Net.Data
         public string UrlVideo1920URL;
 
         /// <summary>
+        /// The url for the largest version of this video
+        /// </summary>
+        public string UrlVideoOriginalURL
+        {
+            get {
+                if (UrlVideo1920URL.Length > 0)
+                    return UrlVideo1920URL;
+                else if (UrlVideo1280URL.Length > 0)
+                    return UrlVideo1280URL;
+                else if (UrlVideo960URL.Length > 0)
+                    return UrlVideo960URL;
+                else if (UrlVideo640URL.Length > 0) 
+                    return UrlVideo640URL;
+                else if (UrlVideo320URL.Length > 0)
+                    return UrlVideo320URL;
+                else   
+                    return string.Empty;
+            }
+        }
+
+
+        /// <summary>
         /// The url for the W3C SMIL XML Link for the Videos
         /// </summary>
         [XmlAttribute("VideoSMILURL")]
