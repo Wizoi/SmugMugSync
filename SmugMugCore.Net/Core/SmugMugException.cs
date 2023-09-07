@@ -47,6 +47,7 @@ namespace SmugMug.Net.Core
         /// <param name="errorResponse">Error Response object from SmugMug</param>
         /// <param name="methodName">Name of the method which contained the error</param>
         /// <param name="paramData">Parameters provided to SmugMug which generated the error</param>
+        /// <param name="requestDetail">Request detail if logged</param>
         public SmugMugException(Data.SmugmugError errorResponse, string methodName, QueryParameterList paramData, string requestDetail)
             : base(string.Format("Error: {0} - {1} calling {2}", errorResponse.Code, errorResponse.Message, methodName))
         {

@@ -62,10 +62,15 @@ namespace SmugMug.Net.Service
         /// <param name="localPath"></param>
         public async virtual Task<bool> DownloadImage(Data.ImageDetail image, string localPath)
         {
-            if (image.UrlViewOriginalURL == null)
+            string targetImage;
+            if (image.UrlVideoOriginalURL.Length > 0)
+                targetImage = image.UrlVideoOriginalURL;
+            else if (image.UrlViewOriginalURL.Length > 0)
+                targetImage = image.UrlViewOriginalURL;
+            else
                 return false;
 
-            return await _core.DownloadContentAsync(image.UrlViewOriginalURL, localPath);
+            return await _core.DownloadContentAsync(targetImage, localPath);
         }
 
         /// <summary>
