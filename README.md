@@ -1,6 +1,14 @@
 # SmugMug Sync for Windows
 This project is a command line application which keeps folders from a source windows folder in sync with Albums on the photo sharing service [SmugMug](https://www.smugmug.com/) using their [Smumug API 1.3.0](https://api.smugmug.com/services/api/json/1.3).
 
+## Project Goals
+1. Upload and sync file changes from local folders to remote SmugMug Galleries
+1. Process Keywords for Images and Videos up to SmugMug, splitting up keyword trees
+1. Simple use - Run program (no params) for full sync of any new folders/galleries
+1. Any image updates (keywords, new files, removed files) need to sync to SmugMug
+1. Syncing must persist regardless of SmugMug Organize App changes (moving folder in smugmug, settings, etc)
+1. Changes that happen to images in smugmug (rotating, new keywords) should reverse sync back to local system
+
 ## History
 This project started in 2012 as I had many folders and wanted to sync them in a no hassle manner.  I found the following workflow and have used it to this day:
 
