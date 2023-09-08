@@ -254,7 +254,7 @@ namespace SmugMug.Net.Core
         /// </summary>
         public SmugMugCore(string apiKey, string apiSecret)
         {
-            this.EnableRequestLogging = false;
+            this.EnableRequestLogging = System.Diagnostics.Debugger.IsAttached;
             this._smugMugSecret = apiSecret;
             this._smugMugApiKey = apiKey;
         }

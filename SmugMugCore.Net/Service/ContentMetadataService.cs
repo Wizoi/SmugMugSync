@@ -30,7 +30,7 @@ public partial class ContentMetadataService
         {
             try
             {
-                SixLabors.ImageSharp.ImageInfo imageInfo = Image.Identify(filepath);
+                SixLabors.ImageSharp.ImageInfo imageInfo = await Image.IdentifyAsync(filepath);
                 content = this.GetMetadataPropertiesWithImageInfo(imageInfo);
             }
             catch (UnknownImageFormatException)
@@ -170,7 +170,7 @@ public partial class ContentMetadataService
 
 
     /// <summary>
-    /// Split a tag into the various elements for Smugmug's Usage
+    /// Split a tag into the various elements for SmugMug's Usage
     /// </summary>
     /// <param name="tagList"></param>
     /// <returns></returns>
@@ -187,14 +187,14 @@ public partial class ContentMetadataService
             {
                 if (!tag.Contains('/'))
                 {
-                    tagData.Add(this.CleanKeywordsForSmugmug(tag));
+                    tagData.Add(this.CleanKeywordsForSmugMug(tag));
                 }
                 else
                 {
                     var splitParts = tag.Split('/');
                     foreach (string part in splitParts)
                     {
-                        tagData.Add(this.CleanKeywordsForSmugmug(part));
+                        tagData.Add(this.CleanKeywordsForSmugMug(part));
                     }
                 }
             }
@@ -234,11 +234,11 @@ public partial class ContentMetadataService
     }
 
     /// <summary>
-    /// SmugmugKeywords need to be uri friendly
+    /// SmugMugKeywords need to be uri friendly
     /// </summary>
     /// <param name="keyword"></param>
     /// <returns></returns>
-    private string CleanKeywordsForSmugmug(string keyword)
+    private string CleanKeywordsForSmugMug(string keyword)
     {
         return keyword.Replace("&", "").Replace("-", "");
     }

@@ -13,7 +13,7 @@ public class FriendServiceTest
     ///A test for AddFriend
     ///</summary>
     [TestMethod()]
-    public async void AddRemoveFriendTest()
+    public async Task AddRemoveFriendTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new FriendService(core);

@@ -56,7 +56,7 @@ internal class Program
         Console.WriteLine("Create new instance of OAuth Manager");
         var manager = new OAuthManager(smugMugApiKey, smugMugSecret);
 
-        Console.WriteLine("Aquire a request token from smugmug");
+        Console.WriteLine("Acquire a request token from SmugMug");
         var requestToken = await manager.AcquireRequestToken(new Uri("https://api.smugmug.com/services/oauth/getRequestToken.mg"), HttpMethod.Get, new());
 
         Console.WriteLine("Browser should open, please authorize request token to continue.");

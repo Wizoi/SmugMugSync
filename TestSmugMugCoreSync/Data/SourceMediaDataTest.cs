@@ -30,7 +30,7 @@ public class SourceMediaDataTest
         Assert.AreEqual("A:\\FOO\\FILENAME.JPG", sourceMediaData.FullFileName, "Full Filename Expected");
         Assert.AreEqual("FILENAME", sourceMediaData.FileNameBase, "Filename Base Expected");
         Assert.AreEqual(DateTime.Parse("2023-01-01"), sourceMediaData.LastWriteTime, "Last Write Time Expected");
-        Assert.IsTrue(sourceMediaData.IsImageUpdateable(), "Return that  the image, if not a TIF, is updateable to smugmug");
+        Assert.IsTrue(sourceMediaData.IsImageUpdatable(), "Return that  the image, if not a TIF, is updateable to smugmug");
     }
 
     [TestMethod]
@@ -45,7 +45,7 @@ public class SourceMediaDataTest
 
         var sourceMediaData = new SourceMediaData(fileSystemMock.Object, fsiMock.Object);
 
-        Assert.IsFalse(sourceMediaData.IsImageUpdateable(), "TIF Files are not updatable");
+        Assert.IsFalse(sourceMediaData.IsImageUpdatable(), "TIF Files are not updatable");
     }
 
     [TestMethod]

@@ -14,16 +14,29 @@
 			"label": "dotnet: build"
 		},
 		{
-            "label": "test",
+            "label": "Test with Coverage",
             "dependsOn": [],
             "command": "dotnet",
             "type": "process",
             "args": [
                 "test",
-                "${workspaceFolder}/TestSmugMugCoreSync/TestSmugMugCoreSync.csproj",
-                "/p:CollectCoverage=true",
-                "/p:CoverletOutputFormat=lcov",
-                "/p:CoverletOutput=../lcov.info"
+                "--collect:\"XPlat Code Coverage\""
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+		{
+            "label": "Generate Coverage Report",
+            "dependsOn": [],
+            "command": "reportgenerator",
+            "type": "process",
+            "args": [
+                "-reports:./**/coverage.cobertura.xml",
+                "-targetdir:./CoverageReport",
+                "-reporttypes:lcov;Html"
             ],
             "problemMatcher": "$msCompile",
             "group": {

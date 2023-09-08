@@ -60,7 +60,7 @@ public class AlbumServiceTest
     /// <summary>
     ///A test for UpdateAlbum
     ///</summary>
-    [TestMethod(), Obsolete("Updating the album no llonger  supported.")]
+    [TestMethod(), Obsolete("Updating the album no longer  supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
     public async Task UpdateAlbumTest()
     {
@@ -213,9 +213,9 @@ public class AlbumServiceTest
         int albumId = _albumTest.AlbumId;
         int month = DateTime.Now.Month;
         int year = DateTime.Now.Year; 
-        bool includImageInfo = true; 
+        bool includeImageInfo = true; 
         AlbumStats actual;
-        actual = await target.GetAlbumStats(albumId, month, year, includImageInfo);
+        actual = await target.GetAlbumStats(albumId, month, year, includeImageInfo);
         Assert.IsNotNull(actual);
         Assert.AreEqual(actual.AlbumId, albumId);
     }
@@ -287,7 +287,7 @@ public class AlbumServiceTest
     ///A test for CreateAlbum
     ///</summary>
     [TestMethod()]
-    public async void CreateDeleteAlbumTest()
+    public async Task CreateDeleteAlbumTest()
     {
         var core = Utility.RetrieveSmugMugCore();
         var target = new AlbumService(core);
@@ -329,7 +329,6 @@ public class AlbumServiceTest
     ///A test for IsValidNiceName
     ///</summary>
     [TestMethod()]
-    [DeploymentItem("SmugMug.Net.dll")]
     public void IsValidNiceNameTest_Valid()
     {
         string niceName = "KevinTest"; 
@@ -343,7 +342,6 @@ public class AlbumServiceTest
     ///A test for IsValidNiceName
     ///</summary>
     [TestMethod()]
-    [DeploymentItem("SmugMug.Net.dll")]
     public void IsValidNiceNameTest_InvalidDashFirst()
     {
         string niceName = "-KevinTest"; 
@@ -373,7 +371,7 @@ public class AlbumServiceTest
     /// <summary>
     ///A test for ApplyWatermark
     ///</summary>
-    [TestMethod(), Obsolete("Appplying watermarks no longer supported.")]
+    [TestMethod(), Obsolete("Applying watermarks no longer supported.")]
     [Ignore("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
     public async Task ApplyWatermarkTest()
     {

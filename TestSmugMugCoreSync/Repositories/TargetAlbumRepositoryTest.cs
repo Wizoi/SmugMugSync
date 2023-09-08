@@ -464,7 +464,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(0, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(0, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");   
@@ -529,7 +529,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(0, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(1, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(0, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
@@ -593,7 +593,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(0, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(1, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
@@ -659,7 +659,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(1, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(0, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(1, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
@@ -726,7 +726,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(1, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(1, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(0, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
@@ -808,7 +808,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(1, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(1, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(1, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(1, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(1, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
@@ -833,7 +833,7 @@ public class TargetAlbumRepositoryTest
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
         actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
-        Assert.AreEqual(0, actualFolderFileStats.ResyncedFiles, "Expecting to find no resynced files.");
+        Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(0, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
