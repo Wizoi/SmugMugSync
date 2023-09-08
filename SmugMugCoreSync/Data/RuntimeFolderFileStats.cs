@@ -6,7 +6,7 @@ public class RuntimeFolderFileStats
     public string FolderKey = String.Empty;
     public int DeletedFiles;
     public int AddedFiles;
-    public int ResyncedFiles;
+    public int SyncedFiles;
     public int DuplicateFiles;
 
 }

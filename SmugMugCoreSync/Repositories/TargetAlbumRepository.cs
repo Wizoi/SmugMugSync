@@ -7,6 +7,7 @@ using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing.Text;
 using System.IO.Abstractions;
@@ -144,7 +145,8 @@ namespace SmugMugCoreSync.Repositories
             var uploadThrottler = new SemaphoreSlim(runtimeFlags.ImageUploadThrottle);
             var runtimeStats = new RuntimeFolderStats();
 
-            foreach (var targetAlbum in _targetAlbums.Values)
+            var albumSortedList = _targetAlbums.Values.OrderBy(x => x.Title);
+            foreach (var targetAlbum in albumSortedList)
             {
                 runtimeStats.ProcessedFolders++;
                 
@@ -266,7 +268,7 @@ namespace SmugMugCoreSync.Repositories
                     if (t.Result) runtimeFileStats.AddedFiles++;
 
                 foreach (var t in taskListExisting)
-                    if (t.Result) runtimeFileStats.ResyncedFiles++;
+                    if (t.Result) runtimeFileStats.SyncedFiles++;
 
             }
 
@@ -282,7 +284,7 @@ namespace SmugMugCoreSync.Repositories
             metaSvc.FileSystem = sourceImage.FileSystem;
             ImageContent sourceMetadata = await metaSvc.DiscoverMetadata(sourceImage.FullFileName);
 
-            // Smugmug does not support Titles yet.
+            // SmugMug does not support Titles yet.
             sourceMetadata.Caption = sourceMetadata.Title;
             sourceMetadata.Title = null;
 
@@ -290,20 +292,20 @@ namespace SmugMugCoreSync.Repositories
             try
             {
 
-                // Scenario 1: Filelength = 0; Redownload
+                // Scenario 1: FileLength = 0; Redownload
                 if (!reDownloadImage && (sourceImage.FileLength == 0))
                 {
                     Trace.WriteLine("    > ERROR / REDOWNLOAD - 0 Byte File Found on source: " + sourceImage.FileName);
                     reDownloadImage = true;
                 }
 
-                // Scenario 2: Filelength is different (targetupdate)
-                if (!reDownloadImage && sourceImage.IsImageUpdateable())
+                // Scenario 2: FileLength is different (targetUpdate)
+                if (!reDownloadImage && sourceImage.IsImageUpdatable())
                 {
                     if ((sourceImage.FileLength != targetImage.SizeBytes) || runtimeFlags.ForceRefresh)
                     {
                         // Will not redownload a video based on the size being different, as it will be a 
-                        // lower quality. And Cannot re-upload a video 2x as Smugmug disallows refreshing, so skipping.
+                        // lower quality. And Cannot re-upload a video 2x as SmugMug disallows refreshing, so skipping.
                         if (!sourceMetadata.IsVideo)
                         {
                             reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
@@ -321,7 +323,7 @@ namespace SmugMugCoreSync.Repositories
                     }
                 }
 
-                // If the MD5 Image is not matching, but should, we redownload the image with a smugmug in the filename 
+                // If the MD5 Image is not matching, but should, we redownload the image with a SmugMug in the filename 
                 // to provide the option of viewing the different image (and possibly overwrite to have it match)
                 if (reDownloadImage)
                 {
@@ -344,7 +346,7 @@ namespace SmugMugCoreSync.Repositories
             metaSvc.FileSystem = sourceImage.FileSystem;
             ImageContent sourceMetadata = await metaSvc.DiscoverMetadata(sourceImage.FullFileName);
 
-            // Smugmug does not support Titles yet.
+            // SmugMug does not support Titles yet.
             sourceMetadata.Caption = sourceMetadata.Title;
             sourceMetadata.Title = null;
 
@@ -401,7 +403,7 @@ namespace SmugMugCoreSync.Repositories
         {
             if (sourceMetadata.IsVideo)
             {
-                // Per validation with smugmug, and integration tests, we cannot update a video
+                // Per validation with SmugMug, and integration tests, we cannot update a video
                 // already uploaded. Would have to create+publish a whole new video (which I will not do automatically)
                 Trace.WriteLine("    > SKIP Update not supported for Videos: " + sourceImage.FileName);
                 return false;
@@ -537,28 +539,28 @@ namespace SmugMugCoreSync.Repositories
             }
             catch (AggregateException agg)
             {
-                SmugMugException? smugex = agg.InnerExceptions[0] as SmugMugException;
+                SmugMugException? smugEx = agg.InnerExceptions[0] as SmugMugException;
                 WebException? webEx = agg.InnerExceptions[0] as WebException;
                 
-                if (smugex != null)
+                if (smugEx != null)
                 {
                     // Unknown File Type - skip
-                    if (smugex.ErrorResponse.Code == 64)
+                    if (smugEx.ErrorResponse.Code == 64)
                     {
-                        Trace.WriteLine("    > ERROR 64 (Invalid File Type): " + smugex.QueryString);
+                        Trace.WriteLine("    > ERROR 64 (Invalid File Type): " + smugEx.QueryString);
                         throw new ApplicationException("Invalid File Type");
                     }
                     else
                     {
                         // Attempt #2 (then blow up and escalate higher)
-                        Trace.WriteLine("    > RETRY ERROR " + smugex.ErrorResponse.Code + " Query=" + smugex.QueryString);
+                        Trace.WriteLine("    > RETRY ERROR " + smugEx.ErrorResponse.Code + " Query=" + smugEx.QueryString);
                         System.Threading.Thread.Sleep(1000);
                         return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
                     }
                 }
                 else if (webEx != null)
                 {
-                    // Non-Smugmug Exception - Retry just once (possibly network related)
+                    // Non-SmugMugException - Retry just once (possibly network related)
                     Trace.WriteLine("    > RETRY, WebException = " + webEx.Message);
                     System.Threading.Thread.Sleep(1000);
                     return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);

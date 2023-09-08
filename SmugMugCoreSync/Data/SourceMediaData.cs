@@ -40,7 +40,7 @@ namespace SmugMugCoreSync.Data
             get { return _fileSystem; }
         }
 
-        public bool IsImageUpdateable()
+        public bool IsImageUpdatable()
         {
             return Path.GetExtension(_sourceFileSystemInfo.Name).ToUpper() != ".TIF";
         }

@@ -65,14 +65,13 @@ namespace SmugMug.Net.Service
             queryData.Add("X-Smug-FileName", imageMetadata.FileInfo.Name);
             queryData.Add("Content-MD5", imageMetadata.MD5Checksum);
             if (imageMetadata.Title != null)
-                queryData.Add("X-Smug-Title", imageMetadata.Title);
-            if (imageMetadata.Caption != null)
-            {
-                if (imageMetadata.Caption != imageMetadata.Title)
-                    queryData.Add("X-Smug-Caption", imageMetadata.Caption);
-                else
-                    queryData.Add("X-Smug-Caption", "");
-            } 
+//  Smugmug 1.3 API does NOT support saving or loading the  X-Smug-Title, only caption
+//                queryData.Add("X-Smug-Title", imageMetadata.Title);
+                queryData.Add("X-Smug-Caption", imageMetadata.Title);
+            else if (imageMetadata.Caption != null)
+                queryData.Add("X-Smug-Caption", imageMetadata.Caption);
+            else
+                queryData.Add("X-Smug-Caption", "");
             if (imageMetadata.IsHidden == true)
                 queryData.Add("X-Smug-Hidden", imageMetadata.IsHidden);
             if (imageId > 0)

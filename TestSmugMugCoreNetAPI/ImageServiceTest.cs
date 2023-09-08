@@ -175,7 +175,7 @@ public class ImageServiceTest
         actual = await target.Crop(imageId, height, width, x, y);
         Assert.AreEqual(expected, actual);
 
-        // TODO: Smugmug uploads the image, and says it cropped it but didn't because image was still processing.
+        // TODO: SmugMug uploads the image, and says it cropped it but didn't because image was still processing.
         int count = 0;
         ImageDetail? imageAfter = null;
         do

@@ -98,13 +98,13 @@ public class ImageUploaderServiceTest
         content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var service = new ImageService(core);
         var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
-        Assert.AreEqual(content.Caption, info.Caption, "Caption");
+        Assert.AreEqual(content.Title, info.Caption, "Caption");
         Assert.AreEqual("Pets; Pepper; Activity; Snow", info.Keywords, "Keywords");
     }
 
     /// <summary>
     ///A test for UploadNewImage
-    /// BUG: Smugmug Bug where Keywords are not uploaded
+    /// BUG: SmugMug Bug where Keywords are not uploaded
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestVideo.mov")]
@@ -127,7 +127,7 @@ public class ImageUploaderServiceTest
         content = await core.ContentMetadataService.DiscoverMetadata(filename);
         var service = new ImageService(core);
         var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
-        Assert.AreEqual(content.Caption, info.Caption);
+        Assert.AreEqual(content.Title, info.Caption);
         Assert.AreEqual("Activity", info.Keywords, "Keywords");
     }
 
@@ -184,7 +184,7 @@ public class ImageUploaderServiceTest
     ///A test for UploadNewImage
     ///</summary>
     [TestMethod()]
-    [DeploymentItem(@"Content\TestJpegImage.jpg")]
+    [DeploymentItem(@"Content\TestJpegImage.jpeg")]
     [DeploymentItem(@"Content\TestPngImage.png")]
     [DeploymentItem(@"Content\TestScannedImage.jpg")]
     public async Task UploadUpdatedImageAllTypesTest()
