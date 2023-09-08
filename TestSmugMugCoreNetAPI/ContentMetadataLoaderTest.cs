@@ -26,7 +26,7 @@ public class ContentMetadataServiceTest
     }
 
     /// <summary>
-    /// Load the deploiyment directory from the test context
+    /// Load the deployment directory from the test context
     /// </summary>
     /// <returns></returns>
     /// <exception cref="ApplicationException">Exception when it fails to load context</exception>

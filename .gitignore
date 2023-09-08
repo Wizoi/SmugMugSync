@@ -2,3 +2,5 @@
 /*/obj
 /lcov.info
 SmugMugCoreSync_*
+/*/TestResults/*
+/CoverageReport/*
