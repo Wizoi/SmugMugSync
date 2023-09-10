@@ -31,7 +31,7 @@ namespace SmugMug.Net.Core
         {
             get { 
                 string keyName = "AccountService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new AccountService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AccountService(this)); }
                 return (AccountService) _serviceCatalog[keyName];
             }
         }
@@ -41,7 +41,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "AlbumService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new AlbumService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this)); }
                 return (AlbumService)_serviceCatalog[keyName];
             }
         }
@@ -52,7 +52,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "AlbumTemplateService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new AlbumTemplateService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumTemplateService(this)); }
                 return (AlbumTemplateService)_serviceCatalog[keyName];
             }
         }
@@ -63,7 +63,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "CategoryService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new CategoryService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new CategoryService(this)); }
                 return (CategoryService)_serviceCatalog[keyName];
             }
         }
@@ -73,7 +73,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "CommunityService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new CommunityService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new CommunityService(this)); }
                 return (CommunityService)_serviceCatalog[keyName];
             }
         }
@@ -83,7 +83,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "ContentMetadataService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new ContentMetadataService()); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ContentMetadataService()); }
                 return (ContentMetadataService)_serviceCatalog[keyName];
             }
         }
@@ -94,7 +94,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "CouponService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new CouponService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new CouponService(this)); }
                 return (CouponService)_serviceCatalog[keyName];
             }
         }
@@ -104,7 +104,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "FamilyService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new FamilyService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FamilyService(this)); }
                 return (FamilyService)_serviceCatalog[keyName];
             }
         }
@@ -113,7 +113,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "FanService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new FanService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FanService(this)); }
                 return (FanService)_serviceCatalog[keyName];
             }
         }
@@ -124,7 +124,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "FeaturedAlbumService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new FeaturedAlbumService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FeaturedAlbumService(this)); }
                 return (FeaturedAlbumService)_serviceCatalog[keyName];
             }
         }
@@ -134,7 +134,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "FriendService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new FriendService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FriendService(this)); }
                 return (FriendService)_serviceCatalog[keyName];
             }
         }
@@ -144,7 +144,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "ImageService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new ImageService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ImageService(this)); }
                 return (ImageService)_serviceCatalog[keyName];
             }
         }
@@ -153,7 +153,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "ImageUploaderService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new ImageUploaderService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ImageUploaderService(this)); }
                 return (ImageUploaderService)_serviceCatalog[keyName];
             }
         }
@@ -164,7 +164,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "PrintmarkService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new PrintmarkService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new PrintmarkService(this)); }
                 return (PrintmarkService)_serviceCatalog[keyName];
             }
         }
@@ -175,7 +175,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "ShareGroupService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new ShareGroupService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ShareGroupService(this)); }
                 return (ShareGroupService)_serviceCatalog[keyName];
             }
         }
@@ -186,7 +186,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "StyleService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new StyleService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new StyleService(this)); }
                 return (StyleService)_serviceCatalog[keyName];
             }
         }
@@ -197,7 +197,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "SubCategoryService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new SubCategoryService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new SubCategoryService(this)); }
                 return (SubCategoryService)_serviceCatalog[keyName];
             }
         }
@@ -208,7 +208,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "ThemeService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new ThemeService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ThemeService(this)); }
                 return (ThemeService)_serviceCatalog[keyName];
             }
         }
@@ -219,7 +219,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "UserService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new UserService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new UserService(this)); }
                 return (UserService)_serviceCatalog[keyName];
             }
         }
@@ -229,7 +229,7 @@ namespace SmugMug.Net.Core
             get
             {
                 string keyName = "WatermarkService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.Add(keyName, new WatermarkService(this)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new WatermarkService(this)); }
                 return (WatermarkService)_serviceCatalog[keyName];
             }
         }
