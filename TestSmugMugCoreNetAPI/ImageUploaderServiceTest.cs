@@ -128,7 +128,7 @@ public class ImageUploaderServiceTest
         var service = new ImageService(core);
         var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
         Assert.AreEqual(content.Title, info.Caption);
-        Assert.AreEqual("Activity", info.Keywords, "Keywords");
+        Assert.AreEqual("Scenic; Animals; Activity; Cruise", info.Keywords, "Keywords");
     }
 
     /// <summary>

@@ -532,10 +532,10 @@ public class ImageServiceTest
             Assert.Fail("Image Uploaded Date was not provided, or is null");
         Assert.AreEqual("TestVideo.mov", actual.Filename);
         Assert.AreEqual("MP4", actual.Format);
-        Assert.AreEqual(720, actual.Height);
-        Assert.AreEqual(1280, actual.Width);
+        Assert.AreEqual(1080, actual.Height);
+        Assert.AreEqual(1920, actual.Width);
         Assert.AreEqual(false, actual.Hidden);
-        Assert.AreEqual("Activity", actual.Keywords);
+        Assert.AreEqual("Scenic; Animals; Activity; Cruise", actual.Keywords);
         if (actual.LastUpdatedDate != null)
         {
             var tsUpdated = DateTime.Now - DateTime.Parse(actual.LastUpdatedDate);
