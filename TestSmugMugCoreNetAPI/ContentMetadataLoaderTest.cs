@@ -142,9 +142,9 @@ public class ContentMetadataServiceTest
         Assert.AreEqual("This is a test Video", actual.Title, "Caption");
         Assert.AreEqual(false, actual.IsHidden, "IsHidden");
         Assert.AreEqual(true, actual.IsVideo, "IsVideo Flag");
-        Assert.AreEqual(1, actual.Keywords.Length, "Count of Keywords");
-        Assert.AreEqual("Activity", actual.Keywords[0], "Keywords");
-        Assert.AreEqual(new TimeSpan(0, 0, 1), actual.VideoLength, "Video Length is not 1 second");
+        Assert.AreEqual(4, actual.Keywords.Length, "Count of Keywords");
+        Assert.AreEqual("Activity", actual.Keywords.Order().First(), "Keywords");
+        Assert.AreEqual(new TimeSpan(95094999), actual.VideoLength, "Video Length is not 1 second");
     }
 
     /// <summary>

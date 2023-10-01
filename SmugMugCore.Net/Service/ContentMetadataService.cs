@@ -6,10 +6,10 @@ using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using SmugMug.Net;
+using MetadataExtractor;
+using MetadataExtractor.Formats.Exif;
+using MetadataExtractor.Formats.QuickTime;
+using System.Windows.Media;
 
 namespace SmugMug.Net.Service;
 
@@ -17,6 +17,8 @@ public partial class ContentMetadataService
 {
     [GeneratedRegex("[;,]")]
     private partial Regex TagSplitRegex();
+
+    private bool useSixLabors = false;
 
     public IFileSystem FileSystem = new FileSystem();
 
@@ -30,10 +32,20 @@ public partial class ContentMetadataService
         {
             try
             {
-                SixLabors.ImageSharp.ImageInfo imageInfo = await Image.IdentifyAsync(filepath);
-                content = this.GetMetadataPropertiesWithImageInfo(imageInfo);
+                if (useSixLabors)
+                {
+                    content = await this.GetMetadataPropertiesWithSixLaborsLibrary(filepath);
+                }
+                else
+                {
+                    content= this.GetMetadataPropertiesWithMetadataExtractorLibrary(filepath);
+                }
             }
-            catch (UnknownImageFormatException)
+            catch (SixLabors.ImageSharp.UnknownImageFormatException)
+            {
+                content = this.GetMetadataPropertiesFromShell(filepath); 
+            }
+            catch (MetadataExtractor.ImageProcessingException)
             {
                 content = this.GetMetadataPropertiesFromShell(filepath); 
             }
@@ -48,7 +60,12 @@ public partial class ContentMetadataService
     private ImageContent GetMetadataPropertiesFromShell(string filepath)
     {
         var content = new ImageContent();
-        
+        PopulateMetadataPropertiesFromShell(filepath, content);
+        return content;
+    }        
+
+    private void PopulateMetadataPropertiesFromShell(string filepath, ImageContent content)
+    {
         if (ShellObject.IsPlatformSupported)
         {
             ShellProperties? propertyCollection = null;
@@ -96,6 +113,55 @@ public partial class ContentMetadataService
                 }
             }
         }
+    }
+
+    private ImageContent GetMetadataPropertiesWithMetadataExtractorLibrary(string filepath)
+    {
+        IEnumerable<MetadataExtractor.Directory> directories = MetadataExtractor.ImageMetadataReader.ReadMetadata(filepath);
+        var content = new ImageContent();
+
+        var exifDirTags = directories.OfType<MetadataExtractor.Formats.Exif.ExifIfd0Directory>();
+        if (exifDirTags.Any())
+        {
+            var exifTags = exifDirTags.First();
+            if (exifTags.HasTagName(ExifIfd0Directory.TagDateTime))
+            {
+                if (exifTags.TryGetDateTime(ExifIfd0Directory.TagDateTime, out DateTime exifDateTime))
+                    content.DateTaken = exifDateTime;
+            }
+            if (exifTags.HasTagName(ExifIfd0Directory.TagImageDescription))
+                content.Title = exifTags.GetDescription(ExifIfd0Directory.TagImageDescription);
+            if (exifTags.HasTagName(ExifIfd0Directory.TagWinKeywords))
+                content.Keywords = SplitTagString(exifTags.GetDescription(ExifIfd0Directory.TagWinKeywords) ?? "");
+
+            bool foundOrientation = exifTags.TryGetUInt16(ExifIfd0Directory.TagOrientation, out ushort exifOrientation);
+            if (foundOrientation)
+            {
+                content.Orientation = (ContentOrientation)exifOrientation;
+            }
+        }
+
+        // Second level of detail sometimes provided
+        var exifDetailDirTags = directories.OfType<MetadataExtractor.Formats.Exif.ExifSubIfdDirectory>();
+        if (exifDetailDirTags.Any())
+        {
+            var exifDetailTags = exifDetailDirTags.First();
+            if (exifDetailTags.HasTagName(ExifSubIfdDirectory.TagDateTimeOriginal))
+                if (exifDetailTags.TryGetDateTime(ExifSubIfdDirectory.TagDateTimeOriginal, out DateTime exifDetailDateTime))
+                    content.DateTaken = exifDetailDateTime;
+        }
+
+        var quickTimeMovieTags = directories.OfType<MetadataExtractor.Formats.QuickTime.QuickTimeMovieHeaderDirectory>();
+        if (quickTimeMovieTags.Any())
+        {
+            var quickTimeTags = quickTimeMovieTags.First();
+            if (quickTimeTags.HasTagName(QuickTimeMovieHeaderDirectory.TagCreated))
+                if (quickTimeTags.TryGetDateTime(QuickTimeMovieHeaderDirectory.TagCreated, out DateTime qtDetailDateTime))
+                    content.DateTaken = qtDetailDateTime;
+
+            PopulateMetadataPropertiesFromShell(filepath, content);
+        }
+
 
         return content;
     }
@@ -104,8 +170,10 @@ public partial class ContentMetadataService
     /// Retrieve the properties we care about
     /// </summary>
     /// <param name="metaData"></param>
-    private ImageContent GetMetadataPropertiesWithImageInfo(SixLabors.ImageSharp.ImageInfo imageInfo)
+    private async Task<ImageContent> GetMetadataPropertiesWithSixLaborsLibrary(string filepath)
     {
+        SixLabors.ImageSharp.ImageInfo imageInfo = await Image.IdentifyAsync(filepath);
+
         var content = new ImageContent();
         ExifProfile? exifData;
         if (imageInfo.FrameMetadataCollection != null && imageInfo.FrameMetadataCollection.Count > 0)
@@ -116,17 +184,10 @@ public partial class ContentMetadataService
 
         if (exifData != null)
         {
-            string dateString = ExtractExifString(exifData, ExifTag.DateTimeOriginal);
-            if (dateString.Length > 0)
-            {
-                content.DateTaken = DateTime.ParseExact(dateString, "yyyy:MM:dd HH:mm:ss", null);
-            }
-            else
-                content.DateTaken = DateTime.MinValue;
-
-            content.Title = ExtractExifString(exifData, ExifTag.XPTitle);
-            content.Comment = ExtractExifString(exifData, ExifTag.XPComment);
-            content.Keywords = SplitTagString(ExtractExifString(exifData, ExifTag.XPKeywords));
+            content.DateTaken = ExtractExifDateTime(ExtractSixLaborsExifString(exifData, ExifTag.DateTimeOriginal));
+            content.Title = ExtractSixLaborsExifString(exifData, ExifTag.XPTitle);
+            content.Comment = ExtractSixLaborsExifString(exifData, ExifTag.XPComment);
+            content.Keywords = SplitTagString(ExtractSixLaborsExifString(exifData, ExifTag.XPKeywords));
 
             bool foundOrientation = exifData.TryGetValue(ExifTag.Orientation, out IExifValue<ushort>? exifOrientation);
             if (foundOrientation && exifOrientation != null)
@@ -136,6 +197,16 @@ public partial class ContentMetadataService
         }
 
         return content;
+    }
+
+    private DateTime ExtractExifDateTime(string exifDateString)
+    {
+        if (exifDateString.Length > 0)
+        {
+            return DateTime.ParseExact(exifDateString, "yyyy:MM:dd HH:mm:ss", null);
+        }
+        else
+            return DateTime.MinValue;
     }
 
     private string[] ExtractIptcStrings(IptcProfile iptcData, IptcTag tag)
@@ -157,15 +228,20 @@ public partial class ContentMetadataService
         return outputData.ToArray();
     }
 
-    private string ExtractExifString(ExifProfile exifData, ExifTag<string> tag)
+    private string ExtractSixLaborsExifString(ExifProfile exifData, ExifTag<string> tag)
     {
         bool foundString = exifData.TryGetValue(tag, out IExifValue<string>? exifString);
         if (foundString && exifString != null)
         {
-            return (exifString.Value ?? "").TrimEnd('\0');
+            return FilterExifString(exifString.Value ?? "");
         }
         else
             return "";
+    }
+
+    private string FilterExifString(string exifData)
+    {
+        return exifData.TrimEnd('\0');
     }
 
 

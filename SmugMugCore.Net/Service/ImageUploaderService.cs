@@ -64,9 +64,10 @@ namespace SmugMug.Net.Service
             queryData.Add("X-Smug-AlbumID", albumId);
             queryData.Add("X-Smug-FileName", imageMetadata.FileInfo.Name);
             queryData.Add("Content-MD5", imageMetadata.MD5Checksum);
+            
+            //  Smugmug 1.3 API does NOT support saving or loading the  X-Smug-Title, only caption
+            //                queryData.Add("X-Smug-Title", imageMetadata.Title);
             if (imageMetadata.Title != null)
-//  Smugmug 1.3 API does NOT support saving or loading the  X-Smug-Title, only caption
-//                queryData.Add("X-Smug-Title", imageMetadata.Title);
                 queryData.Add("X-Smug-Caption", imageMetadata.Title);
             else if (imageMetadata.Caption != null)
                 queryData.Add("X-Smug-Caption", imageMetadata.Caption);
