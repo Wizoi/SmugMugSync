@@ -141,6 +141,38 @@ public class TargetAlbumRepositoryTest
     }
 
     [TestMethod]
+    public async Task PopulateTargetAlbums_ValidFilteredMultipleFolders()
+    {
+        // Setup: For the folder config
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\FOODIRECTORY"},
+            {"filterFolderName", "2023"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        // Setup: Populate an album to load
+        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var albDetail1 = new AlbumDetail();
+        albDetail1.Title = "2023 - TestTitle";
+        albDetail1.AlbumKey = "TestKey1";
+
+        var albDetail2 = new AlbumDetail();
+        albDetail2.Title = "2023 - TestTitle 2";
+        albDetail2.AlbumKey = "TestKey2";
+
+        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+            .ReturnsAsync(new []{albDetail1, albDetail2});
+        smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
+
+        var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+
+        Assert.AreEqual(2, targetAlbumRepository.TargetAlbumCount(), "Expecting to find 2 folders");
+    }
+
+    [TestMethod]
     public void VerifyLinkedFolder_LinkedFolderNotFound()
     {
         var inMemoryFolderSettings = new Dictionary<string, string?> {{"rootLocal", "A:\\FOODIRECTORY"}};
@@ -226,7 +258,7 @@ public class TargetAlbumRepositoryTest
     }
 
     [TestMethod]
-    public async Task SyncNewFolders_Validate()
+    public async Task SyncNewFolders_ValidateOneFolder()
     {
         var inMemoryFolderSettings = new Dictionary<string, string?> {{"rootLocal", "A:\\FOODIRECTORY"}};
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
@@ -297,6 +329,93 @@ public class TargetAlbumRepositoryTest
         
         Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "There should not be a loaded album.");
     }
+
+    [TestMethod]
+    public async Task SyncNewFolders_ValidateMultipleFolders()
+    {
+        var inMemoryFolderSettings = new Dictionary<string, string?> {{"rootLocal", "A:\\FOODIRECTORY"}};
+        var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
+
+        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+
+        var albDetail1 = new AlbumDetail();
+        albDetail1.Title = "2023 - TestTitle 1";
+        albDetail1.AlbumKey = "TestNonMatchKey1";
+
+        var albDetail2 = new AlbumDetail();
+        albDetail2.Title = "2023 - TestTitle 2";
+        albDetail2.AlbumKey = "TestNonMatchKey2";
+
+        // Mocks to setup the Source Folder Repo
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.Directory.Exists("A:\\FOODIRECTORY")).Returns(true);   
+        var xmlSystemMock = new Mock<XmlSystem>();
+        var sourceFolderRepo = new Mock<SourceFolderRepository>(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+
+        // Mocks to setup the Source Folders
+        var directoryInfoMock1 = new Mock<IDirectoryInfo>();
+        directoryInfoMock1.SetupGet(x => x.FullName).Returns("A:\\DIRECTORY1");
+        fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(false);   
+
+        var sourceDirDataMock1 = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
+        sourceDirDataMock1.Setup(x => x.LinkToAlbum(albDetail1.AlbumId, albDetail1.AlbumKey));
+        var sourceDirDataMock2 = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
+        sourceDirDataMock2.Setup(x => x.LinkToAlbum(albDetail2.AlbumId, albDetail2.AlbumKey));
+
+        sourceFolderRepo.Setup(x => x.RetrieveUnlinkedFolders()).Returns(new [] { sourceDirDataMock1.Object, sourceDirDataMock2.Object });
+        sourceFolderRepo.Setup(x => x.AddNewLinkedFolder(sourceDirDataMock1.Object));
+        sourceFolderRepo.Setup(x => x.AddNewLinkedFolder(sourceDirDataMock2.Object));
+
+        // Album to Mock Load  
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        smAlbumServiceMock.SetupSequence(x => x.CreateAlbum(It.IsAny<AlbumDetail>())).ReturnsAsync(albDetail1).ReturnsAsync(albDetail2);
+        smAlbumServiceMock.Setup(x => x.GetAlbumDetail(albDetail1.AlbumId, albDetail1.AlbumKey))
+            .ReturnsAsync(albDetail1);
+        smAlbumServiceMock.Setup(x => x.GetAlbumDetail(albDetail2.AlbumId, albDetail2.AlbumKey))
+            .ReturnsAsync(albDetail2);
+        smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
+
+        //
+        // Setup the repository and run the test with NORMAL operation
+        //
+        var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetCreate", "Normal"}};
+        var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+
+        var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
+        
+        Assert.AreEqual(2, targetAlbumRepository.TargetAlbumCount(), "There should be loaded albums.");
+        sourceDirDataMock1.Verify(x => x.LinkToAlbum(albDetail1.AlbumId, albDetail1.AlbumKey), "Link to First album should have been called.");
+        sourceFolderRepo.Verify(x => x.AddNewLinkedFolder(sourceDirDataMock1.Object), "First source folder should be linked.");
+
+        sourceDirDataMock2.Verify(x => x.LinkToAlbum(albDetail2.AlbumId, albDetail2.AlbumKey), "Link to Second album should have been called.");
+        sourceFolderRepo.Verify(x => x.AddNewLinkedFolder(sourceDirDataMock2.Object), "Second source folder should be linked.");
+
+        //
+        // Setup the repository and run the test with NoneLog operation
+        //
+        inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetCreate", "NoneLog"}};
+        runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
+        
+        Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "There should not be a loaded album.");
+
+        //
+        // Setup the repository and run the test with None operation
+        //
+        inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetCreate", "None"}};
+        runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
+
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.PopulateTargetAlbums();
+        _ = await targetAlbumRepository.SyncNewFolders(runtimeConfig, sourceFolderRepo.Object);
+        
+        Assert.AreEqual(0, targetAlbumRepository.TargetAlbumCount(), "There should not be a loaded album.");
+    }    
 
     [TestMethod]
     public async Task SyncExistingFolders_Validate()
@@ -462,7 +581,7 @@ public class TargetAlbumRepositoryTest
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
@@ -493,7 +612,6 @@ public class TargetAlbumRepositoryTest
         smImageServiceMock.Setup(x => x.GetAlbumImages(
             It.IsAny<string[]>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(albDetail);
         smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
-
 
         // Mocks to setup the Source Folder Repo
         var fileSystemMock = new Mock<IFileSystem>();
@@ -527,7 +645,7 @@ public class TargetAlbumRepositoryTest
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(1, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
@@ -591,7 +709,7 @@ public class TargetAlbumRepositoryTest
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
@@ -657,7 +775,7 @@ public class TargetAlbumRepositoryTest
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(1, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
@@ -724,7 +842,7 @@ public class TargetAlbumRepositoryTest
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(1, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
@@ -806,7 +924,7 @@ public class TargetAlbumRepositoryTest
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        var actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(1, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(1, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(1, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
@@ -831,13 +949,11 @@ public class TargetAlbumRepositoryTest
 
         actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
         Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
-        actualFolderFileStats = actualStats.RetriveFolderFileStats()[0];
+        actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
         Assert.AreEqual(0, actualFolderFileStats.AddedFiles, "Expecting to find no added files.");
         Assert.AreEqual(0, actualFolderFileStats.DeletedFiles, "Expecting to find no deleted files.");
         Assert.AreEqual("2023 - TestTitle", actualFolderFileStats.FolderName, "Expecting to find populated folder name.");
-
     }
-
 }

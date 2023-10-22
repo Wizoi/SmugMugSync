@@ -101,7 +101,7 @@ namespace SmugMugCoreSync.Repositories
                     if (data.IsLinked)
                         _sourceLinkedFolders.TryAdd(data.AlbumKey, data);
                     else
-                        _sourceUnlinkedFolders.TryAdd(data.AlbumKey, data);
+                        _sourceUnlinkedFolders.TryAdd(data.DirectoryInfo.FullName, data);
 
                     return true;
                 }
@@ -129,14 +129,14 @@ namespace SmugMugCoreSync.Repositories
 
         public virtual void AddNewLinkedFolder(SourceDirectoryData newLinkedFolder)
         {
-            _sourceUnlinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
+            _sourceUnlinkedFolders.Remove(newLinkedFolder.DirectoryInfo.FullName, out _);
             _sourceLinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);
         }
 
         public virtual void RemoveLinkedFolder(SourceDirectoryData newLinkedFolder)
         {
             _sourceLinkedFolders.Remove(newLinkedFolder.AlbumKey, out _);
-            _sourceUnlinkedFolders.TryAdd(newLinkedFolder.AlbumKey, newLinkedFolder);
+            _sourceUnlinkedFolders.TryAdd(newLinkedFolder.DirectoryInfo.FullName, newLinkedFolder);
         }
 
     }

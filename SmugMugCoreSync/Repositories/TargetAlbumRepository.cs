@@ -540,8 +540,8 @@ namespace SmugMugCoreSync.Repositories
             catch (AggregateException agg)
             {
                 SmugMugException? smugEx = agg.InnerExceptions[0] as SmugMugException;
-                WebException? webEx = agg.InnerExceptions[0] as WebException;
-                
+                HttpRequestException? httpReqEx = agg.InnerExceptions[0] as HttpRequestException;
+
                 if (smugEx != null)
                 {
                     // Unknown File Type - skip
@@ -558,10 +558,10 @@ namespace SmugMugCoreSync.Repositories
                         return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
                     }
                 }
-                else if (webEx != null)
+                else if (httpReqEx != null)
                 {
                     // Non-SmugMugException - Retry just once (possibly network related)
-                    Trace.WriteLine("    > RETRY, WebException = " + webEx.Message);
+                    Trace.WriteLine("    > RETRY, HttpRequestException = " + httpReqEx.Message);
                     System.Threading.Thread.Sleep(1000);
                     return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
                 }

@@ -21,7 +21,7 @@ public class RuntimeFolderStats
         return newFolderFileStats;
     }
 
-    public RuntimeFolderFileStats[] RetriveFolderFileStats()
+    public RuntimeFolderFileStats[] RetrieveFolderFileStats()
     {
         return FolderFileStats.ToArray();
     }

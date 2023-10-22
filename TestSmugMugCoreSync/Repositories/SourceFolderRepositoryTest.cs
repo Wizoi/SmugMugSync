@@ -408,6 +408,67 @@ public class SourceFolderRepositoryTest
     }
 
     [TestMethod]
+    public void LoadFolderAndFilesTest_Subfolder_Multiple_Match_And_Add()
+    {
+        var fsiMock1 = new Mock<IFileSystemInfo>();
+        fsiMock1.SetupGet(x => x.FullName).Returns("A:\\Foo\\Bar\\Filename.JPG");
+        fsiMock1.SetupGet(x => x.Name).Returns("Filename.JPG");
+        fsiMock1.SetupGet(x => x.Extension).Returns(".JPG");
+
+        var fsiMock2 = new Mock<IFileSystemInfo>();
+        fsiMock2.SetupGet(x => x.FullName).Returns("A:\\Foo\\Cat\\Filename.JPG");
+        fsiMock2.SetupGet(x => x.Name).Returns("Filename.JPG");
+        fsiMock2.SetupGet(x => x.Extension).Returns(".JPG");
+
+        var subDirectoryInfoMock1 = new Mock<IDirectoryInfo>();
+        subDirectoryInfoMock1.SetupGet(x => x.FullName).Returns("A:\\Foo\\Bar");
+        subDirectoryInfoMock1.SetupGet(x => x.Name).Returns("Bar");
+        subDirectoryInfoMock1.Setup(x => x.GetFileSystemInfos()).Returns(new []{fsiMock1.Object});
+
+        var subDirectoryInfoMock2 = new Mock<IDirectoryInfo>();
+        subDirectoryInfoMock2.SetupGet(x => x.FullName).Returns("A:\\Foo\\Cat");
+        subDirectoryInfoMock2.SetupGet(x => x.Name).Returns("Cat");
+        subDirectoryInfoMock2.Setup(x => x.GetFileSystemInfos()).Returns(new []{fsiMock2.Object});
+
+        var directoryInfoMock = new Mock<IDirectoryInfo>();
+        directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\Foo");
+        directoryInfoMock.SetupGet(x => x.Name).Returns("Foo");
+        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(Array.Empty<IFileSystemInfo>());
+
+        var fileSystemMock = new Mock<IFileSystem>();
+        fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
+        fileSystemMock.Setup(x => x.File.Exists("A:\\Foo\\Bar\\.SMUGMUG.INI")).Returns(false);   
+        fileSystemMock.Setup(x => x.File.Exists("A:\\Foo\\Cat\\.SMUGMUG.INI")).Returns(false);   
+        fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo")).Returns(directoryInfoMock.Object);           
+        fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo\\Bar")).Returns(subDirectoryInfoMock1.Object);           
+        fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo\\Cat")).Returns(subDirectoryInfoMock2.Object);           
+        fileSystemMock.Setup(x => x.Directory.GetDirectories("A:\\Foo")).Returns(new []{"A:\\Foo\\Bar", "A:\\Foo\\Cat"});
+
+        var xmlSystemMock = new Mock<XmlSystem>();
+
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\Foo"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+
+        var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
+        var results = sourceFolderRepo.LoadFoldersAndFiles("A:\\Foo");
+
+        // Check that we recursively wentover both folders
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo"));
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo\\Bar"));
+        fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo\\Cat"));
+        // Check the results
+        Assert.IsTrue(results, "Expected to load a file for the folder.");
+        Assert.AreEqual(0, sourceFolderRepo.RetrieveLinkedFolders().Count(), "No linked folders should be loaded");
+        var folders = sourceFolderRepo.RetrieveUnlinkedFolders();
+        Assert.AreEqual(2, folders.Count(), "2 unlinked folder is expected");
+        Assert.AreEqual("Bar", folders.First().FolderName, "The Bar folder should be  added.");
+        Assert.AreEqual("Cat", folders.Last().FolderName, "The Cat folder should be  added.");
+    }
+
+    [TestMethod]
     public void LoadFolderAndFilesTest_Subfolder_Ignored_WithFiles()
     {
         var fsiMock1 = new Mock<IFileSystemInfo>();
