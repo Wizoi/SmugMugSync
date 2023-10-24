@@ -127,7 +127,6 @@ namespace SmugMug.Net.Service
                 response?.Dispose();
             }
 
-
             throw new ApplicationException("Image upload to smugmug failed for: " + fileInfo.Name);
         }
 

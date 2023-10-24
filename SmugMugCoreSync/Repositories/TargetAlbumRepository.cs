@@ -537,38 +537,35 @@ namespace SmugMugCoreSync.Repositories
                 // Attempt #1
                 return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
             }
-            catch (AggregateException agg)
+            catch (HttpRequestException httpReqEx)
             {
-                SmugMugException? smugEx = agg.InnerExceptions[0] as SmugMugException;
-                HttpRequestException? httpReqEx = agg.InnerExceptions[0] as HttpRequestException;
-
-                if (smugEx != null)
+                // Non-SmugMugException - Retry just once (possibly network related)
+                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata?.FileInfo?.Name}) = {httpReqEx.Message}");
+                System.Threading.Thread.Sleep(1000);
+                return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
+            }
+            catch (SmugMugException smugEx)
+            {
+                // Unknown File Type - skip
+                if (smugEx.ErrorResponse.Code == 64)
                 {
-                    // Unknown File Type - skip
-                    if (smugEx.ErrorResponse.Code == 64)
-                    {
-                        Trace.WriteLine("    > ERROR 64 (Invalid File Type): " + smugEx.QueryString);
-                        throw new ApplicationException("Invalid File Type");
-                    }
-                    else
-                    {
-                        // Attempt #2 (then blow up and escalate higher)
-                        Trace.WriteLine("    > RETRY ERROR " + smugEx.ErrorResponse.Code + " Query=" + smugEx.QueryString);
-                        System.Threading.Thread.Sleep(1000);
-                        return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
-                    }
-                }
-                else if (httpReqEx != null)
-                {
-                    // Non-SmugMugException - Retry just once (possibly network related)
-                    Trace.WriteLine("    > RETRY, HttpRequestException = " + httpReqEx.Message);
-                    System.Threading.Thread.Sleep(1000);
-                    return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
+                    Trace.WriteLine("    > ERROR 64 (Invalid File Type): " + smugEx.QueryString);
+                    throw new ApplicationException("Invalid File Type");
                 }
                 else
                 {
-                    throw;                    
+                    // Attempt #2 (then blow up and escalate higher)
+                    Trace.WriteLine("    > RETRY ERROR " + smugEx.ErrorResponse.Code + " Query=" + smugEx.QueryString);
+                    System.Threading.Thread.Sleep(1000);
+                    return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
                 }
+            }
+            catch (Exception ex)
+            {
+                // Attempt #2 (then blow up and escalate higher)
+                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata?.FileInfo?.Name}) = {ex.Message}");
+                System.Threading.Thread.Sleep(1000);
+                return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
             }
         }
 
