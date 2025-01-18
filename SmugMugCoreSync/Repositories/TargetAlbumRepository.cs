@@ -531,7 +531,7 @@ namespace SmugMugCoreSync.Repositories
             {
                 targetImageId = targetImage.ImageId;
             }
-
+            
             try
             {
                 // Attempt #1

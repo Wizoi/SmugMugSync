@@ -172,7 +172,7 @@ public partial class ContentMetadataService
     /// <param name="metaData"></param>
     private async Task<ImageContent> GetMetadataPropertiesWithSixLaborsLibrary(string filepath)
     {
-        SixLabors.ImageSharp.ImageInfo imageInfo = await Image.IdentifyAsync(filepath);
+        SixLabors.ImageSharp.ImageInfo imageInfo = await SixLabors.ImageSharp.Image.IdentifyAsync(filepath);
 
         var content = new ImageContent();
         ExifProfile? exifData;

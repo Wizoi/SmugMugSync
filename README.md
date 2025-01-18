@@ -33,15 +33,38 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 
 2023-09 - App was rewritten to use .Net Core 7.0, VS Code, and includes full unit testing. Integration tests for the core library, and Moq testing for the primary application. Split out the secrets and made it more shareable.
 
-## How to use
+## How to use Sync Tool
 
 1. Request a developer key for your app [SmugMug Application Keys](https://api.smugmug.com/api/developer)
-1. Put your new keys in appsettings.json (apikey/apisecret)
+1. Put your new keys in appsettings.json (apikey/apisecret) or Environment Variables
 1. Build and run "SmugMugCoreSync GENERATEKEYS" to generate your user keys to use with your app.
-1. Put your user keys into the appsettings.json file.
+1. Put your user keys into the appsettings.json file or Environment Variables.
 1. Settings to drive app are all in appsettings.json, instructions will be coming shortly.
+
+### Environment Variables for User and API Keys (these will override the appsettings file values)
+       SmugMugCoreSync::UserAuthToken 
+       SmugMugCoreSync::UserAuthSecret
+       SmugMugCoreSync::ApiKey
+       SmugMugCoreSync::ApiSecret
 
 ## Future Plans
 
 1. Document the appsettings file for easier usage
 2. Move from the 1.3 API to 2.0 API
+
+## Code Details
+
+### Dependencies
+
+1. Setup Extensions: C#, C# Dev Kit, .NET Install Tool, Cobertura: Visuvsalized Code Coverage
+1. Install the Microsoft .NET SDK 9.X (should be triggered via VS Code)
+
+### Testing
+1. A task exists to run tests, which includes coverage.
+1. TestSmugmugCoreSync is the core application, dependencies are mocked.
+1. TestSmugmugCoreNetAPI will validate key Smugmug APIs, this will require your User / API keys to be setup (see above) and will use your Smugmug Account to run APIs (craeting and cleaning up what it works with).
+1. For coverage details (if you want something more than Test Manager Coverage already Provides):
+       dotnet tool install -g dotnet-reportgenerator-globaltool
+       Command to use: *task Generate Coverage Report*
+       
+
