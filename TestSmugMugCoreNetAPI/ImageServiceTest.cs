@@ -400,14 +400,14 @@ public class ImageServiceTest
         Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
         Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
         Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", imageTest.ImageKey)), "UrlViewOriginalURL");
-        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewLargeURL");
-        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewMediumURL");
-        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewSmallURL");
-        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewThumbURL");
-        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewTinyURL");
-        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX2LargeURL");
-        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX3LargeURL");
-        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewXLargeURL");
+        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("/L/i-{0}-L.jpg", imageTest.ImageKey)), "UrlViewLargeURL");
+        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("/M/i-{0}-M.jpg", imageTest.ImageKey)), "UrlViewMediumURL");
+        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("/S/i-{0}-S.jpg", imageTest.ImageKey)), "UrlViewSmallURL");
+        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("/Th/i-{0}-Th.jpg", imageTest.ImageKey)), "UrlViewThumbURL");
+        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("/Ti/i-{0}-Ti.jpg", imageTest.ImageKey)), "UrlViewTinyURL");
+        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("/X2/i-{0}-X2.jpg", imageTest.ImageKey)), "UrlViewX2LargeURL");
+        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("/X3/i-{0}-X3.jpg", imageTest.ImageKey)), "UrlViewX3LargeURL");
+        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("/XL/i-{0}-XL.jpg", imageTest.ImageKey)), "UrlViewXLargeURL");
     }
 
     /// <summary>
@@ -556,14 +556,14 @@ public class ImageServiceTest
         Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
         Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
         Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", videoTest.ImageKey)), "UrlViewOriginalURL");
-        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewLargeURL");
-        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewMediumURL");
-        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewSmallURL");
-        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewThumbURL");
-        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewTinyURL");
-        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewX2LargeURL");
-        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewX3LargeURL");
-        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", videoTest.ImageKey, videoTest.ImageKey)), "UrlViewXLargeURL");
+        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("/L/i-{0}-L.jpg", videoTest.ImageKey)), "UrlViewLargeURL");
+        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("/M/i-{0}-M.jpg", videoTest.ImageKey)), "UrlViewMediumURL");
+        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("/S/i-{0}-S.jpg", videoTest.ImageKey)), "UrlViewSmallURL");
+        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("/Th/i-{0}-Th.jpg", videoTest.ImageKey)), "UrlViewThumbURL");
+        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("/Ti/i-{0}-Ti.jpg", videoTest.ImageKey)), "UrlViewTinyURL");
+        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("/X2/i-{0}-X2.jpg", videoTest.ImageKey)), "UrlViewX2LargeURL");
+        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("/X3/i-{0}-X3.jpg", videoTest.ImageKey)), "UrlViewX3LargeURL");
+        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("/XL/i-{0}-XL.jpg", videoTest.ImageKey)), "UrlViewXLargeURL");
     }
 
     /// <summary>
@@ -627,14 +627,14 @@ public class ImageServiceTest
         Assert.AreEqual(string.Empty, actual.UrlVideo640URL, "UrlVideo640URL");
         Assert.AreEqual(string.Empty, actual.UrlVideo960URL, "UrlVideo960URL");
         Assert.IsTrue(actual.UrlViewOriginalURL.Contains(string.Format("/O/i-{0}", imageTest.ImageKey)), "UrlViewOriginalURL");
-        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("i-{0}/0/L/i-{1}-L.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewLargeURL");
-        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("i-{0}/0/M/i-{1}-M.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewMediumURL");
-        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("i-{0}/0/S/i-{1}-S.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewSmallURL");
-        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("i-{0}/0/Th/i-{1}-Th.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewThumbURL");
-        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("i-{0}/0/Ti/i-{1}-Ti.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewTinyURL");
-        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("i-{0}/0/X2/i-{1}-X2.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX2LargeURL");
-        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("i-{0}/0/X3/i-{1}-X3.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewX3LargeURL");
-        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("i-{0}/0/XL/i-{1}-XL.jpg", imageTest.ImageKey, imageTest.ImageKey)), "UrlViewXLargeURL");
+        Assert.IsTrue(actual.UrlViewLargeURL.Contains(string.Format("/L/i-{0}-L.jpg", imageTest.ImageKey)), "UrlViewLargeURL");
+        Assert.IsTrue(actual.UrlViewMediumURL.Contains(string.Format("/M/i-{0}-M.jpg", imageTest.ImageKey)), "UrlViewMediumURL");
+        Assert.IsTrue(actual.UrlViewSmallURL.Contains(string.Format("/S/i-{0}-S.jpg", imageTest.ImageKey)), "UrlViewSmallURL");
+        Assert.IsTrue(actual.UrlViewThumbURL.Contains(string.Format("/Th/i-{0}-Th.jpg", imageTest.ImageKey)), "UrlViewThumbURL");
+        Assert.IsTrue(actual.UrlViewTinyURL.Contains(string.Format("/Ti/i-{0}-Ti.jpg", imageTest.ImageKey)), "UrlViewTinyURL");
+        Assert.IsTrue(actual.UrlViewX2LargeURL.Contains(string.Format("/X2/i-{0}-X2.jpg", imageTest.ImageKey)), "UrlViewX2LargeURL");
+        Assert.IsTrue(actual.UrlViewX3LargeURL.Contains(string.Format("/X3/i-{0}-X3.jpg", imageTest.ImageKey)), "UrlViewX3LargeURL");
+        Assert.IsTrue(actual.UrlViewXLargeURL.Contains(string.Format("/XL/i-{0}-XL.jpg", imageTest.ImageKey)), "UrlViewXLargeURL");
     }
 
     /// <summary>

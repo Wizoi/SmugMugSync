@@ -56,7 +56,7 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 
 ### Dependencies
 
-1. Setup Extensions: C#, C# Dev Kit, .NET Install Tool, Cobertura: Visuvsalized Code Coverage
+1. Setup Extensions: C#, C# Dev Kit, .NET Install Tool, Code Spell Checker, Coverage Gutters
 1. Install the Microsoft .NET SDK 9.X (should be triggered via VS Code)
 
 ### Testing
