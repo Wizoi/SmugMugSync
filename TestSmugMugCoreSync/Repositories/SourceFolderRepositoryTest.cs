@@ -142,7 +142,7 @@ public class SourceFolderRepositoryTest
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.DirectoryInfo.New(It.IsAny<string>())).Returns(directoryInfoMock.Object);           
-        fileSystemMock.Setup(x => x.Directory.GetDirectories(It.IsAny<string>())).Returns(Array.Empty<string>());
+        fileSystemMock.Setup(x => x.Directory.GetDirectories(It.IsAny<string>())).Returns([]);
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
@@ -339,12 +339,12 @@ public class SourceFolderRepositoryTest
         var directoryInfoMock = new Mock<IDirectoryInfo>();
         directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\Foo");
         directoryInfoMock.SetupGet(x => x.Name).Returns("Foo");
-        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(Array.Empty<IFileSystemInfo>());
+        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns([]);
 
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.DirectoryInfo.New(It.IsAny<string>())).Returns(directoryInfoMock.Object);           
-        fileSystemMock.Setup(x => x.Directory.GetDirectories(It.IsAny<string>())).Returns(Array.Empty<string>());
+        fileSystemMock.Setup(x => x.Directory.GetDirectories(It.IsAny<string>())).Returns([]);
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
@@ -376,7 +376,7 @@ public class SourceFolderRepositoryTest
         var directoryInfoMock = new Mock<IDirectoryInfo>();
         directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\Foo");
         directoryInfoMock.SetupGet(x => x.Name).Returns("Foo");
-        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(Array.Empty<IFileSystemInfo>());
+        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns([]);
 
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
@@ -396,7 +396,7 @@ public class SourceFolderRepositoryTest
         var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
         var results = sourceFolderRepo.LoadFoldersAndFiles("A:\\Foo");
 
-        // Check that we recursively wentover both folders
+        // Check that we recursively went over both folders
         fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo"));
         fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo\\Bar"));
         // Check the results
@@ -433,7 +433,7 @@ public class SourceFolderRepositoryTest
         var directoryInfoMock = new Mock<IDirectoryInfo>();
         directoryInfoMock.SetupGet(x => x.FullName).Returns("A:\\Foo");
         directoryInfoMock.SetupGet(x => x.Name).Returns("Foo");
-        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns(Array.Empty<IFileSystemInfo>());
+        directoryInfoMock.Setup(x => x.GetFileSystemInfos()).Returns([]);
 
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);   
@@ -455,7 +455,7 @@ public class SourceFolderRepositoryTest
         var sourceFolderRepo = new SourceFolderRepository(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
         var results = sourceFolderRepo.LoadFoldersAndFiles("A:\\Foo");
 
-        // Check that we recursively wentover both folders
+        // Check that we recursively went over both folders
         fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo"));
         fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo\\Bar"));
         fileSystemMock.Verify(x => x.DirectoryInfo.New("A:\\Foo\\Cat"));
@@ -563,10 +563,10 @@ public class SourceFolderRepositoryTest
         Assert.AreEqual(2, sourceFolderRepo.RetrieveLinkedFolders().Count(), "2 linked folders are expected");
         Assert.AreEqual(0, sourceFolderRepo.RetrieveUnlinkedFolders().Count(), "0 unlinked folders are expected");
 
-        // Verify when they are linked, we can retreive them
+        // Verify when they are linked, we can retrieve them
         var actualFolder = sourceFolderRepo.RetrieveLinkedFolderByKey("someKey");
         Assert.IsNotNull(actualFolder);
-        Assert.AreEqual(1, actualFolder.AlbumId, "Album should be found and match theid");
+        Assert.AreEqual(1, actualFolder.AlbumId, "Album should be found and match the id");
 
         var noActualFolder = sourceFolderRepo.RetrieveLinkedFolderByKey("someKeyMiss");
         Assert.IsNull(noActualFolder);

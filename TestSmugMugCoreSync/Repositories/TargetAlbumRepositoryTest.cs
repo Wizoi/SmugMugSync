@@ -571,7 +571,7 @@ public class TargetAlbumRepositoryTest
         fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(false);   
         var sourceDirDataMock = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
         sourceFolderRepo.Setup(x => x.RetrieveLinkedFolderByKey("TestKey")).Returns(sourceDirDataMock.Object);
-        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns(Array.Empty<SourceMediaData>());
+        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns([]);
 
         // START the test initiating the runtime config to use
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
@@ -580,7 +580,7 @@ public class TargetAlbumRepositoryTest
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
@@ -637,14 +637,14 @@ public class TargetAlbumRepositoryTest
         // START the test initiating the runtime config to use
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
-        var targetAllbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
-        targetAllbumRepositoryMock.Setup(x => x.ProcessNewRemoteMedia(
+        var targetAlbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
+        targetAlbumRepositoryMock.Setup(x => x.ProcessNewRemoteMedia(
             runtimeConfig, sourceMediaData, albDetail, It.IsAny<SemaphoreSlim>())).ReturnsAsync(true);
-        var targetAlbumRepository = targetAllbumRepositoryMock.Object;
+        var targetAlbumRepository = targetAlbumRepositoryMock.Object;
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
@@ -698,17 +698,17 @@ public class TargetAlbumRepositoryTest
         fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(false);   
         var sourceDirDataMock = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
         sourceFolderRepo.Setup(x => x.RetrieveLinkedFolderByKey("TestKey")).Returns(sourceDirDataMock.Object);
-        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns(Array.Empty<SourceMediaData>());
+        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns([]);
 
         // START the test initiating the runtime config to use
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
-        var targetAllbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
-        var targetAlbumRepository = targetAllbumRepositoryMock.Object;
+        var targetAlbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
+        var targetAlbumRepository = targetAlbumRepositoryMock.Object;
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
@@ -718,7 +718,7 @@ public class TargetAlbumRepositoryTest
     }
 
     [TestMethod]
-    public async Task SyncFolderFiles_AlbumWithDuplicateFiless()
+    public async Task SyncFolderFiles_AlbumWithDuplicateFiles()
     {
         // Setup: For the folder config
         var inMemorySettings = new Dictionary<string, string?> {
@@ -764,17 +764,17 @@ public class TargetAlbumRepositoryTest
         fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(false);   
         var sourceDirDataMock = new Mock<SourceDirectoryData>(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
         sourceFolderRepo.Setup(x => x.RetrieveLinkedFolderByKey("TestKey")).Returns(sourceDirDataMock.Object);
-        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns(Array.Empty<SourceMediaData>());
+        sourceFolderRepo.Setup(x => x.LoadFolderMediaFiles(It.IsAny<SourceDirectoryData>())).Returns([]);
 
         // START the test initiating the runtime config to use
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
-        var targetAllbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
-        var targetAlbumRepository = targetAllbumRepositoryMock.Object;
+        var targetAlbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
+        var targetAlbumRepository = targetAlbumRepositoryMock.Object;
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(1, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
@@ -834,14 +834,14 @@ public class TargetAlbumRepositoryTest
         // START the test initiating the runtime config to use
         var inMemoryRuntimeSettings = new Dictionary<string, string?> {{"targetDelete", "Normal"}};
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
-        var targetAllbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
-         targetAllbumRepositoryMock.Setup(x => x.ProcessExistingRemoteMedia(
+        var targetAlbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
+         targetAlbumRepositoryMock.Setup(x => x.ProcessExistingRemoteMedia(
             runtimeConfig, sourceMediaData, albDetail, It.IsAny<ImageDetail>(), It.IsAny<SemaphoreSlim>())).ReturnsAsync(true);
-       var targetAlbumRepository = targetAllbumRepositoryMock.Object;
+       var targetAlbumRepository = targetAlbumRepositoryMock.Object;
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(1, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
@@ -885,7 +885,7 @@ public class TargetAlbumRepositoryTest
         var xmlSystemMock = new Mock<XmlSystem>();
         var sourceFolderRepo = new Mock<SourceFolderRepository>(fileSystemMock.Object, xmlSystemMock.Object, folderConfig);
 
-        // Mocks for the secpmd file we want to fake load
+        // Mocks for the second file we want to fake load
         var fiMock2 = new Mock<IFileInfo>();
         var fsiMock2 = new Mock<IFileSystemInfo>();
         fsiMock2.SetupGet(x => x.Name).Returns("FilenameNew.JPG");
@@ -914,16 +914,16 @@ public class TargetAlbumRepositoryTest
             {"targetUpdate", "Normal"},
             };
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
-        var targetAllbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
-        targetAllbumRepositoryMock.Setup(x => x.ProcessExistingRemoteMedia(
+        var targetAlbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
+        targetAlbumRepositoryMock.Setup(x => x.ProcessExistingRemoteMedia(
             runtimeConfig, sourceMediaData, albDetail, It.IsAny<ImageDetail>(), It.IsAny<SemaphoreSlim>())).ReturnsAsync(true);
-        targetAllbumRepositoryMock.Setup(x => x.ProcessNewRemoteMedia(
+        targetAlbumRepositoryMock.Setup(x => x.ProcessNewRemoteMedia(
             runtimeConfig, sourceMediaData2, albDetail, It.IsAny<SemaphoreSlim>())).ReturnsAsync(true);
-        var targetAlbumRepository = targetAllbumRepositoryMock.Object;
+        var targetAlbumRepository = targetAlbumRepositoryMock.Object;
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         var actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         var actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(1, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(1, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");
@@ -939,16 +939,16 @@ public class TargetAlbumRepositoryTest
             {"targetUpdate", "NoneLog"},
             };
         runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
-        targetAllbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
-         targetAllbumRepositoryMock.Setup(x => x.ProcessExistingRemoteMedia(
+        targetAlbumRepositoryMock = new Mock<TargetAlbumRepository>(smCoreMock.Object, folderConfig);
+         targetAlbumRepositoryMock.Setup(x => x.ProcessExistingRemoteMedia(
             runtimeConfig, sourceMediaData, albDetail, It.IsAny<ImageDetail>(), It.IsAny<SemaphoreSlim>())).ReturnsAsync(false);
-        targetAllbumRepositoryMock.Setup(x => x.ProcessNewRemoteMedia(
+        targetAlbumRepositoryMock.Setup(x => x.ProcessNewRemoteMedia(
             runtimeConfig, sourceMediaData2, albDetail, It.IsAny<SemaphoreSlim>())).ReturnsAsync(false);
-       targetAlbumRepository = targetAllbumRepositoryMock.Object;
+       targetAlbumRepository = targetAlbumRepositoryMock.Object;
         _ = await targetAlbumRepository.PopulateTargetAlbums();
 
         actualStats = await targetAlbumRepository.SyncFolderFiles(runtimeFlags:runtimeConfig, sourceFolders:sourceFolderRepo.Object);
-        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder procoessed.");
+        Assert.AreEqual(1, actualStats.ProcessedFolders, "Expecting to have one folder processed.");
         actualFolderFileStats = actualStats.RetrieveFolderFileStats()[0];
         Assert.AreEqual(0, actualFolderFileStats.DuplicateFiles, "Expecting to find no dupe files.");
         Assert.AreEqual(0, actualFolderFileStats.SyncedFiles, "Expecting to find no resynced files.");

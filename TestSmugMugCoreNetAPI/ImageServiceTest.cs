@@ -111,7 +111,7 @@ public class ImageServiceTest
         string imageKey = imageTest.ImageKey; 
         string comment = "This is a test image comment"; 
         int rating = 1; 
-        Comment actual = await target.AddComment(Array.Empty<string>(), imageId, imageKey, comment, rating);
+        Comment actual = await target.AddComment([], imageId, imageKey, comment, rating);
         Assert.IsTrue(actual.CommentId > 0);
     }
 
@@ -240,7 +240,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty; 
         string sitePassword = string.Empty; 
         bool loadImageInfo = false;
-        AlbumDetail actual = await target.GetAlbumImagesExt(Array.Empty<string>(), albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
+        AlbumDetail actual = await target.GetAlbumImagesExt([], albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
 
         if (actual.Images == null || actual.ImageCount == 0)
             Assert.Fail("No Images were loaded.");
@@ -269,7 +269,7 @@ public class ImageServiceTest
         string albumPassword = string.Empty;
         string sitePassword = string.Empty;
         bool loadImageInfo = false;
-        AlbumDetail actual = await target.GetAlbumImagesExt(new string[] { "Keywords" }, albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
+        AlbumDetail actual = await target.GetAlbumImagesExt(["Keywords"], albumId, albumKey, albumPassword, sitePassword, loadImageInfo);
 
         if (actual.Images == null || actual.ImageCount == 0)
             Assert.Fail("No Images were loaded.");
@@ -298,7 +298,7 @@ public class ImageServiceTest
         // Add a comment
         string text = "This is a test image comment"; 
         int rating = 1; 
-        Comment comment = await target.AddComment(Array.Empty<string>(), imageId, imageKey, text, rating);
+        Comment comment = await target.AddComment([], imageId, imageKey, text, rating);
 
         var actual = await target.GetCommentList(imageId, imageKey, albumPassword, sitePassword);
         var commentTestSearch = actual.Where(x => x.CommentId == comment.CommentId);

@@ -22,7 +22,7 @@ namespace SmugMug.Net.Service
         /// <param name="albumId">The id for a specific album</param>
         /// <param name="watermarkId">The id for a specific watermark</param>
         /// <returns></returns>
-        [Obsolete("ApplyWatermark Method is no longer vaid")]
+        [Obsolete("ApplyWatermark Method is no longer valid")]
         public async Task<bool> ApplyWatermark(int albumId, int watermarkId)
         {
             // Append the parameters from the request object
@@ -139,7 +139,7 @@ namespace SmugMug.Net.Service
                 if (responseDetail != null && responseDetail.Comments != null)
                     return responseDetail.Comments;
             }
-            return Array.Empty<Data.Comment>(); 
+            return []; 
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace SmugMug.Net.Service
         /// <param name="year">The year to retrieve statistics for</param>
         /// <returns></returns>
         [ObsoleteAttribute("smugmug.albums.getStats no longer is working with v1.3.0 Smugmug API.")]
-        public async Task<Data.AlbumStats> GetAlbumStats(int albumId, int month, int year, bool includImageInfo = false)
+        public async Task<Data.AlbumStats> GetAlbumStats(int albumId, int month, int year, bool includeImageInfo = false)
         {
             // Append the parameters from teh request object
             var queryParams = new Core.QueryParameterList();
@@ -265,7 +265,7 @@ namespace SmugMug.Net.Service
             queryParams.Add("Month", month);
             queryParams.Add("Year", year);
 
-            queryParams.Add("Heavy", includImageInfo);
+            queryParams.Add("Heavy", includeImageInfo);
 
             var queryResponse = await _core.QueryWebsite<Data.AlbumStats>("smugmug.albums.getStats", queryParams, false);
             var albumStats = queryResponse[0];

@@ -26,7 +26,7 @@ namespace SmugMug.Net.Data
         /// <summary>
         /// Image Longitude when taken
         /// </summary>
-        public double GeoLongitutde;
+        public double GeoLongitude;
 
         /// <summary>
         /// Caption of the Image
@@ -84,7 +84,7 @@ namespace SmugMug.Net.Data
         public ContentOrientation Orientation;
 
         public ImageContent() {
-            this.Keywords = Array.Empty<string> ();
+            this.Keywords = [];
         }
     }
 

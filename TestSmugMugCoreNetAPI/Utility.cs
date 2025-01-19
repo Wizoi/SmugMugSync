@@ -70,7 +70,7 @@ public class Utility
     public async static Task<bool> RemoveArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
     {
         var service = new AlbumService(core);
-        var albumData = (await service.GetAlbumList(Array.Empty<string>())).Where(x=>x.Title == title).ToArray();
+        var albumData = (await service.GetAlbumList([])).Where(x=>x.Title == title).ToArray();
         bool result = false;
         if (albumData.Length > 0)
             result = await service.DeleteAlbum(albumData[0].AlbumId);

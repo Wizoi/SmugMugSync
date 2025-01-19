@@ -169,7 +169,7 @@ namespace SmugMugCoreSync.Repositories
 
                 AlbumDetail albumImages = await _smCore.ImageService.GetAlbumImages(albumId: targetAlbum.AlbumId, albumKey: targetAlbum.AlbumKey,
                     fieldList: new string[] { "Filename", "Name", "Title", "Caption", "SizeBytes", "MD5Sum", "Keywords" });
-                ImageDetail[] targetFiles = albumImages.Images ?? Array.Empty<ImageDetail>();
+                ImageDetail[] targetFiles = albumImages.Images ?? [];
 
                 //
                 // Build a lookup for source files, by a cleaned up filename for indexing
@@ -540,7 +540,7 @@ namespace SmugMugCoreSync.Repositories
             catch (HttpRequestException httpReqEx)
             {
                 // Non-SmugMugException - Retry just once (possibly network related)
-                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata?.FileInfo?.Name}) = {httpReqEx.Message}");
+                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata.FileInfo?.Name}) = {httpReqEx.Message}");
                 System.Threading.Thread.Sleep(1000);
                 return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
             }
@@ -563,7 +563,7 @@ namespace SmugMugCoreSync.Repositories
             catch (Exception ex)
             {
                 // Attempt #2 (then blow up and escalate higher)
-                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata?.FileInfo?.Name}) = {ex.Message}");
+                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata.FileInfo?.Name}) = {ex.Message}");
                 System.Threading.Thread.Sleep(1000);
                 return await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumId, targetImageId, targetMetadata);
             }

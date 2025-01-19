@@ -39,7 +39,7 @@ namespace SmugMug.Net.Service
                     return responseDetail.Albums;
             }
 
-            return Array.Empty<Data.AlbumDetail>();
+            return [];
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace SmugMug.Net.Service
             }
 
             // Return Results
-            return Array.Empty<Data.AlbumDetail>();
+            return [];
         }
     }
 }

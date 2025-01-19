@@ -212,7 +212,7 @@ public class ContentMetadataServiceTest
         result = core.ContentMetadataService.AreKeywordsDifferent(actual, "this; that");
         Assert.IsFalse(result, "Comparing this and that");
 
-        actual.Keywords = Array.Empty<string>();
+        actual.Keywords = [];
         result = core.ContentMetadataService.AreKeywordsDifferent(actual, "");
         Assert.IsFalse(result, "Comparing an empty array");
 

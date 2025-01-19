@@ -35,7 +35,7 @@ namespace SmugMug.Net.Service
         }
 
         /// <summary>
-        /// Uploads new image content (no  existing imageid)
+        /// Uploads new image content (no existing imageId)
         /// </summary>
         /// <param name="albumId"></param>
         /// <param name="filename"></param>
@@ -83,8 +83,8 @@ namespace SmugMug.Net.Service
                 queryData.Add("X-Smug-Altitude", imageMetadata.GeoAltitude.ToString());
             if (imageMetadata.GeoLatitude != 0)
                 queryData.Add("X-Smug-Latitude", imageMetadata.GeoLatitude.ToString());
-            if (imageMetadata.GeoLongitutde != 0)
-                queryData.Add("X-Smug-Longitude", imageMetadata.GeoLongitutde.ToString());
+            if (imageMetadata.GeoLongitude != 0)
+                queryData.Add("X-Smug-Longitude", imageMetadata.GeoLongitude.ToString());
 
             var fileInfo = imageMetadata.FileInfo;
             string uploadUrl = @"https://upload.smugmug.com/photos/xmlrawadd.mg";

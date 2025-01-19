@@ -100,7 +100,7 @@ public partial class ContentMetadataService
                     content.DateTaken = DateTime.MinValue;
                 }
 
-                content.Keywords = Array.Empty<string>();
+                content.Keywords = [];
                 IShellProperty propertyTags = propertyCollection.GetProperty("System.Keywords");
                 if (propertyTags != null)
                 {
@@ -296,7 +296,7 @@ public partial class ContentMetadataService
 
         string targetKeywordString = tagList.Replace("; ", ";").Replace(", ", ",").Trim();
         if (targetKeywordString.Length == 0)
-            targetKeywordList = Array.Empty<string>();
+            targetKeywordList = [];
         else
             targetKeywordList = TagSplitRegex().Split(targetKeywordString);
 

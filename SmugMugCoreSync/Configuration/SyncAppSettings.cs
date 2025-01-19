@@ -36,7 +36,7 @@ namespace SmugMugCoreSync.Configuration
                     setting => setting.Value?.ToString() ?? "").Where(t => t.Value.Any()).Select(y => y.Value).ToArray();
             }
             else
-                return Array.Empty<string>();
+                return [];
 
         }
 

@@ -78,7 +78,7 @@ namespace SmugMug.Net.Service
             }
 
             // Return Results
-            return Array.Empty<Data.AlbumDetail>();
+            return [];
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace SmugMug.Net.Service
 
         /// <summary>
         /// Create a sharegroup
-        /// Requred Fields: Name
+        /// Required Fields: Name
         /// </summary>
         /// <param name="shareGroup">Sharegroup data to add</param>
         /// <returns></returns>

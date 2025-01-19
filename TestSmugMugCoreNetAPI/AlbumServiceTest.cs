@@ -106,7 +106,7 @@ public class AlbumServiceTest
 
         // Verify the image 
         var imageService = new ImageService(core);
-        var imageList = await imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
+        var imageList = await imageService.GetAlbumImages([], _albumTest.AlbumId, _albumTest.AlbumKey);
         if (imageList.Images == null || imageList.ImageCount == 0)
             Assert.Fail("Images not found.");
 
@@ -148,7 +148,7 @@ public class AlbumServiceTest
         
         // Verify the current image placement
         var imageService = new ImageService(core);
-        var imageList = await imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
+        var imageList = await imageService.GetAlbumImages([], _albumTest.AlbumId, _albumTest.AlbumKey);
         if (imageList.Images == null || imageList.ImageCount == 0)
             Assert.Fail("Images not found.");
 
@@ -166,7 +166,7 @@ public class AlbumServiceTest
         Assert.AreEqual(expected, actual);
 
         // Verify the current image placement
-        var imageAfterList = await imageService.GetAlbumImages(Array.Empty<string>(), _albumTest.AlbumId, _albumTest.AlbumKey);
+        var imageAfterList = await imageService.GetAlbumImages([], _albumTest.AlbumId, _albumTest.AlbumKey);
         if (imageAfterList.Images == null || imageList.ImageCount == 0)
             Assert.Fail("Images not found.");
 
@@ -189,7 +189,7 @@ public class AlbumServiceTest
         int albumId = _albumTest.AlbumId; 
         string albumKey = _albumTest.AlbumKey; 
 
-        _ = await target.AddComment(albumId, albumKey, Array.Empty<string>(), "Test Comment");
+        _ = await target.AddComment(albumId, albumKey, [], "Test Comment");
 
         var actual = await target.GetCommentList(albumId, albumKey);
         if (actual.Length == 0)
@@ -231,7 +231,7 @@ public class AlbumServiceTest
         bool returnEmpty = false; 
         string nickName = string.Empty; 
         string sitePassword = string.Empty; 
-        var actual = await target.GetAlbumList(Array.Empty<string>(), returnEmpty, nickName, sitePassword);
+        var actual = await target.GetAlbumList([], returnEmpty, nickName, sitePassword);
         Assert.IsFalse(actual.Length == 0);
     }
 
@@ -246,7 +246,7 @@ public class AlbumServiceTest
         bool returnEmpty = false;
         string nickName = string.Empty;
         string sitePassword = string.Empty;
-        var actual = await target.GetAlbumList(new string[] { "Keywords", "ImageCount" }, returnEmpty, nickName, sitePassword);
+        var actual = await target.GetAlbumList(["Keywords", "ImageCount"], returnEmpty, nickName, sitePassword);
         Assert.IsFalse(actual.Length == 0);
     }
 

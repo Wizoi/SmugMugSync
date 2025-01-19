@@ -165,7 +165,7 @@ namespace SmugMug.Net.Service
             }
 
             // Return Results
-            return Array.Empty<Data.Comment>();
+            return [];
         }
 
         /// <summary>

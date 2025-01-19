@@ -47,10 +47,9 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
        SmugMugCoreSync::UserAuthToken 
        SmugMugCoreSync::UserAuthSecret
 
-## Future Planss
+## Future Plans
 
-1. Document the appsettings file for easier usage
-2. Move from the 1.3 API to 2.0 API
+1. Move from the 1.3 API to 2.0 API
 
 ## Code Details
 
@@ -62,7 +61,7 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 ### Testing
 1. A task exists to run tests, which includes coverage.
 1. TestSmugmugCoreSync is the core application, dependencies are mocked.
-1. TestSmugmugCoreNetAPI will validate key Smugmug APIs, this will require your User / API keys to be setup (see above) and will use your Smugmug Account to run APIs (craeting and cleaning up what it works with).
+1. TestSmugmugCoreNetAPI will validate key Smugmug APIs, this will require your User / API keys to be setup (see above) and will use your Smugmug Account to run APIs (creating and cleaning up what it works with).
 1. For coverage details (if you want something more than Test Manager Coverage already):
        dotnet tool install -g dotnet-reportgenerator-globaltool
        Command to use: *task Generate Coverage Report*
