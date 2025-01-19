@@ -131,6 +131,8 @@ public partial class ContentMetadataService
             }
             if (exifTags.HasTagName(ExifIfd0Directory.TagImageDescription))
                 content.Title = exifTags.GetDescription(ExifIfd0Directory.TagImageDescription);
+            if (exifTags.HasTagName(ExifIfd0Directory.TagWinComment))
+                content.Caption = exifTags.GetDescription(ExifIfd0Directory.TagWinComment);
             if (exifTags.HasTagName(ExifIfd0Directory.TagWinKeywords))
                 content.Keywords = SplitTagString(exifTags.GetDescription(ExifIfd0Directory.TagWinKeywords) ?? "");
 

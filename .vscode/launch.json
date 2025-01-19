@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/SmugMugCoreSync/bin/Debug/net7.0-windows/SmugMugCoreSync.dll",
+            "program": "${workspaceFolder}/SmugMugCoreSync/bin/Debug/net9.0-windows/SmugMugCoreSync.dll",
             "args": [],
             "cwd": "${workspaceFolder}/SmugMugCoreSync",
             "console": "integratedTerminal",

@@ -41,13 +41,13 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 1. Put your user keys into the appsettings.json file or Environment Variables.
 1. Settings to drive app are all in appsettings.json, instructions will be coming shortly.
 
-### Environment Variables for User and API Keys (these will override the appsettings file values)
-       SmugMugCoreSync::UserAuthToken 
-       SmugMugCoreSync::UserAuthSecret
+### Environment Variables for User and API Keys (these will override the appsettings file values, restart VSCode after adding)
        SmugMugCoreSync::ApiKey
        SmugMugCoreSync::ApiSecret
+       SmugMugCoreSync::UserAuthToken 
+       SmugMugCoreSync::UserAuthSecret
 
-## Future Plans
+## Future Planss
 
 1. Document the appsettings file for easier usage
 2. Move from the 1.3 API to 2.0 API
@@ -63,7 +63,7 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 1. A task exists to run tests, which includes coverage.
 1. TestSmugmugCoreSync is the core application, dependencies are mocked.
 1. TestSmugmugCoreNetAPI will validate key Smugmug APIs, this will require your User / API keys to be setup (see above) and will use your Smugmug Account to run APIs (craeting and cleaning up what it works with).
-1. For coverage details (if you want something more than Test Manager Coverage already Provides):
+1. For coverage details (if you want something more than Test Manager Coverage already):
        dotnet tool install -g dotnet-reportgenerator-globaltool
        Command to use: *task Generate Coverage Report*
        

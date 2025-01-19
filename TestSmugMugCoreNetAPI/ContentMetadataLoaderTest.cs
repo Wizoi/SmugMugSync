@@ -51,7 +51,7 @@ public class ContentMetadataServiceTest
         string filepath = System.IO.Path.Combine(this.GetDeploymentDirectory(), "TestImage.jpg");
         var actual = await core.ContentMetadataService.DiscoverMetadata(filepath);
         Assert.AreEqual("Pepper", actual.Title);
-        Assert.AreEqual("This is a multi-line comment.", actual.Comment);
+        Assert.AreEqual("This is a multi-line comment.", actual.Caption);
         Assert.AreEqual(DateTime.Parse("2012-01-15 06:03:38 PM"), actual.DateTaken);
         Assert.AreEqual(false, actual.IsHidden);
         Assert.AreEqual(false, actual.IsVideo);
