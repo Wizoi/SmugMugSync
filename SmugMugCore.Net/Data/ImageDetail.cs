@@ -20,7 +20,6 @@ namespace SmugMug.Net.Data
             this.UrlVideo320URL = string.Empty;
             this.UrlVideo640URL = string.Empty;
             this.UrlVideo960URL = string.Empty;
-            this.UrlVideoSMILURL = string.Empty;
             this.UrlViewLargeURL = string.Empty;
             this.UrlViewMediumURL = string.Empty;
             this.UrlViewOriginalURL = string.Empty;
@@ -59,17 +58,11 @@ namespace SmugMug.Net.Data
         public string ImageKey;
 
         /// <summary>
-        /// Album details when images are dynamically put into an album, but are realy sourced from a different album.
+        /// Album details when images are dynamically put into an album, but are really sourced from a different album.
         /// (collected & smart only) 
         /// </summary>
         [XmlElement("Album")]
         public AlbumDetail? Album;
-
-        /// <summary>
-        /// The altitude at which this image (or video) was taken
-        /// </summary>
-        [XmlAttribute("Altitude")]
-        public int Altitude;
 
         /// <summary>
         /// The caption for this image (or video)
@@ -97,25 +90,6 @@ namespace SmugMug.Net.Data
         public string Filename;
 
         /// <summary>
-        /// Duration integer 
-        /// (video, power & pro accounts only) 
-        /// </summary>
-        [XmlAttribute("Duration")]
-        public float DurationSeconds;
-
-        /// <summary>
-        /// The original format of this image (or video)
-        /// </summary>
-        [XmlAttribute("Format")]
-        public string? Format;
-
-        /// <summary>
-        /// The height of the crop
-        /// </summary>
-        [XmlAttribute("Height")]
-        public int Height;
-
-        /// <summary>
         /// Hide this image (or video)
         /// (owner)
         /// </summary>
@@ -135,35 +109,11 @@ namespace SmugMug.Net.Data
         public string? LastUpdatedDate;
 
         /// <summary>
-        /// The latitude at which this image (or video) was taken
-        /// </summary>
-        [XmlAttribute("Latitude")]
-        public float Latitude;
-
-        /// <summary>
-        /// The Longitude at which this image (or video) was taken
-        /// </summary>
-        [XmlAttribute("Longitude")]
-        public float Longitude;
-
-        /// <summary>
         /// The MD5 sum for this image (or video)
         /// (owner)
         /// </summary>
         [XmlAttribute("MD5Sum")]
         public string? MD5Sum;
-
-        /// <summary>
-        /// The position of this image (or video) within the album
-        /// </summary>
-        [XmlAttribute("Position")]
-        public int PositionInAlbum;
-
-        /// <summary>
-        /// The current revision of this image (or video)
-        /// </summary>
-        [XmlAttribute("Serial")]
-        public int Revision;
 
         /// <summary>
         /// The size of this image (or video) in bytes
@@ -291,20 +241,6 @@ namespace SmugMug.Net.Data
                     return string.Empty;
             }
         }
-
-
-        /// <summary>
-        /// The url for the W3C SMIL XML Link for the Videos
-        /// </summary>
-        [XmlAttribute("VideoSMILURL")]
-        public string UrlVideoSMILURL;
-
-        /// <summary>
-        /// Comments for the Image
-        /// </summary>
-        [XmlArray("Comments")]
-        [XmlArrayItem("Comment")]
-        public Comment[]? Comments;
 
         /// <summary>
         /// Client side property to indicate when this has been removed on remote site

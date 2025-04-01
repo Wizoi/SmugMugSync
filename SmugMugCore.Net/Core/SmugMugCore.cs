@@ -26,16 +26,6 @@ namespace SmugMug.Net.Core
         #region Properties for Services
         private readonly System.Collections.Generic.Dictionary<string, object> _serviceCatalog = new();
 
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual AccountService AccountService 
-        {
-            get { 
-                string keyName = "AccountService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AccountService(this)); }
-                return (AccountService) _serviceCatalog[keyName];
-            }
-        }
-
         public virtual AlbumService AlbumService
         {
             get
@@ -46,38 +36,6 @@ namespace SmugMug.Net.Core
             }
         }
 
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual AlbumTemplateService AlbumTemplateService
-        {
-            get
-            {
-                string keyName = "AlbumTemplateService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumTemplateService(this)); }
-                return (AlbumTemplateService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual CategoryService CategoryService
-        {
-            get
-            {
-                string keyName = "CategoryService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new CategoryService(this)); }
-                return (CategoryService)_serviceCatalog[keyName];
-            }
-        }
-
-        public virtual CommunityService CommunityService
-        {
-            get
-            {
-                string keyName = "CommunityService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new CommunityService(this)); }
-                return (CommunityService)_serviceCatalog[keyName];
-            }
-        }
-
         public virtual ContentMetadataService ContentMetadataService
         {
             get
@@ -85,57 +43,6 @@ namespace SmugMug.Net.Core
                 string keyName = "ContentMetadataService";
                 if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ContentMetadataService()); }
                 return (ContentMetadataService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual CouponService CouponService
-        {
-            get
-            {
-                string keyName = "CouponService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new CouponService(this)); }
-                return (CouponService)_serviceCatalog[keyName];
-            }
-        }
-
-        public virtual FamilyService FamilyService
-        {
-            get
-            {
-                string keyName = "FamilyService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FamilyService(this)); }
-                return (FamilyService)_serviceCatalog[keyName];
-            }
-        }
-        public virtual FanService FanService
-        {
-            get
-            {
-                string keyName = "FanService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FanService(this)); }
-                return (FanService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual FeaturedAlbumService FeaturedAlbumService
-        {
-            get
-            {
-                string keyName = "FeaturedAlbumService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FeaturedAlbumService(this)); }
-                return (FeaturedAlbumService)_serviceCatalog[keyName];
-            }
-        }
-
-        public virtual FriendService FriendService
-        {
-            get
-            {
-                string keyName = "FriendService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new FriendService(this)); }
-                return (FriendService)_serviceCatalog[keyName];
             }
         }
 
@@ -155,82 +62,6 @@ namespace SmugMug.Net.Core
                 string keyName = "ImageUploaderService";
                 if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ImageUploaderService(this)); }
                 return (ImageUploaderService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual PrintmarkService PrintmarkService
-        {
-            get
-            {
-                string keyName = "PrintmarkService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new PrintmarkService(this)); }
-                return (PrintmarkService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual ShareGroupService ShareGroupService
-        {
-            get
-            {
-                string keyName = "ShareGroupService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ShareGroupService(this)); }
-                return (ShareGroupService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual StyleService StyleService
-        {
-            get
-            {
-                string keyName = "StyleService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new StyleService(this)); }
-                return (StyleService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual SubCategoryService SubCategoryService
-        {
-            get
-            {
-                string keyName = "SubCategoryService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new SubCategoryService(this)); }
-                return (SubCategoryService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual ThemeService ThemeService
-        {
-            get
-            {
-                string keyName = "ThemeService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ThemeService(this)); }
-                return (ThemeService)_serviceCatalog[keyName];
-            }
-        }
-
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual UserService UserService
-        {
-            get
-            {
-                string keyName = "UserService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new UserService(this)); }
-                return (UserService)_serviceCatalog[keyName];
-            }
-        }
-        [Obsolete("deprecated from SmugMugCore.NET due to lack of SmugMug 1.3 API Support")]
-        public virtual WatermarkService WatermarkService
-        {
-            get
-            {
-                string keyName = "WatermarkService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new WatermarkService(this)); }
-                return (WatermarkService)_serviceCatalog[keyName];
             }
         }
 
@@ -461,7 +292,7 @@ namespace SmugMug.Net.Core
                 }
             }
 
-            // If an array is to be returned, then skip the parent node which just designtes that the child elements are returned
+            // If an array is to be returned, then skip the parent node which just designates that the child elements are returned
             // so when we start looping, it is ove the child elements.
             if (returnArray && (xmlReader.Name != "err"))
             {
@@ -543,7 +374,7 @@ namespace SmugMug.Net.Core
         internal HttpClient BuildHttpClient(System.Uri baseUri, HttpMethod method, QueryParameterList? paramData)
         {
             if (_oauthManager == null)
-                throw new ApplicationException("oauthmanager is null, and should be setup");
+                throw new ApplicationException("oauth manager is null, and should be setup");
 
             HttpClient httpClient = new(new HttpClientHandler
             {
@@ -637,7 +468,7 @@ namespace SmugMug.Net.Core
         {
             if (fieldList != null)
             {
-                // Convert the field list coming in to a comma list of fields the webservice can interpret 
+                // Convert the field list coming in to a comma list of fields the web service can interpret 
                 var xmlMapping = Core.SmugMugCore.TranslateFieldToAttribute(typeof(T), fieldList);
                 var xmlList = String.Join(",", xmlMapping);
                 return xmlList;

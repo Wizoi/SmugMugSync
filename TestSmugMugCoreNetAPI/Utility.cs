@@ -37,25 +37,11 @@ public class Utility
         AlbumService service = new AlbumService(core); 
         var album = new AlbumDetail();
         album.Title = title;
-        album.BackprintingForPrints = "";
-        album.BoutiquePackagingForOrders = SmugMug.Net.Data.Domain.Album.BoutiquePackaging.No;
         album.CanRank = true;
-        album.CleanDisplay = true;
-        album.ColorCorrection = SmugMug.Net.Data.Domain.Album.ColorCorrection.No;
         album.CommentsAllowed = true;
-        album.Description = "This is a test album to verify my API";
         album.ExifAllowed = true;
-        album.ExternalLinkAllowed = true;
-        album.FamilyEditAllowed = true;
-        album.FilenameDisplayWhenNoCaptions = true;
-        album.FriendEditAllowed = true;
         album.GeographyMappingEnabled = true;
-        album.HeaderDefaultIsSmugMug = true;
-        album.HideOwner = false;
-        album.InterceptShippingEnabled = SmugMug.Net.Data.Domain.Album.InterceptShipping.No;
-        album.Keywords = "test;test2";
         album.NiceName = title + "NiceName";
-        album.PackageBrandedOrdersEnabled = true;
         album.PublicDisplay = true;
         var newAlbum = await service.CreateAlbum(album);
         return newAlbum;
@@ -78,27 +64,4 @@ public class Utility
         return result;
     }
 
-    public async static Task<bool> RemoveArbitraryTestFamilies(SmugMug.Net.Core.SmugMugCore core, string nickname)
-    {
-        var service = new FamilyService(core);
-        var data = (await service.GetFamilyList()).Where(x => x.NickName.Contains(nickname)).ToArray();
-        foreach (var d in data)
-        {
-            _ = await service.RemoveFamily(d.NickName);
-        }
-
-        return true;
-    }
-
-    public async static Task<bool> RemoveArbitraryTestFriends(SmugMug.Net.Core.SmugMugCore core, string nickname)
-    {
-        var service = new FriendService(core);
-        var data = (await service.GetFriendList()).Where(x => x.NickName.Contains(nickname)).ToArray();
-        foreach (var d in data)
-        {
-            _ = await service.RemoveFriend(d.NickName);
-        }
-
-        return true;
-    }
 }

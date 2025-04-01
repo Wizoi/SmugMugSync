@@ -1,6 +1,4 @@
-﻿using SixLabors.ImageSharp.Metadata.Profiles.Iptc;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using SmugMug.Net.Data;
+﻿using SmugMug.Net.Data;
 using SmugMug.Net.Data.Domain;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
@@ -18,8 +16,6 @@ public partial class ContentMetadataService
     [GeneratedRegex("[;,]")]
     private partial Regex TagSplitRegex();
 
-    private bool useSixLabors = false;
-
     public IFileSystem FileSystem = new FileSystem();
 
     public ContentMetadataService()   
@@ -32,18 +28,7 @@ public partial class ContentMetadataService
         {
             try
             {
-                if (useSixLabors)
-                {
-                    content = await this.GetMetadataPropertiesWithSixLaborsLibrary(filepath);
-                }
-                else
-                {
-                    content= this.GetMetadataPropertiesWithMetadataExtractorLibrary(filepath);
-                }
-            }
-            catch (SixLabors.ImageSharp.UnknownImageFormatException)
-            {
-                content = this.GetMetadataPropertiesFromShell(filepath); 
+                content= this.GetMetadataPropertiesWithMetadataExtractorLibrary(filepath);
             }
             catch (MetadataExtractor.ImageProcessingException)
             {
@@ -167,85 +152,6 @@ public partial class ContentMetadataService
 
         return content;
     }
-
-    /// <summary>
-    /// Retrieve the properties we care about
-    /// </summary>
-    /// <param name="metaData"></param>
-    private async Task<ImageContent> GetMetadataPropertiesWithSixLaborsLibrary(string filepath)
-    {
-        SixLabors.ImageSharp.ImageInfo imageInfo = await SixLabors.ImageSharp.Image.IdentifyAsync(filepath);
-
-        var content = new ImageContent();
-        ExifProfile? exifData;
-        if (imageInfo.FrameMetadataCollection != null && imageInfo.FrameMetadataCollection.Count > 0)
-            exifData = imageInfo.FrameMetadataCollection[0].ExifProfile;
-        else
-            exifData = imageInfo.Metadata.ExifProfile;
-
-
-        if (exifData != null)
-        {
-            content.DateTaken = ExtractExifDateTime(ExtractSixLaborsExifString(exifData, ExifTag.DateTimeOriginal));
-            content.Title = ExtractSixLaborsExifString(exifData, ExifTag.XPTitle);
-            content.Comment = ExtractSixLaborsExifString(exifData, ExifTag.XPComment);
-            content.Keywords = SplitTagString(ExtractSixLaborsExifString(exifData, ExifTag.XPKeywords));
-
-            bool foundOrientation = exifData.TryGetValue(ExifTag.Orientation, out IExifValue<ushort>? exifOrientation);
-            if (foundOrientation && exifOrientation != null)
-            {
-                content.Orientation = (ContentOrientation)exifOrientation.Value;
-            }
-        }
-
-        return content;
-    }
-
-    private DateTime ExtractExifDateTime(string exifDateString)
-    {
-        if (exifDateString.Length > 0)
-        {
-            return DateTime.ParseExact(exifDateString, "yyyy:MM:dd HH:mm:ss", null);
-        }
-        else
-            return DateTime.MinValue;
-    }
-
-    private string[] ExtractIptcStrings(IptcProfile iptcData, IptcTag tag)
-    {
-        List<string> outputData = new();
-        List<IptcValue> iptcStringList = iptcData.GetValues(tag);
-        
-        foreach (var iptcListValue in iptcStringList)
-        {
-            outputData.Add(iptcListValue.Value.Trim('\0'));
-        }
-
-        // Always have at least an empty string, if there is nothing in IPTC.
-        if (outputData.Count == 0)
-        {
-            outputData.Add("");
-        }
-
-        return outputData.ToArray();
-    }
-
-    private string ExtractSixLaborsExifString(ExifProfile exifData, ExifTag<string> tag)
-    {
-        bool foundString = exifData.TryGetValue(tag, out IExifValue<string>? exifString);
-        if (foundString && exifString != null)
-        {
-            return FilterExifString(exifString.Value ?? "");
-        }
-        else
-            return "";
-    }
-
-    private string FilterExifString(string exifData)
-    {
-        return exifData.TrimEnd('\0');
-    }
-
 
     /// <summary>
     /// Split a tag into the various elements for SmugMug's Usage
