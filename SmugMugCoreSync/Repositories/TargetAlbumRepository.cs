@@ -68,7 +68,7 @@ namespace SmugMugCoreSync.Repositories
 
             foreach (var f in newFolders)
             {
-                var alb = new AlbumDetail()
+                var alb = new SmugMug.Net.Data.AlbumDetail()
                 {
                     SortDirectionDescending = true,
                     SortMethod = SortMethod.DateTimeOriginal,
@@ -85,14 +85,28 @@ namespace SmugMugCoreSync.Repositories
                     GeographyMappingEnabled = false,
                     Title = f.FolderName
                 };
-
+/*
+                var alb20 = new SmugMug.Net.Data20.AlbumDetail()
+                {
+                    SortDirection = "Descending",
+                    SortMethod = "Date Taken",
+                    LargestSize = "Original",
+                    EXIF = true,
+                    Comments = true,
+                    CanRank = true,
+                    CanShare = true,
+                    Privacy = "Public",
+                    Geography = true,
+                    Title = f.FolderName
+                };
+*/
                 switch (runtimeFlags.TargetCreate)
                 {
                     case OperationLevel.Normal:
                         Trace.WriteLine($"    > Creating Album: {alb.Title}");
                         var stubNewAlbum = await _smCore.AlbumService.CreateAlbum(alb);
                         var createdAlbum = await _smCore.AlbumService.GetAlbumDetail(stubNewAlbum.AlbumId, stubNewAlbum.AlbumKey);
-                        
+
                         // Link the folder to the album, and add the new album to the internal objects
                         f.LinkToAlbum(albumId: stubNewAlbum.AlbumId, albumKey: stubNewAlbum.AlbumKey);
                         _targetAlbums.Add(createdAlbum.AlbumKey, createdAlbum);

@@ -1,14 +1,5 @@
-using System;
-using System.Configuration;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.IO;
-using System.Xml.Serialization;
-using SmugMug.Net.Core;
-using SmugMug.Net.Service;
+using SmugMug.Net.Service20;
 using RestSharp;
 using RestSharp.Authenticators;
 
@@ -21,14 +12,26 @@ namespace SmugMug.Net.Core20
     {
         private readonly string _smugMugApiKey;
         private readonly string _smugMugSecret;
-        private RestSharp.RestClient _client;
-        private OAuthManager? _oauthManager = null;
+        private string _smugMugUserToken;
+        private string _smugMugUserSecret;
+        //        private RestSharp.RestClient _client;
+        //        private RestSharp.RestClientOptions _authOptions;
+        private string _userName;
+        private string _uploadFolderPath;
         public bool EnableRequestLogging { get; set; }
 
 
         #region Properties for Services
         private readonly System.Collections.Generic.Dictionary<string, object> _serviceCatalog = new();
 
+        public virtual AlbumService AlbumService
+        {
+            get
+            {
+                string keyName = "AlbumService";
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, _userName, _uploadFolderPath)); }                return (AlbumService)_serviceCatalog[keyName];
+            }
+        }
 
         #endregion Properties for Services
 
@@ -42,14 +45,21 @@ namespace SmugMug.Net.Core20
             this._smugMugApiKey = apiKey;
         }
 
+        public void ConfigureApiDefaults(string userName, string defaultUploadFolder)
+        {
+            this._userName = userName;
+            this._uploadFolderPath = defaultUploadFolder;
+        }
+
         /// <summary>
         /// Instantiate the object and authenticate
         /// </summary>
         /// <param name="userAuthToken"></param>
         /// <param name="userAuthSecret"></param>
-        public SmugMugCore(string userAuthToken, string userAuthSecret, string  apiKey, string apiSecret) : this(apiKey, apiSecret)
+        public SmugMugCore(string userAuthToken, string userAuthSecret, string apiKey, string apiSecret) : this(apiKey, apiSecret)
         {
-            Authenticate(userAuthToken, userAuthSecret);
+            _smugMugUserToken = userAuthToken;
+            _smugMugUserSecret = userAuthSecret;
         }
 
         /// <summary>
@@ -57,14 +67,16 @@ namespace SmugMug.Net.Core20
         /// </summary>
         /// <param name="userAuthToken">User Authentication Token</param>
         /// <param name="userAuthSecret">User Authentication Secret</param>
-        internal void Authenticate(string userAuthToken, string userAuthSecret)
+        internal RestClient Authenticate()
         {
-            var options = new RestClientOptions("https://api.smugmug.com")
+            var authOptions = new RestClientOptions("https://api.smugmug.com")
             {
-                Authenticator = OAuth1Authenticator.ForAccessToken(_smugMugApiKey, _smugMugSecret, userAuthToken, userAuthSecret) 
+                Authenticator = OAuth1Authenticator.ForAccessToken(_smugMugApiKey, _smugMugSecret, _smugMugUserToken, _smugMugUserSecret),
+                AutomaticDecompression = DecompressionMethods.All,
+                PreAuthenticate = true
             };
 
-            _client = new RestClient(options);
+            return new RestClient(authOptions);
         }
 
         /// <summary>
@@ -73,11 +85,12 @@ namespace SmugMug.Net.Core20
         /// <returns>True if service is pingable</returns>
         public async Task<bool> PingService()
         {
-              // 1. Construct the request
+            // 1. Construct the request
             var request = new RestRequest("/api/v2!authuser", Method.Get);
 
             // 2. Execute the request and get the response.
-            RestResponse response = await _client.ExecuteAsync(request);
+            var client = this.Authenticate();
+            RestResponse response = await client.ExecuteAsync(request);
 
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
@@ -86,6 +99,40 @@ namespace SmugMug.Net.Core20
             }
             else
                 return true;
+        }
+
+        public async Task<RestResponse> QueryService(RestRequest request)
+        {
+            RestResponse response;
+            using (var client = this.Authenticate())
+            {
+                response = await client.ExecuteAsync(request);
+            }
+
+            // 3. Ensure a successful status code.
+            if (!response.IsSuccessful)
+            {
+                throw new Exception($"Request failed with status code: {response.StatusCode}, Content: {response.Content}");
+            }
+            else
+                return response;
+        }
+
+        public async Task<RestResponse> PostService(RestRequest request)
+        {
+            RestResponse response;
+            using (var client = this.Authenticate())
+            {
+                response = await client.ExecutePostAsync(request);
+            }
+
+            // 3. Ensure a successful status code.
+            if (!response.IsSuccessful)
+            {
+                throw new Exception($"Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+            }
+            else
+                return response;
         }
     }
 }

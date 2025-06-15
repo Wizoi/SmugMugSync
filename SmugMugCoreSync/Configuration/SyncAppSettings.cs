@@ -19,12 +19,15 @@ namespace SmugMugCoreSync.Configuration
             this.KeySecrets = new(rootConfig.GetSection("keySecrets"));
             this.Logging = new(rootConfig.GetSection("logging"));
             this.RuntimeFlags = new(rootConfig.GetSection("runtimeFlags"));
+            this.UploaderSettings = new(rootConfig.GetSection("uploaderConfig"));
         }
 
         public FolderSyncPathsConfig FolderSyncPaths { get; }
         public KeySecretsConfig KeySecrets { get; }
         public LoggingConfig Logging { get; }
         public RuntimeFlagsConfig RuntimeFlags { get; }
+        public UploaderConfig UploaderSettings { get; }
+
 
         public static string[] ReadSectionArrayEntries(IConfiguration configSection)
         {

@@ -102,6 +102,7 @@ namespace SmugMug.Net.Service
         
         /// <summary>
         /// Create an album
+        /// 
         /// </summary>
         /// <param name="album">Album object to change settings on</param>
         /// <returns>New Album Album object with Key Information</returns>

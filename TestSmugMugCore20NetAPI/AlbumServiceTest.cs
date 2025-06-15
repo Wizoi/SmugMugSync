@@ -1,3 +1,4 @@
+using NuGet.Frameworks;
 using SmugMug.Net.Core20;
 using SmugMug.Net.Data20;
 using SmugMug.Net.Service20;
@@ -11,11 +12,6 @@ namespace TestSmugMugCore20NetAPI;
 [TestClass()]
 public class AlbumServiceTest
 {
-//    private static AlbumDetail? _albumTest = null;
-    private static int _i = 0;
-    private int _iteration = 0;
-
-
     private TestContext? testContextInstance;
 
     /// <summary>
@@ -41,12 +37,7 @@ public class AlbumServiceTest
     [TestInitialize()]
     public void MyTestInitialize()
     {
-        //_iteration = _i++;
-
         var core = Utility.RetrieveSmugMugCore20();
-       // var createTestAlbumTask = Utility.CreateArbitraryTestAlbum(core, "TestAlbum" + _iteration.ToString());
-        //createTestAlbumTask.Wait();
-        //_albumTest = createTestAlbumTask.Result;
 
     }
 
@@ -57,24 +48,126 @@ public class AlbumServiceTest
     public void MyTestCleanup()
     {
         var core = Utility.RetrieveSmugMugCore20();
-        //Utility.RemoveArbitraryTestAlbum(core, "TestAlbum").Wait();
     }
 
     /// <summary>
     ///A test for GetAlbumList
     ///</summary>
     [TestMethod()]
-    public async Task GetAlbumListTest()
+    public async Task GetAlbumListTestFull()
     {
         var core = Utility.RetrieveSmugMugCore20();
 
         var target = new AlbumService(core);
-        bool returnEmpty = false; 
-        string nickName = string.Empty; 
-        string sitePassword = string.Empty; 
-        //var actual = await target.GetAlbumList([], returnEmpty, nickName, sitePassword);
-        //Assert.IsFalse(actual.Length == 0);
+        bool returnEmpty = false;
+        string nickName = string.Empty;
+        string sitePassword = string.Empty;
+        var actual = await target.GetAlbumListFull();
+        Assert.IsFalse(actual.Length == 0);
+        Assert.IsTrue(!string.IsNullOrEmpty(actual[0].AlbumKey));
     }
 
-    // 
+    /// <summary>
+    ///A test for GetAlbumList
+    ///</summary>
+    [TestMethod()]
+    public async Task GetAlbumListTest_FilteredName()
+    {
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = new AlbumService(core);
+
+        var actual = await target.GetAlbumListNamesOnly("");
+
+        Assert.IsFalse(actual.Length == 0);
+        Assert.IsTrue(!string.IsNullOrEmpty(actual[0].AlbumKey));
+        Assert.IsTrue(!string.IsNullOrEmpty(actual[0].Name));
+        Assert.IsTrue(string.IsNullOrEmpty(actual[0].Description));
+    }
+
+    /// <summary>
+    ///A test for GetAlbumList
+    ///</summary>
+    [TestMethod()]
+    public async Task GetAlbumListTest_FilteredNameYear2024()
+    {
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = new AlbumService(core);
+
+        var actual = await target.GetAlbumListNamesOnly("2024");
+
+        Assert.IsFalse(actual.Length == 0);
+        Assert.IsTrue(!string.IsNullOrEmpty(actual[0].AlbumKey));
+        Assert.IsTrue(!string.IsNullOrEmpty(actual[0].Name));
+        Assert.IsTrue(string.IsNullOrEmpty(actual[0].Description));
+    }
+
+    /// <summary>
+    ///A test for GetAlbumList
+    ///</summary>
+    [TestMethod()]
+    public async Task GetAlbumTest_LoadById()
+    {
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = new AlbumService(core);
+
+        // Search for some albums
+        var preload = await target.GetAlbumListNamesOnly("2024");
+        Assert.IsFalse(preload.Length == 0);
+        string albumKey = preload[0].AlbumKey;
+
+        var actual = await target.GetAlbumDetail(albumKey);
+        Assert.IsTrue(!string.IsNullOrEmpty(actual.AlbumKey));
+        Assert.IsTrue(!string.IsNullOrEmpty(actual.Name));
+    }
+
+    [TestMethod()]
+    public async Task CreateAlbumTest()
+    {
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = new AlbumService(core);
+
+        // Search for some albums
+        var preload = await target.GetAlbumListNamesOnly("2024");
+        Assert.IsFalse(preload.Length == 0);
+        string albumKey = preload[0].AlbumKey;
+
+        var album = new AlbumDetail()
+        {
+            SortDirection = "Descending",
+            SortMethod = "Date Taken",
+            LargestSize = "Original",
+            EXIF = true,
+            Comments = true,
+            CanRank = true,
+            CanShare = true,
+            Privacy = "Public",
+            Geography = true,
+            Name = "CreateAlbumTest: New Test Album!@#"
+        };
+        var actual = await target.CreateAlbum(album);
+        Assert.AreEqual(album.Name, actual.Name, "Created album title does not match the given title");
+        Assert.AreEqual("CreateAlbumTest-New-Test-Album", actual.NiceName, "Verify the nicename is clean and url safe");
+
+        // Clean up Album 
+        await target.DeleteAlbum(actual);
+
+    }
+
+    [TestMethod()]
+    public async Task DeleteAlbumTest()
+    {
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = new AlbumService(core);
+
+        // Create Album to Delete
+        var albumToCreate = new AlbumDetail()
+        {
+            Name = "DeleteAlbumTest" + Random.Shared.Next(100).ToString()
+        };
+        var albumToDelete = await target.CreateAlbum(albumToCreate);
+
+        // Run actual test
+        var actual = await target.DeleteAlbum(albumToDelete);
+        Assert.IsTrue(actual.Contains(albumToDelete.AlbumKey));
+    }
 }
