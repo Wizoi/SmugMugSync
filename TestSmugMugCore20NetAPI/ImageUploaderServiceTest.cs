@@ -40,7 +40,7 @@ public class ImageUploaderServiceTest
     public static void MyClassInitialize(TestContext testContext)
     {
         var core = Utility.RetrieveSmugMugCore20();
-        var albumService = new AlbumService(core);
+        var albumService = core.AlbumService;
         var albumToCreate = new AlbumDetail()
         {
             Name = "ImageUploaderAlbumTest" + Random.Shared.Next(100).ToString()
@@ -59,7 +59,7 @@ public class ImageUploaderServiceTest
         if (_albumTest != null)
         {
             var core = Utility.RetrieveSmugMugCore20();
-            var albumService = new AlbumService(core);
+            var albumService = core.AlbumService;
 
             var cleanupAlbumTask = albumService.DeleteAlbum(_albumTest);
             cleanupAlbumTask.Wait();
@@ -72,7 +72,7 @@ public class ImageUploaderServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
-    public async Task GetAlbumImageTest()
+    public async Task UploadNewImageTest()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -80,10 +80,9 @@ public class ImageUploaderServiceTest
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
         var core = Utility.RetrieveSmugMugCore20();
-        var target = new ImageUploaderService(core);
-        var contentService = new ContentMetadataService();
+        var target = core.ImageUploaderService;
+        var contentService = core.ContentMetadataService;
 
-        // Put an image into the album
         string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
@@ -91,274 +90,160 @@ public class ImageUploaderServiceTest
         string imageUri = await target.UploadUpdatedImage(albumUri, null, content);
         Assert.IsNotNull(imageUri);
     }
-/*
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
+
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
-    public async Task UploadNewImagePropertiesTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-
-        var imageContent = await target.UploadNewImage(albumId, content);
-
-        // Verify the properties
-        content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        var service = new ImageService(core);
-        var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
-        Assert.AreEqual(content.Title, info.Caption, "Caption");
-        Assert.AreEqual("Pets; Pepper; Activity; Snow", info.Keywords, "Keywords");
-    }
-
-    /// <summary>
-    ///A test for UploadNewImage
-    /// BUG: SmugMug Bug where Keywords are not uploaded
-    ///</summary>
-    [TestMethod()]
-    [DeploymentItem(@"Content\TestVideo.mov")]
-    public async Task UploadNewVideoPropertiesTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-
-        var imageContent = await target.UploadNewImage(albumId, content);
-
-        // Verify the properties
-        content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        var service = new ImageService(core);
-        var info = await service.GetImageInfo(imageContent.ImageId, imageContent.ImageKey);
-        Assert.AreEqual(content.Title, info.Caption);
-        Assert.AreEqual("Scenic; Animals; Activity; Cruise", info.Keywords, "Keywords");
-    }
-
-    /// <summary>
-    ///A test for UploadNewVideo
-    ///</summary>
-    [TestMethod()]
-    [DeploymentItem(@"Content\TestVideo.mov")]
-    public async Task UploadNewVideoTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        _ =  await target.UploadNewImage(albumId, content);
-    }
-
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
-    [TestMethod()]
-    [DeploymentItem(@"Content\TestImage.jpg")]
-    public async Task UploadUpdatedImageTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
-
-        // Upload Initial Image
-        var imageMetadata = await core.ContentMetadataService.DiscoverMetadata(filename);
-        var imageUploaded = await target.UploadNewImage(albumId, imageMetadata);
-
-        // Upload Updated Image
-        var imageUpdated = await target.UploadUpdatedImage(albumId, imageUploaded.ImageId, imageMetadata);
-
-        Assert.IsNotNull(imageUploaded, "Image Uploaded");
-        Assert.IsNotNull(imageUpdated, "Image Updated");
-        Assert.AreEqual(imageUploaded.URL, imageUpdated.URL, "ImageUpdated URL should be same URL");
-    }
-
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
-    [TestMethod()]
     [DeploymentItem(@"Content\TestJpegImage.jpeg")]
     [DeploymentItem(@"Content\TestPngImage.png")]
     [DeploymentItem(@"Content\TestScannedImage.jpg")]
-    public async Task UploadUpdatedImageAllTypesTest()
+    public async Task UploadNewImageTest_Verify_Images()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        
-        string filename;
-        ImageUpload imageUploaded;
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = core.ImageUploaderService; 
+        var verify = core.AlbumImageService;
+        var contentService = core.ContentMetadataService;
+        AlbumImageDetail imageLoaded = null;
+        FileMetaContent fileContent = null;
+        string imageUri = null;
 
-        // Upload Jpeg Image
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestJpegImage.jpeg");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "JpegImage - ImageKey is empty, Image upload failed.");
+        // Check JPG
+        string filenameJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameJPG);
+        imageUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        imageLoaded = await verify.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImage.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pets; Pepper; Activity; Snow", imageLoaded.Keywords, "Keywords");
 
-        // Upload Png Image
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestPngImage.png");
-        content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "PngImage - ImageKey is empty, Image upload failed.");
+        // Check JPEG
+        string filenameJPEG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestJpegImage.jpeg");
+        fileContent = await contentService.DiscoverMetadata(filenameJPEG);
+        imageUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        imageLoaded = await verify.GetImageDetail(imageUri);
+        Assert.AreEqual("TestJpegImage.jpeg", imageLoaded.FileName);
+        Assert.AreEqual("Pets; Pepper; Activity; Snow", imageLoaded.Keywords, "Keywords");
 
-        // Upload Scanned Image
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestScannedImage.jpg");
-        content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "ScannedImage - ImageKey is empty, Image upload failed.");
+        // Check PNG
+        string filenamePNG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestPngImage.png");
+        fileContent = await contentService.DiscoverMetadata(filenamePNG);
+        imageUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        imageLoaded = await verify.GetImageDetail(imageUri);
+        Assert.AreEqual("TestPngImage.png", imageLoaded.FileName);
+        Assert.AreEqual("", imageLoaded.Keywords, "Keywords"); // File format does not save metadata
+
+        // Check Scanned JPG
+        string filenameScannedJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestScannedImage.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameScannedJPG);
+        imageUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        imageLoaded = await verify.GetImageDetail(imageUri);
+        Assert.AreEqual("TestScannedImage.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Family; Idzi; Bob Idzi; Holidays; Christmas", imageLoaded.Keywords, "Keywords");
     }
 
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
-    [TestMethod()]
-    [DeploymentItem(@"Content\TestBmpImage.bmp")]
-    [ExpectedException(typeof(SmugMugException), "BMP file is not expected to be accepted")]
-    public async Task UploadUpdatedImageInvalidBmpTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-
-        string filename;
-        ImageUpload imageUploaded;
-
-        // Upload Bmp Image
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestBmpImage.bmp");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "BmpImage - ImageKey is empty, Image upload failed.");
-    }
-
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
-    [TestMethod()]
-    [DeploymentItem(@"Content\TestTifImage.tif")]
-    [ExpectedException(typeof(SmugMugException), "TIF fie is not expected to be accepted")]
-    public async Task UploadUpdatedImageInvalidTifTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-
-        string filename;
-        ImageUpload imageUploaded;
-
-        // Upload Tif Image
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestTifImage.tif");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "TifImage - ImageKey is empty, Image upload failed.");
-    }
-
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestVideo.mov")]
-    [ExpectedException(typeof(SmugMugException), "Cannot upload image/video over another, exception expected.")]
-    public async Task UploadUpdatedVideoTest()
-    {
-        if (this.TestContext == null)
-            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
-        if (_albumTest == null)
-            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
-
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
-
-        // Upload Initial Image
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        var imageUploaded = await target.UploadNewImage(albumId, content);
-
-        // Upload Updated Image - EXCEPTION.
-        var imageUpdated = await target.UploadUpdatedImage(albumId, imageUploaded.ImageId, content);
-
-        Assert.IsNotNull(imageUploaded);
-        Assert.IsNotNull(imageUpdated);
-        Assert.AreEqual(imageUploaded.URL, imageUpdated.URL);
-    }
-
-    /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
-    [TestMethod()]
     [DeploymentItem(@"Content\TestVideoMp4.mp4")]
     [DeploymentItem(@"Content\TestVideoMpg.mpg")]
     [DeploymentItem(@"Content\TestVideoWmv.wmv")]
-    public async Task UploadUpdatedVideoAllTypesTest()
+    public async Task UploadNewImageTest_Verify_Videos()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
         if (_albumTest == null)
             Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
-        var core = Utility.RetrieveSmugMugCore();
-        var target = new ImageUploaderService(core);
-        int albumId = _albumTest.AlbumId;
-        string filename;
-        ImageUpload imageUploaded;
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = core.ImageUploaderService;
+        var verify = core.AlbumImageService;
+        var contentService = core.ContentMetadataService;
+        AlbumImageDetail videoLoaded = null;
+        FileMetaContent fileContent = null;
+        string videoUri = null;
 
-        // Upload MP4 Video
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMp4.mp4");
-        var content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "Mp4Video - ImageKey is empty, Video upload failed.");
+        // Check MOV
+        string filenameMOV = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
+        fileContent = await contentService.DiscoverMetadata(filenameMOV);
+        videoUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        videoLoaded = await verify.GetImageDetail(videoUri);
+        Assert.AreEqual("TestVideo.mov", videoLoaded.FileName);
+        Assert.AreEqual("Scenic; Animals; Activity; Cruise", videoLoaded.Keywords, "Keywords");
 
-        // Upload MPG Video
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMpg.mpg");
-        content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "MpgVideo - ImageKey is empty, Video upload failed.");
+        // Check MP4
+        string filenameMP4 = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMp4.mp4");
+        fileContent = await contentService.DiscoverMetadata(filenameMP4);
+        videoUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        videoLoaded = await verify.GetImageDetail(videoUri);
+        Assert.AreEqual("TestVideoMp4.MP4", videoLoaded.FileName);
+        Assert.AreEqual("", videoLoaded.Keywords, "Keywords"); // File format does not save metadata
 
-        // Upload Wmv Video
-        filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoWmv.wmv");
-        content = await core.ContentMetadataService.DiscoverMetadata(filename);
-        imageUploaded = await target.UploadNewImage(albumId, content);
-        Assert.IsNotNull(imageUploaded.ImageKey, "WmvVideo - ImageKey is empty, Video upload failed.");
+        // Check MOV
+        string filenameMPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMpg.mpg");
+        fileContent = await contentService.DiscoverMetadata(filenameMPG);
+        videoUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        videoLoaded = await verify.GetImageDetail(videoUri);
+        Assert.AreEqual("TestVideoMpg.mpg", videoLoaded.FileName);
+        Assert.AreEqual("", videoLoaded.Keywords, "Keywords"); // File format does not save metadata
+
+        // Check WMV
+        string filenameWMV = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoWmv.wmv");
+        fileContent = await contentService.DiscoverMetadata(filenameWMV);
+        videoUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        videoLoaded = await verify.GetImageDetail(videoUri);
+        Assert.AreEqual("TestVideoWmv.wmv", videoLoaded.FileName);
+        Assert.AreEqual("Activity; Snow; Pets; Pepper", videoLoaded.Keywords, "Keywords");
     }
-    */
+
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestBmpImage.bmp")]
+    [ExpectedException(typeof(SmugMugException), "BMP file is not expected to be accepted")]
+    public async Task UploadNewImageTest_Invalid_BMP()
+    {
+        if (this.TestContext == null)
+            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
+        if (_albumTest == null)
+            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
+
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = core.ImageUploaderService;
+        var verify = core.AlbumImageService;
+        var contentService = core.ContentMetadataService;
+        AlbumImageDetail imageLoaded = null;
+        FileMetaContent fileContent = null;
+        string imageUri = null;
+
+        // Check BMP
+        string filenameBMP = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestBmpImage.bmp");
+        fileContent = await contentService.DiscoverMetadata(filenameBMP);
+        imageUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        imageLoaded = await verify.GetImageDetail(imageUri);
+    }
+
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestTifImage.tif")]
+    [ExpectedException(typeof(SmugMugException), "TIF file is not expected to be accepted")]
+    public async Task UploadNewImageTest_Invalid_TIF()
+    {
+        if (this.TestContext == null)
+            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
+        if (_albumTest == null)
+            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
+
+        var core = Utility.RetrieveSmugMugCore20();
+        var target = core.ImageUploaderService;
+        var verify = core.AlbumImageService;
+        var contentService = core.ContentMetadataService;
+        AlbumImageDetail imageLoaded = null;
+        FileMetaContent fileContent = null;
+        string imageUri = null;
+
+        // Check TIF
+        string filenameTIF = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestTifImage.tif");
+        fileContent = await contentService.DiscoverMetadata(filenameTIF);
+        imageUri = await target.UploadUpdatedImage(_albumTest.Uri, null, fileContent);
+        imageLoaded = await verify.GetImageDetail(imageUri);
+    }
 }

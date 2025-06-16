@@ -17,7 +17,7 @@ namespace SmugMug.Net.Service20
         private readonly string Version = "2.0";
         public readonly string API_UPLOADER_ENDPOINT = "https://upload.smugmug.com/";
 
-        public ImageUploaderService(Core20.SmugMugCore core)
+        internal ImageUploaderService(Core20.SmugMugCore core)
         {
             _core = core;
         }

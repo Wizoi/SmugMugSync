@@ -57,8 +57,8 @@ public class AlbumServiceTest
     public async Task GetAlbumListTestFull()
     {
         var core = Utility.RetrieveSmugMugCore20();
+        var target = core.AlbumService;
 
-        var target = new AlbumService(core);
         bool returnEmpty = false;
         string nickName = string.Empty;
         string sitePassword = string.Empty;
@@ -74,7 +74,7 @@ public class AlbumServiceTest
     public async Task GetAlbumListTest_FilteredName()
     {
         var core = Utility.RetrieveSmugMugCore20();
-        var target = new AlbumService(core);
+        var target = core.AlbumService;
 
         var actual = await target.GetAlbumListNamesOnly("");
 
@@ -91,7 +91,7 @@ public class AlbumServiceTest
     public async Task GetAlbumListTest_FilteredNameYear2024()
     {
         var core = Utility.RetrieveSmugMugCore20();
-        var target = new AlbumService(core);
+        var target = core.AlbumService;
 
         var actual = await target.GetAlbumListNamesOnly("2024");
 
@@ -108,7 +108,7 @@ public class AlbumServiceTest
     public async Task GetAlbumTest_LoadById()
     {
         var core = Utility.RetrieveSmugMugCore20();
-        var target = new AlbumService(core);
+        var target = core.AlbumService;
 
         // Search for some albums
         var preload = await target.GetAlbumListNamesOnly("2024");
@@ -124,7 +124,7 @@ public class AlbumServiceTest
     public async Task CreateAlbumTest()
     {
         var core = Utility.RetrieveSmugMugCore20();
-        var target = new AlbumService(core);
+        var target = core.AlbumService;
 
         // Search for some albums
         var preload = await target.GetAlbumListNamesOnly("2024");
@@ -157,7 +157,7 @@ public class AlbumServiceTest
     public async Task DeleteAlbumTest()
     {
         var core = Utility.RetrieveSmugMugCore20();
-        var target = new AlbumService(core);
+        var target = core.AlbumService;
 
         // Create Album to Delete
         var albumToCreate = new AlbumDetail()

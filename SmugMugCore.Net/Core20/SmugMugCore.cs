@@ -2,6 +2,7 @@ using System.Net;
 using SmugMug.Net.Service20;
 using RestSharp;
 using RestSharp.Authenticators;
+using SmugMug.Net.Data;
 
 namespace SmugMug.Net.Core20
 {
@@ -29,7 +30,38 @@ namespace SmugMug.Net.Core20
             get
             {
                 string keyName = "AlbumService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, _userName, _uploadFolderPath)); }                return (AlbumService)_serviceCatalog[keyName];
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, _userName, _uploadFolderPath)); }
+                    return (AlbumService)_serviceCatalog[keyName];
+            }
+        }
+
+        public virtual AlbumImageService AlbumImageService
+        {
+            get
+            {
+                string keyName = "AlbumImageService";
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumImageService(this)); }
+                    return (AlbumImageService)_serviceCatalog[keyName];
+            }
+        }
+
+        public virtual ImageUploaderService ImageUploaderService
+        {
+            get
+            {
+                string keyName = "ImageUploaderService";
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ImageUploaderService(this)); }
+                    return (ImageUploaderService)_serviceCatalog[keyName];
+            }
+        }
+
+        public virtual ContentMetadataService ContentMetadataService
+        {
+            get
+            {
+                string keyName = "ContentMetadataService";
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ContentMetadataService()); }
+                    return (ContentMetadataService)_serviceCatalog[keyName];
             }
         }
 

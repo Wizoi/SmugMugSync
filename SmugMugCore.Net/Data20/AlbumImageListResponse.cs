@@ -45,14 +45,13 @@ namespace SmugMug.Net.Data20
             // If fetching a list of AlbumImages (e.g., from /api/v2/album/{key}!images),
             // you would have a property like this instead of 'Data':
             [JsonPropertyName("AlbumImage")] // Note: SmugMug API sometimes uses singular name for array of objects
-            public List<AlbumImage> AlbumImages { get; set; }
+            public List<AlbumImageDetail> AlbumImages { get; set; }
 
-            // Optional: Pages and Timing sections could be added for paginated responses or performance metrics
             [JsonPropertyName("Pages")]
-            public object Pages { get; set; }
+            public PaginationInfo Pages { get; set; } // The object containing pagination details [1, 2, 4]
 
             [JsonPropertyName("Timing")]
-            public object Timing { get; set; }
+            public TimingInfo Timing { get; set; } // Information about the request timing [1]
         }
     }
 }

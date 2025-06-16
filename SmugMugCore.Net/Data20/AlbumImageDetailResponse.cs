@@ -48,7 +48,7 @@ namespace SmugMug.Net.Data20
             // For a list of images in an album (e.g., from AlbumImages), it would be an array named "AlbumImages".
             // Assuming a single object response for this class.
             [JsonPropertyName("AlbumImage")]
-            public AlbumImage AlbumImage { get; set; }
+            public AlbumImageDetail AlbumImage { get; set; }
 
             // If fetching a list of AlbumImages (e.g., from /api/v2/album/{key}!images),
             // you would have a property like this instead of 'Data':

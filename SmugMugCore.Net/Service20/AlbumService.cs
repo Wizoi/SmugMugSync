@@ -18,7 +18,7 @@ namespace SmugMug.Net.Service20
         private readonly string _userName;
         private readonly string _uploadPath;
 
-        public AlbumService(Core20.SmugMugCore core, string userName, string uploadPath)
+        internal AlbumService(Core20.SmugMugCore core, string userName, string uploadPath)
         {
             _core = core;
             _userName = userName;

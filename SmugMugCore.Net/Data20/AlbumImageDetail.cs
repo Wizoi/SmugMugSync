@@ -7,7 +7,7 @@ namespace SmugMug.Net.Data20
 {
 // Represents an AlbumImage object, which includes all Image fields.
 // This class effectively acts as the deserialization target for both Image and AlbumImage properties.
-    public class AlbumImage
+    public class AlbumImageDetail
     {
         [JsonPropertyName("ThumbnailUrl")]
         public string ThumbnailUrl { get; set; } // URL for the thumbnail image
