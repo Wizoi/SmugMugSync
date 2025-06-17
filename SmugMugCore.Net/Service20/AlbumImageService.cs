@@ -13,8 +13,8 @@ namespace SmugMug.Net.Service20
         public readonly string API_ALBUM_IMAGE_LOOKUP = "/api/v2/album/{0}/image/{1}";
 
         /*
-                ImageService.UpdateImage(ImagObject)
                 ImageService.DownloadImage(ImagObject, FullFileName)
+                done ImageService.UpdateImage(ImagObject)
                 done ImageService.Delete(ImageId, AlbumId)
                 done ImageService.GetAlbumImages(AlbumId, AlbumKey,
                                     fieldList: new string[] { "Filename", "Name", "Title", "Caption", "SizeBytes", "MD5Sum", "Keywords" })
@@ -67,7 +67,7 @@ namespace SmugMug.Net.Service20
         public async Task<Data20.AlbumImageDetail[]> GetAlbumImageListShort(string albumKey)
         {
             return await GetAlbumImageList(albumKey,
-                new string[] { "Filename", "Name", "Title", "Caption", "SizeBytes", "MD5Sum", "Keywords" },
+                new string[] { "Filename", "Name", "Title", "Caption", "SizeBytes", "MD5Sum", "Keywords", "AlbumKey", "ImageKey" },
                 300);
         }
 
@@ -168,6 +168,47 @@ namespace SmugMug.Net.Service20
             }
 
             throw new Exception("Delete Failure: " + restResponse.ErrorMessage);
+        }
+
+        /// <summary>
+        /// Create an album
+        /// </summary>
+        /// <param name="album">Album object to change settings on</param>
+        /// <returns>New Album Album object with Key Information</returns>
+        public async virtual Task<Data20.ImageDetail> UpdateAlbumImage(Data20.AlbumImageDetail albumImage)
+        {
+            AlbumImageUpdateRequest updateRequest = new AlbumImageUpdateRequest()
+            {
+                Title = albumImage.Title,
+                Caption = albumImage.Caption,
+                Keywords = albumImage.Keywords
+            };
+
+            string albumImageData = JsonSerializer.Serialize(updateRequest, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault
+            });
+
+            var request = new RestRequest(albumImage.Uris.Image.Uri, Method.Patch);
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader("_verbosity", 1);
+            request.AddHeader("Content-Type", "application/json");
+            request.AddJsonBody(updateRequest);
+
+            var restResponse = await _core.PatchService(request);
+            if (restResponse.IsSuccessful)
+            {
+                var jsonDoc = JsonDocument.Parse(restResponse.Content);
+                var rawResponse = jsonDoc.RootElement.Deserialize<ImageDetailResponse>();
+                if (rawResponse.Status == "fail")
+                {
+                    throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
+                }
+                return rawResponse.Response.Image;
+            }
+
+            throw new Exception($"Failed to create album: {albumImage.AlbumKey} / {albumImage.ImageKey} : {restResponse.ErrorMessage}");
         }
     }
 }

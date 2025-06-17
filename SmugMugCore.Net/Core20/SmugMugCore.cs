@@ -31,7 +31,7 @@ namespace SmugMug.Net.Core20
             {
                 string keyName = "AlbumService";
                 if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, _userName, _uploadFolderPath)); }
-                    return (AlbumService)_serviceCatalog[keyName];
+                return (AlbumService)_serviceCatalog[keyName];
             }
         }
 
@@ -41,7 +41,7 @@ namespace SmugMug.Net.Core20
             {
                 string keyName = "AlbumImageService";
                 if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumImageService(this)); }
-                    return (AlbumImageService)_serviceCatalog[keyName];
+                return (AlbumImageService)_serviceCatalog[keyName];
             }
         }
 
@@ -51,7 +51,7 @@ namespace SmugMug.Net.Core20
             {
                 string keyName = "ImageUploaderService";
                 if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ImageUploaderService(this)); }
-                    return (ImageUploaderService)_serviceCatalog[keyName];
+                return (ImageUploaderService)_serviceCatalog[keyName];
             }
         }
 
@@ -61,7 +61,7 @@ namespace SmugMug.Net.Core20
             {
                 string keyName = "ContentMetadataService";
                 if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ContentMetadataService()); }
-                    return (ContentMetadataService)_serviceCatalog[keyName];
+                return (ContentMetadataService)_serviceCatalog[keyName];
             }
         }
 
@@ -144,7 +144,7 @@ namespace SmugMug.Net.Core20
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                throw new Exception($"Request failed with status code: {response.StatusCode}, Content: {response.Content}");
+                throw new Exception($"Query Request failed with status code: {response.StatusCode}, Content: {response.Content}");
             }
             else
                 return response;
@@ -161,7 +161,24 @@ namespace SmugMug.Net.Core20
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                throw new Exception($"Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+                throw new Exception($"Post Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+            }
+            else
+                return response;
+        }
+
+        public async Task<RestResponse> PatchService(RestRequest request)
+        {
+            RestResponse response;
+            using (var client = this.Authenticate())
+            {
+                response = await client.ExecutePatchAsync(request);
+            }
+
+            // 3. Ensure a successful status code.
+            if (!response.IsSuccessful)
+            {
+                 throw new Exception($"Patch Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
             }
             else
                 return response;

@@ -74,7 +74,7 @@ public class AlbumImageServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
-    public async Task DeleteImageTask()
+    public async Task DeleteImage()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -103,7 +103,7 @@ public class AlbumImageServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
-    public async Task GetAlbumImagesTaskFull()
+    public async Task GetAlbumImagesFull()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -132,7 +132,7 @@ public class AlbumImageServiceTest
     ///</summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
-    public async Task GetAlbumImagesTaskShort()
+    public async Task GetAlbumImagesShort()
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
@@ -154,6 +154,43 @@ public class AlbumImageServiceTest
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
         Assert.IsTrue(albumImagesLoaded.Count() == 3);
+    }
+
+    /// <summary>
+    ///A test for UploadNewImage
+    ///</summary>
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestImage.jpg")]
+    public async Task UpdateAlbumImages()
+    {
+        if (this.TestContext == null)
+            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
+        if (_albumTest == null)
+            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
+
+        var core = Utility.RetrieveSmugMugCore20();
+        var uploaderService = core.ImageUploaderService;
+        var albumImageService = core.AlbumImageService;
+        var contentService = core.ContentMetadataService;
+
+        // Add the image and retrieve its object
+        string albumUri = _albumTest.Uri;
+        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
+        var content = await contentService.DiscoverMetadata(filename);
+        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+
+        var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
+        Assert.IsTrue(albumImagesLoaded.Count() == 1);
+
+        var testAlbumImage = albumImagesLoaded[0];
+        testAlbumImage.Title = "Updating the Comment";
+        testAlbumImage.Caption = "Updating the Caption";
+        testAlbumImage.Keywords = "New; Keywords";
+        var updatedAlbumImage = await albumImageService.UpdateAlbumImage(testAlbumImage);
+        Assert.AreEqual(testAlbumImage.Title, updatedAlbumImage.Title);
+        Assert.AreEqual(testAlbumImage.Caption, updatedAlbumImage.Caption);
+        Assert.AreEqual(testAlbumImage.Keywords, updatedAlbumImage.Keywords);
+
 
     }
 }
