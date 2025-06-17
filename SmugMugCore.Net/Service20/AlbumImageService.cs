@@ -11,15 +11,7 @@ namespace SmugMug.Net.Service20
     {
         public readonly string API_ALBUM_IMAGE_SEARCH = "/api/v2/album/{0}!images";
         public readonly string API_ALBUM_IMAGE_LOOKUP = "/api/v2/album/{0}/image/{1}";
-
-        /*
-                ImageService.DownloadImage(ImagObject, FullFileName)
-                done ImageService.UpdateImage(ImagObject)
-                done ImageService.Delete(ImageId, AlbumId)
-                done ImageService.GetAlbumImages(AlbumId, AlbumKey,
-                                    fieldList: new string[] { "Filename", "Name", "Title", "Caption", "SizeBytes", "MD5Sum", "Keywords" })
-                done ImageService.GetImageInfo(ImageId, ImageKey)
-        */
+        public readonly string API_ALBUM_IMAGE_DOWNLOAD = "/api/v2/album/{0}/image/{1}!download";
 
         private readonly Core20.SmugMugCore _core;
 
@@ -67,7 +59,7 @@ namespace SmugMug.Net.Service20
         public async Task<Data20.AlbumImageDetail[]> GetAlbumImageListShort(string albumKey)
         {
             return await GetAlbumImageList(albumKey,
-                new string[] { "Filename", "Name", "Title", "Caption", "SizeBytes", "MD5Sum", "Keywords", "AlbumKey", "ImageKey" },
+                new string[] { "FileName", "Title", "Caption", "OriginalSize",  "Keywords", "AlbumKey", "ImageKey", "ArchivedMD5", "ArchivedUri" },
                 300);
         }
 
@@ -210,5 +202,18 @@ namespace SmugMug.Net.Service20
 
             throw new Exception($"Failed to create album: {albumImage.AlbumKey} / {albumImage.ImageKey} : {restResponse.ErrorMessage}");
         }
+
+        /// <summary>
+        /// Create an album
+        /// </summary>
+        /// <param name="album">Album object to change settings on</param>
+        /// <returns>New Album Album object with Key Information</returns>
+        public async virtual Task<bool> DownloadPrimaryImage(Data20.AlbumImageDetail albumImage, string filePath)
+        {
+            var request = new RestRequest(albumImage.ArchivedUri, Method.Get);
+            byte[] fileData = await _core.DownloadData(request);
+            File.WriteAllBytes(filePath, fileData);
+            return true;
+        }        
     }
 }

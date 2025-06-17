@@ -178,10 +178,23 @@ namespace SmugMug.Net.Core20
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                 throw new Exception($"Patch Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+                throw new Exception($"Patch Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
             }
             else
                 return response;
+        }
+
+        public async Task<byte[]> DownloadData(RestRequest request)
+        {
+            byte[] dataDownloaded;
+
+            using (var client = this.Authenticate())
+            {
+                dataDownloaded = await client.DownloadDataAsync(request);
+                return dataDownloaded;
+            }
+
+            throw new Exception($"File download failed: {request.Resource}");
         }
     }
 }

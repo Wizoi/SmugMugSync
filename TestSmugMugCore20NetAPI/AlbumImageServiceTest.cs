@@ -124,7 +124,7 @@ public class AlbumImageServiceTest
         _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListFull(_albumTest.AlbumKey);
-        Assert.IsTrue(albumImagesLoaded.Count() == 3);
+        Assert.AreEqual(3, albumImagesLoaded.Count());
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public class AlbumImageServiceTest
         _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.IsTrue(albumImagesLoaded.Count() == 3);
+        Assert.AreEqual(3, albumImagesLoaded.Count());
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ public class AlbumImageServiceTest
         _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.IsTrue(albumImagesLoaded.Count() == 1);
+        Assert.AreEqual(1, albumImagesLoaded.Count());
 
         var testAlbumImage = albumImagesLoaded[0];
         testAlbumImage.Title = "Updating the Comment";
@@ -190,7 +190,45 @@ public class AlbumImageServiceTest
         Assert.AreEqual(testAlbumImage.Title, updatedAlbumImage.Title);
         Assert.AreEqual(testAlbumImage.Caption, updatedAlbumImage.Caption);
         Assert.AreEqual(testAlbumImage.Keywords, updatedAlbumImage.Keywords);
+    }
 
+    /// <summary>
+    ///A test for UploadNewImage
+    ///</summary>
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestImage.jpg")]
+    public async Task DownloadAlbumImage()
+    {
+        if (this.TestContext == null)
+            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
+        if (_albumTest == null)
+            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
 
+        var core = Utility.RetrieveSmugMugCore20();
+        var uploaderService = core.ImageUploaderService;
+        var albumImageService = core.AlbumImageService;
+        var contentService = core.ContentMetadataService;
+
+        // Add the image and retrieve its object
+        string albumUri = _albumTest.Uri;
+        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
+        var content = await contentService.DiscoverMetadata(filename);
+        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+
+        // Retrieve the recently loaded image metadata
+        var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
+        Assert.IsTrue(albumImagesLoaded.Count() == 1);
+        var testAlbumImage = albumImagesLoaded[0];
+
+        string localPath = Path.GetTempFileName();
+        var isSuccess = await albumImageService.DownloadPrimaryImage(testAlbumImage, localPath);
+
+        var fi = new FileInfo(localPath);
+        long actual = fi.Length;
+
+        // Cleanup file
+        fi.Delete();
+
+        Assert.AreEqual(testAlbumImage.OriginalSize, actual);
     }
 }
