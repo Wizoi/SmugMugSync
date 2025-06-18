@@ -1,5 +1,5 @@
-﻿using SmugMug.Net.Core;
-using SmugMug.Net.Data;
+﻿using SmugMugCore.Net.Core;
+using SmugMugCore.Net.Data;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Repositories;
 using SmugMugCoreSync.Utility;
@@ -21,7 +21,7 @@ internal class Program
         var appLogger = new AppLogger(appSettings.Logging);
         appLogger.SetupAppLog();
 
-        var smCore = new SmugMugCore(
+        var smCore = new SmugMugCore.Net.Core.SmugMugCore(
             userAuthToken: keySettings.UserAuthToken, userAuthSecret: keySettings.UserAuthSecret,
             apiKey: keySettings.ApiKey, apiSecret: keySettings.ApiSecret);
 
@@ -76,7 +76,7 @@ internal class Program
         Console.ReadLine();
 
         Console.WriteLine("Verifying access to SmugMug with New Keys...");
-        var smCore = new SmugMugCore(
+        var smCore = new SmugMugCore.Net.Core.SmugMugCore(
             userAuthToken: accessToken.Token, userAuthSecret: accessToken.TokenSecret,
             apiKey: smugMugApiKey, apiSecret: smugMugSecret);
         var checkAccess = await smCore.PingService();

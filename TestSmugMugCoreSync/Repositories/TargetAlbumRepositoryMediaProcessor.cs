@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Moq;
 using Moq.Protected;
-using SmugMug.Net.Core;
-using SmugMug.Net.Data;
-using SmugMug.Net.Service;
+using SmugMugCore.Net.Core;
+using SmugMugCore.Net.Data;
+using SmugMugCore.Net.Service;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
 using SmugMugCoreSync.Repositories;
@@ -29,7 +29,7 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
@@ -143,7 +143,7 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
@@ -269,7 +269,7 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
@@ -393,7 +393,7 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
@@ -522,7 +522,7 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE

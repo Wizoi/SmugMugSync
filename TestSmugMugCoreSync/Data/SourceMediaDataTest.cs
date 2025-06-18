@@ -1,6 +1,6 @@
 using Moq;
 using Moq.Protected;
-using SmugMug.Net.Service;
+using SmugMugCore.Net.Service;
 using SmugMugCoreSync.Data;
 using System.IO.Abstractions;
 

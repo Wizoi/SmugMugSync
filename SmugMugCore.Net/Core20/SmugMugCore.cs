@@ -1,25 +1,23 @@
 using System.Net;
-using SmugMug.Net.Service20;
+using SmugMugCore.Net.Service20;
 using RestSharp;
 using RestSharp.Authenticators;
-using SmugMug.Net.Data;
+using SmugMugCore.Net.Data;
 
-namespace SmugMug.Net.Core20
+namespace SmugMugCore.Net.Core20
 {
     /// <summary>
     /// Base class which provides Authentication and core querying logic
     /// </summary>
-    public class SmugMugCore
+    public class SmugMugCore(
+        string userAuthToken,
+        string userAuthSecret,
+        string apiKey,
+        string apiSecret,
+        string userName,
+        string defaultUploadFolder)
     {
-        private readonly string _smugMugApiKey;
-        private readonly string _smugMugSecret;
-        private string _smugMugUserToken;
-        private string _smugMugUserSecret;
-        //        private RestSharp.RestClient _client;
-        //        private RestSharp.RestClientOptions _authOptions;
-        private string _userName;
-        private string _uploadFolderPath;
-        public bool EnableRequestLogging { get; set; }
+        public bool EnableRequestLogging { get; set; } = System.Diagnostics.Debugger.IsAttached;
 
 
         #region Properties for Services
@@ -30,7 +28,7 @@ namespace SmugMug.Net.Core20
             get
             {
                 string keyName = "AlbumService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, _userName, _uploadFolderPath)); }
+                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, userName, defaultUploadFolder)); }
                 return (AlbumService)_serviceCatalog[keyName];
             }
         }
@@ -68,42 +66,14 @@ namespace SmugMug.Net.Core20
         #endregion Properties for Services
 
         /// <summary>
-        /// Instantiate an unauthenticated Core library
+        /// Authenticate to the service with the user's API keys and tokens
+        /// Returns an authenticated RestClient
         /// </summary>
-        public SmugMugCore(string apiKey, string apiSecret)
-        {
-            this.EnableRequestLogging = System.Diagnostics.Debugger.IsAttached;
-            this._smugMugSecret = apiSecret;
-            this._smugMugApiKey = apiKey;
-        }
-
-        public void ConfigureApiDefaults(string userName, string defaultUploadFolder)
-        {
-            this._userName = userName;
-            this._uploadFolderPath = defaultUploadFolder;
-        }
-
-        /// <summary>
-        /// Instantiate the object and authenticate
-        /// </summary>
-        /// <param name="userAuthToken"></param>
-        /// <param name="userAuthSecret"></param>
-        public SmugMugCore(string userAuthToken, string userAuthSecret, string apiKey, string apiSecret) : this(apiKey, apiSecret)
-        {
-            _smugMugUserToken = userAuthToken;
-            _smugMugUserSecret = userAuthSecret;
-        }
-
-        /// <summary>
-        /// Authenticate the user with their secret
-        /// </summary>
-        /// <param name="userAuthToken">User Authentication Token</param>
-        /// <param name="userAuthSecret">User Authentication Secret</param>
         internal RestClient Authenticate()
         {
             var authOptions = new RestClientOptions("https://api.smugmug.com")
             {
-                Authenticator = OAuth1Authenticator.ForAccessToken(_smugMugApiKey, _smugMugSecret, _smugMugUserToken, _smugMugUserSecret),
+                Authenticator = OAuth1Authenticator.ForAccessToken(apiKey, apiSecret, userAuthToken, userAuthSecret),
                 AutomaticDecompression = DecompressionMethods.All,
                 PreAuthenticate = true
             };
@@ -133,6 +103,12 @@ namespace SmugMug.Net.Core20
                 return true;
         }
 
+        /// <summary>
+        ///  Queries the SmugMug Service with a Rest Request
+        /// </summary>
+        /// <param name="request">RestRequest object</param>
+        /// <returns>RestResponse object with JSON response</returns>
+        /// <exception cref="Exception">if there is a response failure</exception>
         public async Task<RestResponse> QueryService(RestRequest request)
         {
             RestResponse response;
@@ -150,6 +126,12 @@ namespace SmugMug.Net.Core20
                 return response;
         }
 
+        /// <summary>
+        /// Posts a payload to the SmugMug Service
+        /// </summary>
+        /// <param name="request">RestRequest object</param>
+        /// <returns>RestResponse object with JSON response</returns>
+        /// <exception cref="Exception">if there is a response failure</exception>
         public async Task<RestResponse> PostService(RestRequest request)
         {
             RestResponse response;
@@ -167,6 +149,12 @@ namespace SmugMug.Net.Core20
                 return response;
         }
 
+        /// <summary>
+        /// Patches/Updates the SmugMug Service
+        /// </summary>
+        /// <param name="request">RestRequest object</param>
+        /// <returns>RestResponse object with JSON response</returns>
+        /// <exception cref="Exception">if there is a response failure</exception>
         public async Task<RestResponse> PatchService(RestRequest request)
         {
             RestResponse response;
@@ -184,13 +172,17 @@ namespace SmugMug.Net.Core20
                 return response;
         }
 
+        /// <summary>
+        /// Downloads data from the SmugMug Service
+        /// </summary>
+        /// <param name="request">RestRequest object</param>
+        /// <returns>binary that was downloaded</returns>
+        /// <exception cref="Exception">if there is a failure</exception>
         public async Task<byte[]> DownloadData(RestRequest request)
         {
-            byte[] dataDownloaded;
-
             using (var client = this.Authenticate())
             {
-                dataDownloaded = await client.DownloadDataAsync(request);
+                byte[] dataDownloaded = await client.DownloadDataAsync(request) ?? [];
                 return dataDownloaded;
             }
 

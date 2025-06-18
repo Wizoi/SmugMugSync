@@ -7,10 +7,10 @@ using System.Net;
 using System.Text;
 using System.IO;
 using System.Xml.Serialization;
-using SmugMug.Net.Core;
-using SmugMug.Net.Service;
+using SmugMugCore.Net.Core;
+using SmugMugCore.Net.Service;
 
-namespace SmugMug.Net.Core
+namespace SmugMugCore.Net.Core
 {
     /// <summary>
     /// Base class which provides Authentication and core querying logic

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace SmugMug.Net.Data
+namespace SmugMugCore.Net.Data
 {
     [Serializable(), XmlRoot("Image")]
     public class ImageUpload

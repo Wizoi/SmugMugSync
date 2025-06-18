@@ -1,4 +1,4 @@
-﻿using SmugMug.Net.Data.Domain.Album;
+﻿using SmugMugCore.Net.Data.Domain.Album;
 namespace TestSmugMugCoreNetAPI;
 
 /// <summary>
@@ -173,7 +173,7 @@ public class AlbumServiceTest
         string niceName = "KevinTest"; 
         bool expected = true; 
         bool actual;
-        actual = SmugMug.Net.Core.SmugMugCore.IsValidNiceName(niceName);
+        actual = SmugMugCore.Net.Core.SmugMugCore.IsValidNiceName(niceName);
         Assert.AreEqual(expected, actual);
     }
 
@@ -186,7 +186,7 @@ public class AlbumServiceTest
         string niceName = "-KevinTest"; 
         bool expected = false; 
         bool actual;
-        actual = SmugMug.Net.Core.SmugMugCore.IsValidNiceName(niceName);
+        actual = SmugMugCore.Net.Core.SmugMugCore.IsValidNiceName(niceName);
         Assert.AreEqual(expected, actual);
     }
 }

@@ -1,295 +1,277 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json;
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-
-    // Represents the structure of an Album object
-    // This class includes important fields documented for Albums and also some fields
-    // that appear when viewing an Album through the Node endpoint or in search results.
     public class AlbumDetail
     {
-        // Fields directly on the Album object from the sample [2, 14, 15] and documentation [12]
         [JsonPropertyName("NiceName")]
-        public string NiceName { get; set; } // User-configurable component of the WebUri [12]
+        public string? NiceName { get; set; } 
 
         [JsonPropertyName("UrlName")]
-        public string UrlName { get; set; } // User-configurable component of the WebUri [12]
+        public string? UrlName { get; set; } 
 
-        [JsonPropertyName("Title")] // Human-readable title [12, 14] - sample uses Title and Name
-        public string Title { get; set; }
+        [JsonPropertyName("Title")] 
+        public string? Title { get; set; }
 
-        [JsonPropertyName("Name")] // Human-readable title [12, 14] - sample uses Title and Name
-        public string Name { get; set; }
+        [JsonPropertyName("Name")] 
+        public string? Name { get; set; }
 
         [JsonPropertyName("AllowDownloads")]
-        public bool AllowDownloads { get; set; } // [14]
+        public bool AllowDownloads { get; set; } 
 
         [JsonPropertyName("Backprinting")]
-        public string Backprinting { get; set; } // [14]
+        public string? Backprinting { get; set; }
 
         [JsonPropertyName("BoutiquePackaging")]
-        public string BoutiquePackaging { get; set; } // [14]
+        public string? BoutiquePackaging { get; set; } 
 
         [JsonPropertyName("CanRank")]
-        public bool CanRank { get; set; } // [14]
+        public bool CanRank { get; set; } 
 
         [JsonPropertyName("Clean")]
-        public bool Clean { get; set; } // [14]
+        public bool Clean { get; set; } 
 
         [JsonPropertyName("Comments")]
-        public bool Comments { get; set; } // [14]
+        public bool Comments { get; set; } 
 
         [JsonPropertyName("Description")]
-        public string Description { get; set; } // Human-readable description [12, 14]
+        public string? Description { get; set; }
 
         [JsonPropertyName("EXIF")]
-        public bool EXIF { get; set; } // [14]
+        public bool EXIF { get; set; } 
 
         [JsonPropertyName("External")]
-        public bool External { get; set; } // Is "allow external embedding" enabled? [12, 14]
+        public bool External { get; set; } 
 
         [JsonPropertyName("FamilyEdit")]
-        public bool FamilyEdit { get; set; } // [14]
+        public bool FamilyEdit { get; set; } 
 
         [JsonPropertyName("Filenames")]
-        public bool Filenames { get; set; } // [14]
+        public bool Filenames { get; set; } 
 
         [JsonPropertyName("FriendEdit")]
-        public bool FriendEdit { get; set; } // [14]
+        public bool FriendEdit { get; set; } 
 
         [JsonPropertyName("Geography")]
-        public bool Geography { get; set; } // [14]
+        public bool Geography { get; set; } 
 
         [JsonPropertyName("Header")]
-        public string Header { get; set; } // [14]
+        public string? Header { get; set; } 
 
         [JsonPropertyName("HideOwner")]
-        public bool HideOwner { get; set; } // [14]
+        public bool HideOwner { get; set; } 
 
         [JsonPropertyName("InterceptShipping")]
-        public string InterceptShipping { get; set; } // [14]
+        public string? InterceptShipping { get; set; } 
 
         [JsonPropertyName("Keywords")]
-        public string Keywords { get; set; } // [14]
+        public string? Keywords { get; set; } 
 
         [JsonPropertyName("LargestSize")]
-        public string LargestSize { get; set; } // [14]
+        public string? LargestSize { get; set; } 
 
         [JsonPropertyName("PackagingBranding")]
-        public bool PackagingBranding { get; set; } // [14]
+        public bool PackagingBranding { get; set; } 
 
         [JsonPropertyName("Password")]
-        public string Password { get; set; } // [14]
+        public string? Password { get; set; } 
 
         [JsonPropertyName("PasswordHint")]
-        public string PasswordHint { get; set; } // Hint for the viewing password [12, 14]
+        public string? PasswordHint { get; set; } 
 
         [JsonPropertyName("Printable")]
-        public bool Printable { get; set; } // [15]
+        public bool Printable { get; set; } 
 
         [JsonPropertyName("Privacy")]
-        public string Privacy { get; set; } // Private, Unlisted, or Public [12, 15]
+        public string? Privacy { get; set; } 
 
         [JsonPropertyName("ProofDays")]
-        public int ProofDays { get; set; } // [15]
+        public int ProofDays { get; set; } 
 
         [JsonPropertyName("ProofDigital")]
-        public bool ProofDigital { get; set; } // [15]
+        public bool ProofDigital { get; set; } 
 
         [JsonPropertyName("Protected")]
-        public bool Protected { get; set; } // [15]
+        public bool Protected { get; set; } 
 
         [JsonPropertyName("Share")]
-        public bool Share { get; set; } // [15]
+        public bool Share { get; set; } 
 
         [JsonPropertyName("Slideshow")]
-        public bool Slideshow { get; set; } // [15]
+        public bool Slideshow { get; set; } 
 
         [JsonPropertyName("SmugSearchable")]
-        public string SmugSearchable { get; set; } // Allow in SmugMug search [12, 15]
+        public string? SmugSearchable { get; set; } 
 
         [JsonPropertyName("SortDirection")]
-        public string SortDirection { get; set; } // [15]
+        public string? SortDirection { get; set; } 
 
         [JsonPropertyName("SortMethod")]
-        public string SortMethod { get; set; } // [15]
+        public string? SortMethod { get; set; } 
 
         [JsonPropertyName("SquareThumbs")]
-        public bool SquareThumbs { get; set; } // [15]
+        public bool SquareThumbs { get; set; } 
 
         [JsonPropertyName("Watermark")]
-        public bool Watermark { get; set; } // [15]
+        public bool Watermark { get; set; } 
 
         [JsonPropertyName("SecurityType")]
-        public string SecurityType { get; set; } // [15]
+        public string? SecurityType { get; set; } 
 
         [JsonPropertyName("MaxPhotoDownloadSize")]
-        public string MaxPhotoDownloadSize { get; set; } // [15]
+        public string? MaxPhotoDownloadSize { get; set; }
 
         [JsonPropertyName("HighlightAlbumImageUri")]
-        public string HighlightAlbumImageUri { get; set; } // [15]
+        public string? HighlightAlbumImageUri { get; set; } 
 
         [JsonPropertyName("AlbumKey")]
-        public string AlbumKey { get; set; } // [15]
+        public string? AlbumKey { get; set; } 
 
         [JsonPropertyName("CanBuy")]
-        public bool CanBuy { get; set; } // [15]
+        public bool CanBuy { get; set; } 
 
         [JsonPropertyName("CanFavorite")]
-        public bool CanFavorite { get; set; } // [15]
+        public bool CanFavorite { get; set; } 
 
-        // Date fields - using string initially as they are in ISO 8601 format,
-        // you can parse them to DateTimeOffset if needed.
         [JsonPropertyName("Date")]
-        public string Date { get; set; } // Time created (never changes) [12, 15]
+        public string? Date { get; set; } 
 
         [JsonPropertyName("LastUpdated")]
-        public string LastUpdated { get; set; } // Last change to contents (not ordering) [12, 15]
+        public string? LastUpdated { get; set; } 
 
         [JsonPropertyName("ImagesLastUpdated")]
-        public string ImagesLastUpdated { get; set; } // Last change to contents or ordering [12, 15]
+        public string? ImagesLastUpdated { get; set; } 
 
         [JsonPropertyName("NodeID")]
-        public string NodeID { get; set; } // Appears in sample [2]
+        public string? NodeID { get; set; } 
 
         [JsonPropertyName("OriginalSizes")]
-        public long OriginalSizes { get; set; } // Appears in sample [2]
+        public long OriginalSizes { get; set; } 
 
         [JsonPropertyName("TotalSizes")]
-        public long TotalSizes { get; set; } // Appears in sample [2]
+        public long TotalSizes { get; set; } 
 
         [JsonPropertyName("ImageCount")]
-        public int ImageCount { get; set; } // [2]
+        public int ImageCount { get; set; } 
 
         [JsonPropertyName("UrlPath")]
-        public string UrlPath { get; set; } // Appears in sample [2]
+        public string? UrlPath { get; set; }
 
         [JsonPropertyName("CanShare")]
-        public bool CanShare { get; set; } // Appears in sample [2]
+        public bool CanShare { get; set; } 
 
         [JsonPropertyName("HasDownloadPassword")]
-        public bool HasDownloadPassword { get; set; } // Appears in sample [2]
+        public bool HasDownloadPassword { get; set; } 
 
         [JsonPropertyName("Packages")]
-        public bool Packages { get; set; } // Appears in sample [2]
+        public bool Packages { get; set; } 
 
         [JsonPropertyName("Uri")]
-        public string Uri { get; set; } // The API URI for this album [2]
+        public string? Uri { get; set; } 
 
         [JsonPropertyName("WebUri")]
-        public string WebUri { get; set; } // The web URL for this album [2, 12]
+        public string? WebUri { get; set; } 
 
         [JsonPropertyName("UriDescription")]
-        public string UriDescription { get; set; } // [2]
+        public string? UriDescription { get; set; } 
 
-        // The nested "Uris" object [2]
         [JsonPropertyName("Uris")]
-        public AlbumUris Uris { get; set; }
+        public AlbumUris? Uris { get; set; }
 
-        // ResponseLevel is often present, indicating the verbosity [14]
         [JsonPropertyName("ResponseLevel")]
-        public string ResponseLevel { get; set; }
+        public string? ResponseLevel { get; set; }
     }
 
-    // Represents the "Uris" object within an Album [2]
-    // This contains links to related resources as UriLink objects.
     public class AlbumUris
     {
-        [JsonPropertyName("AlbumShareUris")] // [3]
-        public UriLink AlbumShareUris { get; set; }
+        [JsonPropertyName("AlbumShareUris")] 
+        public UriLink? AlbumShareUris { get; set; }
 
-        [JsonPropertyName("Node")] // The Node endpoint view of this album [3, 13]
-        public UriLink Node { get; set; }
+        [JsonPropertyName("Node")] 
+        public UriLink? Node { get; set; }
 
-        [JsonPropertyName("NodeCoverImage")] // [3]
-        public UriLink NodeCoverImage { get; set; }
+        [JsonPropertyName("NodeCoverImage")] 
+        public UriLink? NodeCoverImage { get; set; }
 
-        [JsonPropertyName("User")] // The user who owns this album [4, 13]
-        public UriLink User { get; set; }
+        [JsonPropertyName("User")] 
+        public UriLink? User { get; set; }
 
-        [JsonPropertyName("Folder")] // The parent folder of this album [4]
-        public UriLink Folder { get; set; }
+        [JsonPropertyName("Folder")] 
+        public UriLink? Folder { get; set; }
 
-        [JsonPropertyName("ParentFolders")] // [4]
-        public UriLink ParentFolders { get; set; }
+        [JsonPropertyName("ParentFolders")] 
+        public UriLink? ParentFolders { get; set; }
 
-        [JsonPropertyName("HighlightImage")] // Image representing the album [5, 13]
-        public UriLink HighlightImage { get; set; }
+        [JsonPropertyName("HighlightImage")] 
+        public UriLink? HighlightImage { get; set; }
 
-        [JsonPropertyName("AddSamplePhotos")] // [5]
-        public UriLink AddSamplePhotos { get; set; }
+        [JsonPropertyName("AddSamplePhotos")] 
+        public UriLink? AddSamplePhotos { get; set; }
 
-        [JsonPropertyName("AlbumHighlightImage")] // [6]
-        public UriLink AlbumHighlightImage { get; set; }
+        [JsonPropertyName("AlbumHighlightImage")] 
+        public UriLink? AlbumHighlightImage { get; set; }
 
-        [JsonPropertyName("AlbumImages")] // The images in this album as AlbumImage relationships [6, 13]
-        public UriLink AlbumImages { get; set; }
+        [JsonPropertyName("AlbumImages")] 
+        public UriLink? AlbumImages { get; set; }
 
-        [JsonPropertyName("AlbumPopularMedia")] // [6]
-        public UriLink AlbumPopularMedia { get; set; }
+        [JsonPropertyName("AlbumPopularMedia")] 
+        public UriLink? AlbumPopularMedia { get; set; }
 
-        [JsonPropertyName("AlbumPackages")] // Album packages [7]
-        public UriLink AlbumPackages { get; set; }
+        [JsonPropertyName("AlbumPackages")] 
+        public UriLink? AlbumPackages { get; set; }
 
-        [JsonPropertyName("AlbumGeoMedia")] // Geotagged images from album [7]
-        public UriLink AlbumGeoMedia { get; set; }
+        [JsonPropertyName("AlbumGeoMedia")] 
+        public UriLink? AlbumGeoMedia { get; set; }
 
-        [JsonPropertyName("AlbumComments")] // Comments on album [7]
-        public UriLink AlbumComments { get; set; }
+        [JsonPropertyName("AlbumComments")] 
+        public UriLink? AlbumComments { get; set; }
 
-        [JsonPropertyName("MoveAlbumImages")] // [8]
-        public UriLink MoveAlbumImages { get; set; }
+        [JsonPropertyName("MoveAlbumImages")] 
+        public UriLink? MoveAlbumImages { get; set; }
 
-        [JsonPropertyName("CollectImages")] // [8]
-        public UriLink CollectImages { get; set; }
+        [JsonPropertyName("CollectImages")] 
+        public UriLink? CollectImages { get; set; }
 
-        [JsonPropertyName("ApplyAlbumTemplate")] // Apply an album template [8]
-        public UriLink ApplyAlbumTemplate { get; set; }
+        [JsonPropertyName("ApplyAlbumTemplate")] 
+        public UriLink? ApplyAlbumTemplate { get; set; }
 
-        [JsonPropertyName("DeleteAlbumImages")] // [9]
-        public UriLink DeleteAlbumImages { get; set; }
+        [JsonPropertyName("DeleteAlbumImages")] 
+        public UriLink? DeleteAlbumImages { get; set; }
 
-        [JsonPropertyName("UploadFromExternalResource")] // [9]
-        public UriLink UploadFromExternalResource { get; set; }
+        [JsonPropertyName("UploadFromExternalResource")] 
+        public UriLink? UploadFromExternalResource { get; set; }
 
-        [JsonPropertyName("UploadFromUri")] // [9]
-        public UriLink UploadFromUri { get; set; }
+        [JsonPropertyName("UploadFromUri")] 
+        public UriLink? UploadFromUri { get; set; }
 
-        [JsonPropertyName("AlbumGrants")] // Grants for the Album [10]
-        public UriLink AlbumGrants { get; set; }
+        [JsonPropertyName("AlbumGrants")] 
+        public UriLink? AlbumGrants { get; set; }
 
-        [JsonPropertyName("AlbumDownload")] // Download album [10]
-        public UriLink AlbumDownload { get; set; }
+        [JsonPropertyName("AlbumDownload")] 
+        public UriLink? AlbumDownload { get; set; }
 
-        [JsonPropertyName("AlbumPrices")] // Purchasable Skus [10]
-        public UriLink AlbumPrices { get; set; }
+        [JsonPropertyName("AlbumPrices")] 
+        public UriLink? AlbumPrices { get; set; }
 
-        [JsonPropertyName("AlbumPricelistExclusions")] // Pricelist information [11]
-        public UriLink AlbumPricelistExclusions { get; set; }
-
-        // Note: If the request included _shorturis=, this class would instead
-        // have string properties like: public string Node { get; set; }
+        [JsonPropertyName("AlbumPricelistExclusions")] 
+        public UriLink? AlbumPricelistExclusions { get; set; }
     }
 
-    // A helper class to represent the structure of a URI link when _shorturis is NOT used [3]
     public class UriLink
     {
         [JsonPropertyName("Uri")]
-        public string Uri { get; set; } // The actual API URI [3]
+        public string? Uri { get; set; } 
 
         [JsonPropertyName("Locator")]
-        public string Locator { get; set; } // [3]
+        public string? Locator { get; set; } 
 
         [JsonPropertyName("LocatorType")]
-        public string LocatorType { get; set; } // [3]
+        public string? LocatorType { get; set; } 
 
         [JsonPropertyName("UriDescription")]
-        public string UriDescription { get; set; } // [3]
+        public string? UriDescription { get; set; } 
 
         [JsonPropertyName("EndpointType")]
-        public string EndpointType { get; set; } // [3]
+        public string? EndpointType { get; set; } 
     }
 }

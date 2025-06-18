@@ -1,11 +1,10 @@
-using System.Text.Json.Serialization; // Required for JsonPropertyName
+using System.Text.Json.Serialization; 
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-    // Helper class for MethodDetails within OptionsInfo
     public class MethodDetailsInfo
     {
         [JsonPropertyName("Permissions")]
-        public List<string> Permissions { get; set; } // [1]
+        public List<string>? Permissions { get; set; } // [1]
     }
 }

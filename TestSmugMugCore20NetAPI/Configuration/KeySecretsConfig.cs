@@ -14,16 +14,19 @@
         /// Token from Smugmug representing the current user, authenticated to use the service
         /// </summary>
         public string UserAuthToken { get; }
+
         /// <summary>
         /// Private auth token for the user giving the permissions
         /// </summary>
         public string UserAuthSecret { get; }
+
         /// <summary>
-        /// Key from smugmug represenging the Oauth Smugmugsync service access
+        /// Key from smugmug representing the Oauth SmugMug Sync service access
         /// </summary>
         public string ApiKey { get; }
+
         /// <summary>
-        /// API Secret indicating this app will make calls on behalf of the smugmugsync service.
+        /// API Secret indicating this app will make calls on behalf of the SmugMug Sync service.
         /// </summary>
         public string ApiSecret { get; }
     }

@@ -4,7 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
-namespace SmugMug.Net.Core
+namespace SmugMugCore.Net.Core
 {
     /// <summary>
     /// General Application Exception to return smugmug error information

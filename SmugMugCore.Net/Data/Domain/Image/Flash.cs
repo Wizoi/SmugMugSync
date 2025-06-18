@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace SmugMug.Net.Data.Domain.Image
+namespace SmugMugCore.Net.Data.Domain.Image
 {
     // Indicates the status of flash when the image was shot
     public enum Flash

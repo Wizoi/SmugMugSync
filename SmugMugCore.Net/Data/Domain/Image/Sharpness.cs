@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace SmugMug.Net.Data.Domain.Image
+namespace SmugMugCore.Net.Data.Domain.Image
 {
     // Indicates the direction of sharpness processing applied by the camera when the image was shot
     public enum Sharpness

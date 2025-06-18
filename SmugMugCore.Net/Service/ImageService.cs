@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using SmugMug.Net;
-using SmugMug.Net.Data.Domain.Image;
+using SmugMugCore.Net;
+using SmugMugCore.Net.Data.Domain.Image;
 
-namespace SmugMug.Net.Service
+namespace SmugMugCore.Net.Service
 {
     public class ImageService
     {

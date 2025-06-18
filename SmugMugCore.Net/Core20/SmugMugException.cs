@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using RestSharp;
 
-namespace SmugMug.Net.Core20
+namespace SmugMugCore.Net.Core20
 {
     /// <summary>
     /// General Application Exception to return smugmug error information
@@ -32,18 +32,20 @@ namespace SmugMug.Net.Core20
         /// </summary>
         public string ResponseDetail = "";
 
-    /// <summary>
-    /// Request object sent
-    /// </summary>
-        public RestRequest RequestObject = null;
+        /// <summary>
+        /// Request object sent
+        /// </summary>
+        public RestRequest RequestObject;
 
         /// <summary>
         /// Creates a clean exception, and provides public properties for the method, querystring and error data
         /// </summary>
-        /// <param name="errorResponse">Error Response object from SmugMug</param>
-        /// <param name="methodName">Name of the method which contained the error</param>
-        /// <param name="paramData">Parameters provided to SmugMug which generated the error</param>
-        /// <param name="requestDetail">Request detail if logged</param>
+
+        /// <param name="request">Request object used</param>
+        /// <param name="responseText">Error Response object from SmugMug</param>
+        /// <param name="method">Name of the method which contained the error</param>
+        /// <param name="errorCode">Code from Smugmug for the specific error</param>
+        /// <param name="errorMessage">Error Message</param>
         public SmugMugException(RestRequest request, string responseText, string method, int errorCode, string errorMessage)
              : base(string.Format("Error: {0} - {1} calling {2}", errorCode, errorMessage, method))
         {

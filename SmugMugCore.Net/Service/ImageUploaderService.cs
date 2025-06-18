@@ -8,7 +8,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Net.Http.Headers;
 
-namespace SmugMug.Net.Service
+namespace SmugMugCore.Net.Service
 {
     public class UploadEventArgs : EventArgs
     {

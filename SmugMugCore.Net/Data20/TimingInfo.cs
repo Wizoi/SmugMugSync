@@ -1,11 +1,10 @@
-using System.Text.Json.Serialization; // Required for JsonPropertyName
+using System.Text.Json.Serialization; 
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-    // Represents the "Timing" object [1]
     public class TimingInfo
     {
         [JsonPropertyName("Total")]
-        public TimingDetails Total { get; set; } 
+        public TimingDetails? Total { get; set; } 
     }
 }

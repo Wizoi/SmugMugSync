@@ -1,8 +1,8 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using SmugMug.Net.Core;
-using SmugMug.Net.Data;
-using SmugMug.Net.Data.Domain.Album;
-using SmugMug.Net.Service;
+using SmugMugCore.Net.Core;
+using SmugMugCore.Net.Data;
+using SmugMugCore.Net.Data.Domain.Album;
+using SmugMugCore.Net.Service;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
 using System;
@@ -26,10 +26,10 @@ namespace SmugMugCoreSync.Repositories
     public class TargetAlbumRepository
     {
         private readonly FolderSyncPathsConfig _folderSyncPathsConfig;
-        private readonly SmugMugCore _smCore;
+        private readonly SmugMugCore.Net.Core.SmugMugCore _smCore;
         private readonly Dictionary<string, AlbumDetail> _targetAlbums = new();
 
-        public TargetAlbumRepository(SmugMugCore core, FolderSyncPathsConfig folderConfig)
+        public TargetAlbumRepository(SmugMugCore.Net.Core.SmugMugCore core, FolderSyncPathsConfig folderConfig)
         {
             _smCore = core;
             _folderSyncPathsConfig = folderConfig;
@@ -68,7 +68,7 @@ namespace SmugMugCoreSync.Repositories
 
             foreach (var f in newFolders)
             {
-                var alb = new SmugMug.Net.Data.AlbumDetail()
+                var alb = new SmugMugCore.Net.Data.AlbumDetail()
                 {
                     SortDirectionDescending = true,
                     SortMethod = SortMethod.DateTimeOriginal,
@@ -514,7 +514,7 @@ namespace SmugMugCoreSync.Repositories
             return isMetadataUpdated;
         }
 
-        public async static Task<bool> IsRedownloadNeeded(SmugMugCore core, SourceMediaData sourceImage, ImageDetail targetImage)
+        public async static Task<bool> IsRedownloadNeeded(SmugMugCore.Net.Core.SmugMugCore core, SourceMediaData sourceImage, ImageDetail targetImage)
         {
             var smugImage = await core.ImageService.GetImageInfo(targetImage.ImageId, targetImage.ImageKey);
             if (smugImage.LastUpdatedDate == null)
@@ -533,12 +533,12 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
-        private async static Task<ImageUpload> UploadNewMedia(SmugMugCore core, AlbumDetail targetAlbum, ImageContent targetMetadata)
+        private async static Task<ImageUpload> UploadNewMedia(SmugMugCore.Net.Core.SmugMugCore core, AlbumDetail targetAlbum, ImageContent targetMetadata)
         {
             return await UploadMedia(core, targetAlbum, null, targetMetadata);
         }
 
-        private async static Task<ImageUpload> UploadMedia(SmugMugCore core, AlbumDetail targetAlbum, ImageDetail? targetImage, ImageContent targetMetadata)
+        private async static Task<ImageUpload> UploadMedia(SmugMugCore.Net.Core.SmugMugCore core, AlbumDetail targetAlbum, ImageDetail? targetImage, ImageContent targetMetadata)
         {
             long targetImageId = 0;
             if (targetImage != null)

@@ -1,17 +1,16 @@
-using System.Text.Json.Serialization; // Required for JsonPropertyName
+using System.Text.Json.Serialization; 
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-    // Represents the "Request" object 
     public class RequestInfo
     {
         [JsonPropertyName("Version")]
-        public string Version { get; set; } 
+        public string? Version { get; set; } 
 
         [JsonPropertyName("Method")]
-        public string Method { get; set; } 
+        public string? Method { get; set; } 
 
         [JsonPropertyName("Uri")]
-        public string Uri { get; set; } 
+        public string? Uri { get; set; } 
     }
 }

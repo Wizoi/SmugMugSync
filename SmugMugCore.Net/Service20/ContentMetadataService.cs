@@ -1,4 +1,4 @@
-﻿using SmugMug.Net.Data20;
+﻿using SmugMugCore.Net.Data20;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAPICodePack.Shell;
@@ -6,9 +6,8 @@ using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using MetadataExtractor.Formats.QuickTime;
-using System.Windows.Media;
 
-namespace SmugMug.Net.Service20;
+namespace SmugMugCore.Net.Service20;
 
 public partial class ContentMetadataService
 {

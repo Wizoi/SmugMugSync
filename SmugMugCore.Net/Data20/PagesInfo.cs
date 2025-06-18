@@ -1,34 +1,34 @@
-using System.Text.Json.Serialization; // Required for JsonPropertyName
+using System.Text.Json.Serialization; 
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
     public class PagesInfo
     {
         [JsonPropertyName("Total")]
-        public int Total { get; set; } // The complete number of items available [16, 18]
+        public int Total { get; set; }
 
         [JsonPropertyName("Start")]
-        public int Start { get; set; } // The 1-based index of the first item in this response [16, 18]
+        public int Start { get; set; }
 
         [JsonPropertyName("Count")]
-        public int Count { get; set; } // The number of items actually returned [16, 18]
+        public int Count { get; set; }
 
         [JsonPropertyName("RequestedCount")]
-        public int RequestedCount { get; set; } // The number of items requested [16, 18]
+        public int RequestedCount { get; set; } 
 
         [JsonPropertyName("FirstPage")]
-        public string FirstPage { get; set; } // URI for the first page [16, 18]
+        public string? FirstPage { get; set; } 
 
         [JsonPropertyName("LastPage")]
-        public string LastPage { get; set; } // URI for the last page [16, 18]
+        public string? LastPage { get; set; } 
 
         [JsonPropertyName("NextPage")]
-        public string NextPage { get; set; } // URI for the next page [16, 18]
+        public string? NextPage { get; set; } 
 
         [JsonPropertyName("PrevPage")]
-        public string PrevPage { get; set; } // URI for the previous page [18]
+        public string? PrevPage { get; set; } 
 
         [JsonPropertyName("Misaligned")]
-        public bool Misaligned { get; set; } // Indicates if paging is misaligned [18, 21]
+        public bool Misaligned { get; set; } 
     }
 }

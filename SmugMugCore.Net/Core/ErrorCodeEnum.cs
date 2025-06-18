@@ -4,7 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
-namespace SmugMug.Net.Core
+namespace SmugMugCore.Net.Core
 {
     /// <summary>
     /// Map a SmugMug Error code to a more descriptive name

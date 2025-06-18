@@ -21,7 +21,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Net;
 
-namespace SmugMug.Net.Core
+namespace SmugMugCore.Net.Core
 {
     /// <summary>
     ///   A class to manage OAuth 1.0A interactions. 

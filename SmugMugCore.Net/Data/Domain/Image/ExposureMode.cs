@@ -2,7 +2,7 @@
 using System.Xml.Serialization;
 
 
-namespace SmugMug.Net.Data.Domain.Image
+namespace SmugMugCore.Net.Data.Domain.Image
 {
     // Indicates the exposure mode set when the image was shot
     public enum ExposureMode

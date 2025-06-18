@@ -1,26 +1,22 @@
-using System.Text.Json.Serialization; // Required for JsonPropertyName
+using System.Text.Json.Serialization; 
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-    /// <summary>
-    /// Represents linked URIs with full metadata, typical for unfiltered responses.
-    /// If _shorturis is used, this structure would simplify (e.g., to Dictionary<string, string>). [19, 20]
-    /// </summary>
     public class UriMetadata
     {
         [JsonPropertyName("Uri")]
-        public string Uri { get; set; } // The API URI [14]
+        public string? Uri { get; set; } 
 
         [JsonPropertyName("Locator")]
-        public string Locator { get; set; } // Data type of the linked object [14]
+        public string? Locator { get; set; } 
 
         [JsonPropertyName("LocatorType")]
-        public string LocatorType { get; set; } // "Object" or "Objects" [14]
+        public string? LocatorType { get; set; } 
 
         [JsonPropertyName("UriDescription")]
-        public string UriDescription { get; set; } // Description of the URI [14]
+        public string? UriDescription { get; set; } 
 
         [JsonPropertyName("EndpointType")]
-        public string EndpointType { get; set; } // Type of endpoint [14]
+        public string? EndpointType { get; set; } 
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace SmugMug.Net.Data.Domain
+namespace SmugMugCore.Net.Data.Domain
 {
     ///<summary>
     ///Image orientation viewed in terms of rows and columns.

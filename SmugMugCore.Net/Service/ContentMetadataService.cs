@@ -1,5 +1,5 @@
-﻿using SmugMug.Net.Data;
-using SmugMug.Net.Data.Domain;
+﻿using SmugMugCore.Net.Data;
+using SmugMugCore.Net.Data.Domain;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAPICodePack.Shell;
@@ -7,9 +7,8 @@ using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using MetadataExtractor.Formats.QuickTime;
-using System.Windows.Media;
 
-namespace SmugMug.Net.Service;
+namespace SmugMugCore.Net.Service;
 
 public partial class ContentMetadataService
 {

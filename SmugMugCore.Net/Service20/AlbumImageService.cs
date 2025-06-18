@@ -1,11 +1,10 @@
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Web;
 using RestSharp;
-using SmugMug.Net.Core20;
-using SmugMug.Net.Data20;
+using SmugMugCore.Net.Core20;
+using SmugMugCore.Net.Data20;
 
-namespace SmugMug.Net.Service20
+namespace SmugMugCore.Net.Service20
 {
     public class AlbumImageService
     {
@@ -41,7 +40,7 @@ namespace SmugMug.Net.Service20
         {
             var request = new RestRequest(albumImageUri, Method.Get);
             var restResponse = await _core.QueryService(request);
-            if (restResponse.IsSuccessful)
+            if (restResponse.IsSuccessful && restResponse.Content != null)
             {
                 var jsonDoc = JsonDocument.Parse(restResponse.Content);
                 var rawResponse = jsonDoc.RootElement.Deserialize<AlbumImageDetailResponse>();
@@ -88,7 +87,7 @@ namespace SmugMug.Net.Service20
             // Make Call
             List<AlbumImageDetail> albumImageList = [];
             string nextPageLink = string.Empty;
-            while (needsInitialRequest || (nextPageLink != null && !needsInitialRequest))
+            while (needsInitialRequest || (!string.IsNullOrEmpty(nextPageLink) && !needsInitialRequest))
             {
                 RestRequest request;
                 if (needsInitialRequest)
@@ -96,7 +95,7 @@ namespace SmugMug.Net.Service20
                     request = initialRequest;
                     needsInitialRequest = false;
                 }
-                else
+                else if (nextPageLink != null)
                 {
                     // Pull off the parameters
                     var nextPageParams = nextPageLink.Substring(nextPageLink.IndexOf("?") + 1);
@@ -109,10 +108,14 @@ namespace SmugMug.Net.Service20
                         );
                     }
                 }
+                else
+                {
+                    throw new Exception($"Invalid state: needsInitialRequest = {needsInitialRequest}; nextPageLink = {nextPageLink}");
+                }
 
-                nextPageLink = null;
+                nextPageLink = string.Empty;
                 var restResponse = await _core.QueryService(request);
-                if (restResponse.IsSuccessful)
+                if (restResponse.IsSuccessful && restResponse.Content != null)
                 {
                     var jsonDoc = JsonDocument.Parse(restResponse.Content);
                     var rawResponse = jsonDoc.RootElement.Deserialize<AlbumImageListResponse>();
@@ -148,7 +151,7 @@ namespace SmugMug.Net.Service20
             var request = new RestRequest(imageUri, Method.Delete);
 
             var restResponse = await _core.QueryService(request);
-            if (restResponse.IsSuccessful)
+            if (restResponse.IsSuccessful && restResponse.Content != null)
             {
                 var jsonDoc = JsonDocument.Parse(restResponse.Content);
                 var rawResponse = jsonDoc.RootElement.Deserialize<AlbumImageDeleteResponse>();

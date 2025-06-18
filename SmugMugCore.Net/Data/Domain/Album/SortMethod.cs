@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace SmugMug.Net.Data.Domain.Album
+namespace SmugMugCore.Net.Data.Domain.Album
 {
     /// <summary>
     /// The method used for sorting images within this album

@@ -4,9 +4,9 @@ using System.IO.Abstractions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SmugMug.Net.Data.Domain;
+using SmugMugCore.Net.Data.Domain;
 
-namespace SmugMug.Net.Data
+namespace SmugMugCore.Net.Data
 {
     /// <summary>
     /// Class used for uploading an image

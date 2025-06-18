@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
-using SmugMug.Net.Data.Domain.Album;
+using SmugMugCore.Net.Data.Domain.Album;
 
-namespace SmugMug.Net.Data
+namespace SmugMugCore.Net.Data
 {
     /// <summary>
     /// Album Detailed Information

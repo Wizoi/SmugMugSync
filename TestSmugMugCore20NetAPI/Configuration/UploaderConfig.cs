@@ -12,6 +12,7 @@
         /// Token from Smugmug representing the current user, authenticated to use the service
         /// </summary>
         public string UserName { get; }
+        
         /// <summary>
         /// Private auth token for the user giving the permissions
         /// </summary>

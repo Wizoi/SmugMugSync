@@ -4,18 +4,18 @@ namespace TestSmugMugCoreNetAPI;
 
 public class Utility
 {
-    private static SmugMug.Net.Core.SmugMugCore? core = null;
+    private static SmugMugCore.Net.Core.SmugMugCore? core = null;
 
     /// <summary>
     /// Authenticate and provide a smug mug core to test against
     /// </summary>
     /// <returns></returns>
-    public static SmugMug.Net.Core.SmugMugCore RetrieveSmugMugCore()
+    public static SmugMugCore.Net.Core.SmugMugCore RetrieveSmugMugCore()
     {
         if  (Utility.core == null)
         {
             var settings = new Configuration.KeySecretsConfig();
-            var manager = new SmugMug.Net.Core.SmugMugCore(
+            var manager = new SmugMugCore.Net.Core.SmugMugCore(
                 userAuthToken:  settings.UserAuthToken, userAuthSecret: settings.UserAuthSecret,
                 apiKey: settings.ApiKey, apiSecret: settings.ApiSecret);
             manager.EnableRequestLogging = true;
@@ -29,7 +29,7 @@ public class Utility
     /// </summary>
     /// <param name="core"></param>
     /// <returns></returns>
-    public async static Task<SmugMug.Net.Data.AlbumDetail> CreateArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
+    public async static Task<SmugMugCore.Net.Data.AlbumDetail> CreateArbitraryTestAlbum(SmugMugCore.Net.Core.SmugMugCore core, string title)
     {
         // Remove it first if it exists from a prior run to clean up
         _ = await RemoveArbitraryTestAlbum(core, title);
@@ -53,7 +53,7 @@ public class Utility
     /// <param name="core"></param>
     /// <param name="album"></param>
     /// <returns></returns>
-    public async static Task<bool> RemoveArbitraryTestAlbum(SmugMug.Net.Core.SmugMugCore core, string title)
+    public async static Task<bool> RemoveArbitraryTestAlbum(SmugMugCore.Net.Core.SmugMugCore core, string title)
     {
         var service = new AlbumService(core);
         var albumData = (await service.GetAlbumList([])).Where(x=>x.Title == title).ToArray();

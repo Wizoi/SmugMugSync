@@ -1,50 +1,49 @@
-using System.Text.Json.Serialization; // Required for JsonPropertyName
+using System.Text.Json.Serialization; 
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-    // Helper class for ParameterInfo within OptionsInfo
     public class ParameterInfo
     {
         [JsonPropertyName("Name")]
-        public string Name { get; set; } // [27, 28]
+        public string? Name { get; set; } 
 
         [JsonPropertyName("Required")]
-        public bool Required { get; set; } // [27, 28]
+        public bool Required { get; set; }
 
         [JsonPropertyName("ReadOnly")]
-        public bool ReadOnly { get; set; } // [27, 28]
+        public bool ReadOnly { get; set; }
 
         [JsonPropertyName("Default")]
-        public object Default { get; set; } // Can be string, null, etc. [27, 28]
+        public object? Default { get; set; } 
 
         [JsonPropertyName("Description")]
-        public string Description { get; set; } // [28]
+        public string? Description { get; set; } 
 
         [JsonPropertyName("Type")]
-        public string Type { get; set; } // e.g., "Varchar", "Select", "Uri" [27-29]
+        public string? Type { get; set; } 
 
         [JsonPropertyName("MIN_CHARS")]
-        public object MIN_CHARS { get; set; } // Can be int or string ("INFINITY") [27, 28]
+        public object? MIN_CHARS { get; set; } 
 
         [JsonPropertyName("MAX_CHARS")]
-        public object MAX_CHARS { get; set; } // Can be int or string ("INFINITY") [27, 28]
+        public object? MAX_CHARS { get; set; } 
 
         [JsonPropertyName("OPTIONS")]
-        public List<string> OPTIONS { get; set; } // For Type "Select" [28, 29]
+        public List<string>? OPTIONS { get; set; } 
 
         [JsonPropertyName("MIN_COUNT")]
-        public int? MIN_COUNT { get; set; } // Optional, for collections [28, 29]
+        public int? MIN_COUNT { get; set; } 
 
         [JsonPropertyName("MAX_COUNT")]
-        public int? MAX_COUNT { get; set; } // Optional, for collections [28, 29]
+        public int? MAX_COUNT { get; set; } 
 
         [JsonPropertyName("Locator")]
-        public List<string> Locator { get; set; } // For Type "Uri" [29]
+        public List<string>? Locator { get; set; } 
 
         [JsonPropertyName("Value")]
-        public object Value { get; set; } // Current value in the request [28, 29]
+        public object? Value { get; set; } 
 
         [JsonPropertyName("Label")]
-        public string Label { get; set; } // [27]
+        public string? Label { get; set; } 
     }
 }

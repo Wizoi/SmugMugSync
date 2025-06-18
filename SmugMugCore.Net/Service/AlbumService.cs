@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Windows.Xps.Serialization;
-using SmugMug.Net;
-using SmugMug.Net.Data.Domain.Album;
+using SmugMugCore.Net;
+using SmugMugCore.Net.Data.Domain.Album;
 
-namespace SmugMug.Net.Service
+namespace SmugMugCore.Net.Service
 {
     public class AlbumService
     {

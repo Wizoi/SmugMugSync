@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Web;
 using RestSharp;
-using SmugMug.Net.Core20;
-using SmugMug.Net.Data20;
+using SmugMugCore.Net.Core20;
+using SmugMugCore.Net.Data20;
 
-namespace SmugMug.Net.Service20
+namespace SmugMugCore.Net.Service20
 {
     public class AlbumService
     {
@@ -36,7 +36,7 @@ namespace SmugMug.Net.Service20
         }
 
         /// <summary>
-        /// Retrives album keys and titles for a given case insensitive search text
+        /// Retrieves album keys and titles for a given case insensitive search text
         /// </summary>
         /// <param name="searchText">case insensitive search term</param>
         /// <returns></returns>
@@ -72,7 +72,7 @@ namespace SmugMug.Net.Service20
             // Make Call
             List<AlbumDetail> albumList = [];
             string nextPageLink = string.Empty;
-            while (needsInitialRequest || (nextPageLink != null && !needsInitialRequest))
+            while (needsInitialRequest || (!string.IsNullOrEmpty(nextPageLink) && !needsInitialRequest))
             {
                 RestRequest request;
                 if (needsInitialRequest)
@@ -94,7 +94,7 @@ namespace SmugMug.Net.Service20
                     }
                 }
 
-                nextPageLink = null;
+                nextPageLink = string.Empty;
                 var restResponse = await _core.QueryService(request);
                 if (restResponse.IsSuccessful)
                 {

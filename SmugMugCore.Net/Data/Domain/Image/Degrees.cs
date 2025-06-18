@@ -2,7 +2,7 @@
 using System.Xml.Serialization;
 
 
-namespace SmugMug.Net.Data.Domain.Image
+namespace SmugMugCore.Net.Data.Domain.Image
 {
     // The degrees of rotation
     public enum Degrees

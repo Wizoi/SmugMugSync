@@ -2,14 +2,11 @@ using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Web;
-using Newtonsoft.Json;
 using RestSharp;
-using SixLabors.ImageSharp;
-using SmugMug.Net.Core20;
-using SmugMug.Net.Data20;
+using SmugMugCore.Net.Core20;
+using SmugMugCore.Net.Data20;
 
-namespace SmugMug.Net.Service20
+namespace SmugMugCore.Net.Service20
 {
     public class ImageUploaderService
     {
@@ -22,6 +19,16 @@ namespace SmugMug.Net.Service20
             _core = core;
         }
 
+        /// <summary>
+        /// Uploads a new image
+        /// </summary>
+        /// <param name="albumId"></param>
+        /// <param name="imageMetadata"></param>
+        public async virtual Task<string> UploadNewImage(string albumUri, Data20.FileMetaContent imageMetadata)
+        {
+            return await this.UploadUpdatedImage(albumUri, string.Empty, imageMetadata);
+        }
+        
         /// <summary>
         /// Uploads the image
         /// </summary>
@@ -56,7 +63,7 @@ namespace SmugMug.Net.Service20
             else
                 request.AddHeader("X-Smug-Caption", "");
             request.AddHeader("X-Smug-FileName", imageMetadata.FileInfo.Name);
-            if (imageUri != null && imageUri.Length > 0)
+            if (!string.IsNullOrEmpty(imageUri))
                 request.AddHeader("X-Smug-ImageID", imageUri);
             if (imageMetadata.Keywords != null)
                 request.AddHeader("X-Smug-Keywords", string.Join(";", imageMetadata.Keywords));

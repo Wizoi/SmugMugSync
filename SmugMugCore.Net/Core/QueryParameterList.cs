@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace SmugMug.Net.Core
+namespace SmugMugCore.Net.Core
 {
     /// <summary>
     /// Object which wraps functionality to provide input information for smug mug API queries

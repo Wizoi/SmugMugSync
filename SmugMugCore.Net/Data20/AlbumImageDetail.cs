@@ -1,187 +1,163 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using SmugMug.Net.Data; // Required for JsonPropertyName
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
-// Represents an AlbumImage object, which includes all Image fields.
-// This class effectively acts as the deserialization target for both Image and AlbumImage properties.
     public class AlbumImageDetail
     {
         [JsonPropertyName("ThumbnailUrl")]
-        public string ThumbnailUrl { get; set; } // URL for the thumbnail image
+        public string? ThumbnailUrl { get; set; } 
 
         [JsonPropertyName("FileName")]
-        public string FileName { get; set; } // The name of the image file
+        public string? FileName { get; set; } 
 
         [JsonPropertyName("Processing")]
-        public bool Processing { get; set; } // Indicates if the image is currently being processed
+        public bool Processing { get; set; } 
 
         [JsonPropertyName("UploadKey")]
-        public string UploadKey { get; set; } // Unique key for the upload
+        public string? UploadKey { get; set; }
 
         [JsonPropertyName("DateTimeUploaded")]
-        public DateTimeOffset DateTimeUploaded { get; set; } // Date and time when the image was uploaded. Using DateTimeOffset is recommended for dates with time zone information.
+        public DateTimeOffset DateTimeUploaded { get; set; } 
 
         [JsonPropertyName("DateTimeOriginal")]
-        public DateTimeOffset DateTimeOriginal { get; set; } // Date and time when the original image was taken
+        public DateTimeOffset DateTimeOriginal { get; set; } 
 
         [JsonPropertyName("Format")]
-        public string Format { get; set; } // The format of the image (e.g., "JPG")
+        public string? Format { get; set; } 
 
         [JsonPropertyName("OriginalHeight")]
-        public int OriginalHeight { get; set; } // Original height of the image in pixels
+        public int OriginalHeight { get; set; } 
 
         [JsonPropertyName("OriginalWidth")]
-        public int OriginalWidth { get; set; } // Original width of the image in pixels
+        public int OriginalWidth { get; set; }
 
         [JsonPropertyName("OriginalSize")]
-        public int OriginalSize { get; set; } // Original size of the image in bytes
+        public int OriginalSize { get; set; } 
 
         [JsonPropertyName("Collectable")]
-        public bool Collectable { get; set; } // Indicates if the image can be collected into other albums [1]
+        public bool Collectable { get; set; } 
 
         [JsonPropertyName("IsArchive")]
-        public bool IsArchive { get; set; } // Indicates if the image is an archive
+        public bool IsArchive { get; set; } 
 
         [JsonPropertyName("IsVideo")]
-        public bool IsVideo { get; set; } // Indicates if the media is a video rather than a photo
+        public bool IsVideo { get; set; } 
 
         [JsonPropertyName("ComponentFileTypes")]
-        public Dictionary<string, List<string>> ComponentFileTypes { get; set; } // Dictionary to hold file types of components (e.g., "Image": ["jpg"])
+        public Dictionary<string, List<string>>? ComponentFileTypes { get; set; } 
 
         [JsonPropertyName("CanEdit")]
-        public bool CanEdit { get; set; } // Indicates if the user has permission to edit the image
+        public bool CanEdit { get; set; } 
 
         [JsonPropertyName("CanBuy")]
-        public bool CanBuy { get; set; } // Indicates if the image can be purchased
+        public bool CanBuy { get; set; } 
 
         [JsonPropertyName("Protected")]
-        public bool Protected { get; set; } // Indicates if the image is protected
+        public bool Protected { get; set; } 
 
         [JsonPropertyName("EZProject")]
-        public bool EZProject { get; set; } // Specific SmugMug internal flag
+        public bool EZProject { get; set; } 
 
         [JsonPropertyName("Watermarked")]
-        public bool Watermarked { get; set; } // Indicates if the image has a watermark [2]
+        public bool Watermarked { get; set; }
 
         [JsonPropertyName("Serial")]
-        public int Serial { get; set; } // Serial number of the image
+        public int Serial { get; set; } 
 
         [JsonPropertyName("ArchivedUri")]
-        public string ArchivedUri { get; set; } // URI to the archived version of the image
+        public string? ArchivedUri { get; set; } 
 
         [JsonPropertyName("ArchivedSize")]
-        public int ArchivedSize { get; set; } // Size of the archived image in bytes
+        public int ArchivedSize { get; set; } 
 
         [JsonPropertyName("ArchivedMD5")]
-        public string ArchivedMD5 { get; set; } // MD5 hash of the archived image
+        public string? ArchivedMD5 { get; set; } 
 
         [JsonPropertyName("Status")]
-        public string Status { get; set; } // Current status of the image (e.g., "Open")
+        public string? Status { get; set; } 
 
         [JsonPropertyName("SubStatus")]
-        public string SubStatus { get; set; } // Sub-status of the image (e.g., "NFS")
+        public string? SubStatus { get; set; } 
 
         [JsonPropertyName("CanShare")]
-        public bool CanShare { get; set; } // Indicates if the image can be shared
+        public bool CanShare { get; set; } 
 
         [JsonPropertyName("Comments")]
-        public bool Comments { get; set; } // Indicates if comments are enabled for the image
+        public bool Comments { get; set; } 
 
         [JsonPropertyName("ShowKeywords")]
-        public bool ShowKeywords { get; set; } // Indicates if keywords should be displayed for the image
+        public bool ShowKeywords { get; set; } 
 
         [JsonPropertyName("PreferredDisplayFileExtension")]
-        public string PreferredDisplayFileExtension { get; set; } // Preferred file extension for display
+        public string? PreferredDisplayFileExtension { get; set; } 
 
         [JsonPropertyName("Uri")]
-        public string Uri { get; set; } // The API URI for this specific AlbumImage relationship [1]
+        public string? Uri { get; set; } 
 
         [JsonPropertyName("UriDescription")]
-        public string UriDescription { get; set; } // Description of the URI (e.g., "Image from album")
+        public string? UriDescription { get; set; } 
     
-        // Important Fields (inherited from Image endpoint) [3]:
         [JsonPropertyName("Altitude")]
         public double? Altitude { get; set; }
 
         [JsonPropertyName("Caption")]
-        public string Caption { get; set; }
+        public string? Caption { get; set; }
 
-        // Date is typically in ISO 8601 format, so DateTimeOffset is a good choice for preserving timezone info.
         [JsonPropertyName("Date")]
         public DateTimeOffset? Date { get; set; }
 
         [JsonPropertyName("Hidden")]
         public bool? Hidden { get; set; }
 
-        // Keywords are semicolon-separated [3]
         [JsonPropertyName("Keywords")]
-        public string Keywords { get; set; }
+        public string? Keywords { get; set; }
 
-        // KeywordsArray is a JSON array of keywords [3]
         [JsonPropertyName("KeywordsArray")]
-        public List<string> KeywordsArray { get; set; }
+        public List<string>? KeywordsArray { get; set; }
 
-        // LastUpdated includes changes to content, properties, or replacement [3]
         [JsonPropertyName("LastUpdated")]
         public DateTimeOffset? LastUpdated { get; set; }
 
         [JsonPropertyName("Latitude")]
-        public string Latitude { get; set; }
+        public string? Latitude { get; set; }
 
         [JsonPropertyName("Longitude")]
-        public string Longitude { get; set; }
+        public string? Longitude { get; set; }
 
         [JsonPropertyName("Title")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [JsonPropertyName("Watermark")]
-        public string Watermark { get; set; }
+        public string? Watermark { get; set; }
 
-        // WebUri is the URI to view this image on the SmugMug website [3]
         [JsonPropertyName("WebUri")]
-        public string WebUri { get; set; }
+        public string? WebUri { get; set; }
 
-        // Important Links (URIs) [2, 4]:
-        // These links provide navigation to related resources.
         [JsonPropertyName("Uris")]
-        public AlbumImageUris Uris { get; set; }
+        public AlbumImageUris? Uris { get; set; }
 
-        // Other Image-specific fields might be present but not explicitly listed in the source,
-        // such as `ImageKey`, `AlbumKey` if it's a highlight image within an album response.
-        // The Album Search Request and Response sample [5] shows `HighlightAlbumImageUri`
-        // within an `Album` object, which points to an `AlbumImage` specific to that context.
-        [JsonPropertyName("ImageKey")] // Example, might be present
-        public string ImageKey { get; set; }
+        [JsonPropertyName("ImageKey")]
+        public string? ImageKey { get; set; }
 
-        [JsonPropertyName("AlbumKey")] // Example, might be present within AlbumImage context
-        public string AlbumKey { get; set; }
+        [JsonPropertyName("AlbumKey")]
+        public string? AlbumKey { get; set; }
     }
 
-    // Nested class to hold the URIs related to the AlbumImage
     public class AlbumImageUris
     {
-        // Link to the album from this album-image relationship [2]
         [JsonPropertyName("Album")]
-        public UriMetadata Album { get; set; }
+        public UriMetadata? Album { get; set; }
 
-        // Link to the image from this album-image relationship [2]
         [JsonPropertyName("Image")]
-        public UriMetadata Image { get; set; }
+        public UriMetadata? Image { get; set; }
 
-        // Link to the album where the image is actually stored (if permitted) [2]
         [JsonPropertyName("ImageAlbum")]
-        public UriMetadata ImageAlbum { get; set; }
+        public UriMetadata? ImageAlbum { get; set; }
 
-        // Additional metadata from the image file [4]
         [JsonPropertyName("ImageMetadata")]
-        public UriMetadata ImageMetadata { get; set; }
+        public UriMetadata? ImageMetadata { get; set; }
 
-        // Raw media URLs and dimensions for all available sizes of this image [4]
         [JsonPropertyName("ImageSizeDetails")]
-        public UriMetadata ImageSizeDetails { get; set; }
+        public UriMetadata? ImageSizeDetails { get; set; }
     }
-
 }

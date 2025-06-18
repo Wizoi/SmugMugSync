@@ -82,7 +82,7 @@ public class ImageServiceTest
     /// </summary>
     /// <param name="core"></param>
     /// <returns></returns>
-    private async Task<ImageUpload> AddTestImage(SmugMug.Net.Core.SmugMugCore core)
+    private async Task<ImageUpload> AddTestImage(SmugMugCore.Net.Core.SmugMugCore core)
     {
         if (this.TestContext == null)
             Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");

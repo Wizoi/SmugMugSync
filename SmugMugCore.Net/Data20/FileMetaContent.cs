@@ -1,11 +1,6 @@
-﻿using System;
-using System.IO;
-using System.IO.Abstractions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.IO.Abstractions;
 
-namespace SmugMug.Net.Data20
+namespace SmugMugCore.Net.Data20
 {
     /// <summary>
     /// Class used for uploading an image

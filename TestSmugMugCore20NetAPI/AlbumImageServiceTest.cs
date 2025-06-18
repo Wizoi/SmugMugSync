@@ -2,15 +2,14 @@ using System.Windows.Forms.VisualStyles;
 using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NuGet.Frameworks;
-using SmugMug.Net.Core20;
-using SmugMug.Net.Data20;
-using SmugMug.Net.Service20;
+using SmugMugCore.Net.Core20;
+using SmugMugCore.Net.Data20;
+using SmugMugCore.Net.Service20;
 
 namespace TestSmugMugCore20NetAPI;
 
 /// <summary>
-///This is a test class for ImageUploaderServiceTest and is intended
-///to contain all ImageUploaderServiceTest Unit Tests
+/// This is a test class for validating the AlbumImage Service
 ///</summary>
 [TestClass()]
 public class AlbumImageServiceTest
@@ -19,8 +18,8 @@ public class AlbumImageServiceTest
     private TestContext? testContextInstance;
 
     /// <summary>
-    ///Gets or sets the test context which provides
-    ///information about and functionality for the current test run.
+    /// Gets or sets the test context which provides
+    /// information about and folder to find the test images/videos
     ///</summary>
     public TestContext? TestContext
     {
@@ -47,6 +46,7 @@ public class AlbumImageServiceTest
         {
             Name = "ImageUploaderAlbumTest" + Random.Shared.Next(100).ToString()
         };
+
         var createAlbumTask = albumService.CreateAlbum(albumToCreate);
         createAlbumTask.Wait();
         _albumTest = createAlbumTask.Result;
@@ -70,8 +70,8 @@ public class AlbumImageServiceTest
     }
 
     /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
+    /// A test to delete the image using the AlbumImage Service
+    /// </summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
     public async Task DeleteImage()
@@ -90,7 +90,7 @@ public class AlbumImageServiceTest
         string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
-        string imageUri = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+        string imageUri = await uploaderService.UploadNewImage(albumUri, content);
         var imageLoaded = await albumImageService.GetImageDetail(imageUri);
 
         // Delete the image
@@ -99,8 +99,8 @@ public class AlbumImageServiceTest
     }
 
     /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
+    /// A test to Get all of the album image details from the AlbumImage Service
+    /// </summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
     public async Task GetAlbumImagesFull()
@@ -119,17 +119,17 @@ public class AlbumImageServiceTest
         string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListFull(_albumTest.AlbumKey);
-        Assert.AreEqual(3, albumImagesLoaded.Count());
+        Assert.AreEqual(3, albumImagesLoaded.Length);
     }
 
     /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
+    /// A test to get a subset of album image properties from the from the AlbumImage Service
+    /// </summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
     public async Task GetAlbumImagesShort()
@@ -148,17 +148,17 @@ public class AlbumImageServiceTest
         string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.AreEqual(3, albumImagesLoaded.Count());
+        Assert.AreEqual(3, albumImagesLoaded.Length);
     }
 
     /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
+    /// Update properties for an album image (Title, Caption or Keywords)
+    /// </summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
     public async Task UpdateAlbumImages()
@@ -177,10 +177,10 @@ public class AlbumImageServiceTest
         string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.AreEqual(1, albumImagesLoaded.Count());
+        Assert.AreEqual(1, albumImagesLoaded.Length);
 
         var testAlbumImage = albumImagesLoaded[0];
         testAlbumImage.Title = "Updating the Comment";
@@ -193,8 +193,8 @@ public class AlbumImageServiceTest
     }
 
     /// <summary>
-    ///A test for UploadNewImage
-    ///</summary>
+    /// Download the AlbumImage to a local file
+    /// </summary>
     [TestMethod()]
     [DeploymentItem(@"Content\TestImage.jpg")]
     public async Task DownloadAlbumImage()
@@ -213,11 +213,11 @@ public class AlbumImageServiceTest
         string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
-        _ = await uploaderService.UploadUpdatedImage(albumUri, null, content);
+        _ = await uploaderService.UploadNewImage(albumUri, content);
 
         // Retrieve the recently loaded image metadata
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.IsTrue(albumImagesLoaded.Count() == 1);
+        Assert.IsTrue(albumImagesLoaded.Length == 1);
         var testAlbumImage = albumImagesLoaded[0];
 
         string localPath = Path.GetTempFileName();

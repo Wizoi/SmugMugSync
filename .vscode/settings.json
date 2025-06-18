@@ -1,4 +1,9 @@
 {
     "dotnet.defaultSolution": "Smugmug.sln",
     "coverage-gutters.showLineCoverage": true,
+    "cSpell.words": [
+        "filterurl",
+        "Newtonsoft",
+        "Pricelist"
+    ],
 }

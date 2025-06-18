@@ -81,7 +81,7 @@ namespace SmugMugCoreSync.Utility
                 Trace.WriteLine("*** EXCEPTION DETECTED ***");
 
                 string extendedDetails = string.Empty;
-                if (e.ExceptionObject is SmugMug.Net.Core.SmugMugException smugMugException)
+                if (e.ExceptionObject is SmugMugCore.Net.Core.SmugMugException smugMugException)
                 {
                     var paramData = smugMugException.ParamData?.GenerateCollection();
                     if (paramData != null)
