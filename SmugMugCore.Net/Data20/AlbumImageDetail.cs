@@ -4,6 +4,11 @@ namespace SmugMugCore.Net.Data20
 {
     public class AlbumImageDetail
     {
+        /// <summary>
+        /// Field used to determine if this image is in a deleted state during processing
+        /// </summary>
+        public bool IsDeleted { get; set; }
+
         [JsonPropertyName("ThumbnailUrl")]
         public string? ThumbnailUrl { get; set; } 
 

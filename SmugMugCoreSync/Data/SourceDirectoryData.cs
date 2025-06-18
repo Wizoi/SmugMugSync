@@ -35,9 +35,9 @@ namespace SmugMugCoreSync.Data
 
         public bool IsLinked { get; private set; }
 
-        public virtual void LinkToAlbum(int albumId, string albumKey)
+        public virtual void LinkToAlbum(string albumKey)
         {
-            if (LinkToAlbumInternal(albumId, albumKey))
+            if (LinkToAlbumInternal(albumKey))
             {
                 SaveIni();
             }
@@ -47,18 +47,16 @@ namespace SmugMugCoreSync.Data
         {
             this.IsLinked = false;
             AlbumKey = string.Empty;
-            AlbumId = 0;
 
             // Do not save the updated INI until it  is overwritten by  a valid album
         }
 
-        private bool LinkToAlbumInternal(int albumId, string albumKey)
+        private bool LinkToAlbumInternal(string albumKey)
         {
             if (!IsLinked)
             {
                 if (AlbumKey != albumKey)
                 {
-                    AlbumId = albumId;
                     AlbumKey = albumKey;
 
                     // Save the new  settings to the INI for the folder.
@@ -80,11 +78,10 @@ namespace SmugMugCoreSync.Data
             {
                 string xmlData = _fileSystem.File.ReadAllText(smugMugIniPath);
                 System.Xml.Linq.XElement root = System.Xml.Linq.XElement.Parse(xmlData);
-                var albumIdNode = root.Element("albumId");
                 var albumKeyNode = root.Element("albumKey");
-                if (albumIdNode != null && albumKeyNode != null)
+                if (albumKeyNode != null)
                 {
-                    _ = LinkToAlbumInternal(albumId: int.Parse(albumIdNode.Value), albumKey: albumKeyNode.Value);
+                    _ = LinkToAlbumInternal(albumKey: albumKeyNode.Value);
                 }
             }
         }
@@ -98,7 +95,7 @@ namespace SmugMugCoreSync.Data
             {
                 XElement root = GenerateSyncXmNode();
 
-                // If it is being remapped to a new folder (allbum removed to be resynced), then this may exist and should be removed.
+                // If it is being remapped to a new folder (album removed to be resynced), then this may exist and should be removed.
                 if (_fileSystem.File.Exists(smugMugIniPath))
                     _fileSystem.File.Delete(smugMugIniPath);
 

@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Moq;
 using Moq.Protected;
-using SmugMugCore.Net.Core;
-using SmugMugCore.Net.Data;
-using SmugMugCore.Net.Service;
+using SmugMugCore.Net.Core20;
+using SmugMugCore.Net.Data20;
+using SmugMugCore.Net.Service20;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
 using SmugMugCoreSync.Repositories;
@@ -29,16 +29,16 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
-        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", Filename = "TestFile.JPG" };
-        var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
+        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", FileNameename = "TestFile.JPG" };
+        var smImageServiceMock = new Mock<AlbumImageService>(smCoreMock.Object);
         smImageServiceMock.Setup(x => x.GetImageInfo(
             It.IsAny<long>(), It.IsAny<string>())).ReturnsAsync(targetImage);
         smImageServiceMock.Setup(x => x.DownloadImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
-        smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
+        smCoreMock.Setup(x => x.AlbumImageService).Returns(smImageServiceMock.Object);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);

@@ -2,7 +2,6 @@ using System.Net;
 using SmugMugCore.Net.Service20;
 using RestSharp;
 using RestSharp.Authenticators;
-using SmugMugCore.Net.Data;
 
 namespace SmugMugCore.Net.Core20
 {

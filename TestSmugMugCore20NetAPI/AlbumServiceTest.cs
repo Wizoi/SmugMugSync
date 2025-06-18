@@ -145,6 +145,6 @@ public class AlbumServiceTest
 
         // Run actual test
         var actual = await albumService.DeleteAlbum(albumToDelete);
-        Assert.IsTrue(actual.Contains(albumToDelete.AlbumKey));
+        Assert.AreEqual(true, actual);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualBasic.Logging;
-using SmugMugCore.Net.Service;
+using SmugMugCore.Net.Service20;
 using System;
 using System.Collections.Generic;
 using System.Linq;

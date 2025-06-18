@@ -1,6 +1,4 @@
 using Moq;
-using Moq.Protected;
-using SmugMugCore.Net.Service;
 using SmugMugCoreSync.Data;
 using System.IO.Abstractions;
 
@@ -30,7 +28,7 @@ public class SourceMediaDataTest
         Assert.AreEqual("A:\\FOO\\FILENAME.JPG", sourceMediaData.FullFileName, "Full Filename Expected");
         Assert.AreEqual("FILENAME", sourceMediaData.FileNameBase, "Filename Base Expected");
         Assert.AreEqual(DateTime.Parse("2023-01-01"), sourceMediaData.LastWriteTime, "Last Write Time Expected");
-        Assert.IsTrue(sourceMediaData.IsImageUpdatable(), "Return that  the image, if not a TIF, is updateable to smugmug");
+        Assert.IsTrue(sourceMediaData.IsImageUpdatable(), "Return that  the image, if not a TIF, is updatable to smugmug");
     }
 
     [TestMethod]

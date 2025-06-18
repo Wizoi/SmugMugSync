@@ -192,7 +192,7 @@ namespace SmugMugCore.Net.Service20
         // <param name="albumId">The id for a specific album</param>
         // <param name="albumKey">The key for a specific album</param>
         // <returns></returns>
-        public async virtual Task<string> DeleteAlbum(AlbumDetail album)
+        public async virtual Task<bool> DeleteAlbum(AlbumDetail album)
         {
             var request = new RestRequest(string.Format(API_ALBUM_LOOKUP, album.AlbumKey), Method.Delete);
             var restResponse = await _core.QueryService(request);
@@ -204,7 +204,7 @@ namespace SmugMugCore.Net.Service20
                 {
                     throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
                 }
-                return rawResponse.Response.Uri;
+                return true;
             }
 
             throw new Exception("Delete Failure: " + restResponse.ErrorMessage);

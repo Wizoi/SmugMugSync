@@ -1,5 +1,5 @@
-﻿using SmugMugCore.Net.Core;
-using SmugMugCore.Net.Data;
+﻿using SmugMugCore.Net.Core20;
+using SmugMugCore.Net.Data20;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Repositories;
 using SmugMugCoreSync.Utility;
@@ -21,13 +21,15 @@ internal class Program
         var appLogger = new AppLogger(appSettings.Logging);
         appLogger.SetupAppLog();
 
-        var smCore = new SmugMugCore.Net.Core.SmugMugCore(
+        var smCore = new SmugMugCore.Net.Core20.SmugMugCore(
             userAuthToken: keySettings.UserAuthToken, userAuthSecret: keySettings.UserAuthSecret,
-            apiKey: keySettings.ApiKey, apiSecret: keySettings.ApiSecret);
+            apiKey: keySettings.ApiKey, apiSecret: keySettings.ApiSecret,
+            userName: appSettings.UploaderSettings.UserName,
+            defaultUploadFolder: appSettings.UploaderSettings.UploadFolderPath);
 
         if (args.Any() && args[0] == "GENERATEKEYS")
         {
-            _ = await GenerateUserAccessTokens(keySettings.ApiKey, keySettings.ApiSecret);
+         //   _ = await GenerateUserAccessTokens(keySettings.ApiKey, keySettings.ApiSecret);
         }
         else
         {
@@ -51,6 +53,7 @@ internal class Program
     /// <summary>
     /// Authenticates against SmugMug to get the user's access key
     /// </summary>
+/*
     static async Task<bool> GenerateUserAccessTokens(string smugMugApiKey, string smugMugSecret)
     {
         Console.WriteLine("Create new instance of OAuth Manager");
@@ -85,4 +88,5 @@ internal class Program
 
         return true;
     }
+*/
 }
