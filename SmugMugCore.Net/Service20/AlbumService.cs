@@ -6,7 +6,7 @@ using SmugMugCore.Net.Data20;
 
 namespace SmugMugCore.Net.Service20
 {
-    public class AlbumService
+    public class AlbumService(Core20.SmugMugCore? core, string userName, string uploadPath)
     {
         public readonly string API_ALBUM_SEARCH = "/api/v2/album!search";
         public readonly string API_ALBUM_LOOKUP = "/api/v2/album/{0}";
@@ -14,16 +14,7 @@ namespace SmugMugCore.Net.Service20
         public readonly string ROOT_SCOPE = "/api/v2/user/{0}";
 
 
-        private readonly Core20.SmugMugCore _core;
-        private readonly string _userName;
-        private readonly string _uploadPath;
-
-        internal AlbumService(Core20.SmugMugCore core, string userName, string uploadPath)
-        {
-            _core = core;
-            _userName = userName;
-            _uploadPath = uploadPath;
-        }
+        public AlbumService() : this(null, "", "") { }
 
         /// <summary>
         /// Retrieve a list of albums for a given user with a field list.  Will return empty albums, and ignore the nickname, and album passwords
@@ -57,7 +48,7 @@ namespace SmugMugCore.Net.Service20
         {
             // Setup Request
             var initialRequest = new RestRequest(API_ALBUM_SEARCH, Method.Get);
-            initialRequest.AddParameter("Scope", string.Format(ROOT_SCOPE, _userName), true);
+            initialRequest.AddParameter("Scope", string.Format(ROOT_SCOPE, userName), true);
             initialRequest.AddParameter("count", pagingCount, false);
             initialRequest.AddParameter("Text", searchText, true);
             bool needsInitialRequest = true;
@@ -95,7 +86,7 @@ namespace SmugMugCore.Net.Service20
                 }
 
                 nextPageLink = string.Empty;
-                var restResponse = await _core.QueryService(request);
+                var restResponse = await core.QueryService(request);
                 if (restResponse.IsSuccessful)
                 {
                     var jsonDoc = JsonDocument.Parse(restResponse.Content);
@@ -130,7 +121,7 @@ namespace SmugMugCore.Net.Service20
         public async virtual Task<Data20.AlbumDetail> GetAlbumDetail(string albumKey)
         {
             var request = new RestRequest(string.Format(API_ALBUM_LOOKUP, albumKey), Method.Get);
-            var restResponse = await _core.QueryService(request);
+            var restResponse = await core.QueryService(request);
             if (restResponse.IsSuccessful)
             {
                 var jsonDoc = JsonDocument.Parse(restResponse.Content);
@@ -164,14 +155,14 @@ namespace SmugMugCore.Net.Service20
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault
             });
 
-            string albumUploadLocation = string.Format(API_ALBUM_NEW_LOCATION, _userName, _uploadPath);
+            string albumUploadLocation = string.Format(API_ALBUM_NEW_LOCATION, userName, uploadPath);
             var request = new RestRequest(albumUploadLocation, Method.Post);
             request.RequestFormat = DataFormat.Json;
             request.AddHeader("_verbosity", 1);
             request.AddHeader("Content-Type", "application/json");
             request.AddBody(albumData);
 
-            var restResponse = await _core.QueryService(request);
+            var restResponse = await core.QueryService(request);
             if (restResponse.IsSuccessful)
             {
                 var jsonDoc = JsonDocument.Parse(restResponse.Content);
@@ -195,7 +186,7 @@ namespace SmugMugCore.Net.Service20
         public async virtual Task<bool> DeleteAlbum(AlbumDetail album)
         {
             var request = new RestRequest(string.Format(API_ALBUM_LOOKUP, album.AlbumKey), Method.Delete);
-            var restResponse = await _core.QueryService(request);
+            var restResponse = await core.QueryService(request);
             if (restResponse.IsSuccessful)
             {
                 var jsonDoc = JsonDocument.Parse(restResponse.Content);

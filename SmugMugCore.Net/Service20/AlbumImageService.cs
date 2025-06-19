@@ -12,9 +12,11 @@ namespace SmugMugCore.Net.Service20
         public readonly string API_ALBUM_IMAGE_LOOKUP = "/api/v2/album/{0}/image/{1}";
         public readonly string API_ALBUM_IMAGE_DOWNLOAD = "/api/v2/album/{0}/image/{1}!download";
 
-        private readonly Core20.SmugMugCore _core;
+        private readonly Core20.SmugMugCore? _core;
 
-        internal AlbumImageService(Core20.SmugMugCore core)
+        public AlbumImageService() : this(null) { }
+
+        public AlbumImageService(Core20.SmugMugCore? core)
         {
             _core = core;
         }
@@ -50,15 +52,15 @@ namespace SmugMugCore.Net.Service20
             throw new Exception("Error loading album image: " + restResponse.ErrorMessage);
         }
 
-        public async Task<Data20.AlbumImageDetail[]> GetAlbumImageListFull(string albumKey)
+        public virtual async Task<Data20.AlbumImageDetail[]> GetAlbumImageListFull(string albumKey)
         {
             return await GetAlbumImageList(albumKey, [], 100);
         }
 
-        public async Task<Data20.AlbumImageDetail[]> GetAlbumImageListShort(string albumKey)
+        public virtual async Task<Data20.AlbumImageDetail[]> GetAlbumImageListShort(string albumKey)
         {
             return await GetAlbumImageList(albumKey,
-                new string[] { "FileName", "Title", "Caption", "OriginalSize",  "Keywords", "AlbumKey", "ImageKey", "ArchivedMD5", "ArchivedUri" },
+                new string[] { "FileName", "Title", "Caption",  "Keywords", "AlbumKey", "ImageKey", "ArchivedSize", "ArchivedMD5", "ArchivedUri" },
                 300);
         }
 

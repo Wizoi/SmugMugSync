@@ -29,29 +29,30 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
-        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", FileNameename = "TestFile.JPG" };
+        var targetImage = new AlbumImageDetail() { AlbumKey = "TestKey", ImageKey = "SomeKey1", FileName = "TestFile.JPG" };
         var smImageServiceMock = new Mock<AlbumImageService>(smCoreMock.Object);
-        smImageServiceMock.Setup(x => x.GetImageInfo(
-            It.IsAny<long>(), It.IsAny<string>())).ReturnsAsync(targetImage);
-        smImageServiceMock.Setup(x => x.DownloadImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
+        smImageServiceMock.Setup(x => x.GetImageDetail(
+            It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(targetImage);
+        smImageServiceMock.Setup(x => x.GetAlbumImageListShort(It.IsAny<string>())).ReturnsAsync([targetImage]);
+        smImageServiceMock.Setup(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
         smCoreMock.Setup(x => x.AlbumImageService).Returns(smImageServiceMock.Object);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
-        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
-        albDetail.Images = new []{targetImage};
-        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+        smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
-        // Setup the Source Metadata (ImageContent) / CONTENTMETADATASERVICE
-        var targetMetadata = new ImageContent();
+
+        // Setup the Source Metadata (FileMetaContent) / CONTENTMETADATASERVICE
+        var targetMetadata = new FileMetaContent();
         var smContentServiceMock = new Mock<ContentMetadataService>();
         smContentServiceMock.Setup(x => x.DiscoverMetadata(It.IsAny<string>()))
             .ReturnsAsync(targetMetadata);
@@ -81,7 +82,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaData, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()));
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()));
         smImageServiceMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -96,7 +97,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaData, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()), Times.Never());
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()), Times.Never());
         smImageServiceMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -113,7 +114,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaData, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()), Times.Never());
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()), Times.Never());
         smImageServiceMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -130,7 +131,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaData, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()));
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()));
         smImageServiceMock.Invocations.Clear();
 
     }
@@ -143,29 +144,29 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
-        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", Filename = "TestFile.JPG" };
-        var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
-        smImageServiceMock.Setup(x => x.GetImageInfo(
-            It.IsAny<long>(), It.IsAny<string>())).ReturnsAsync(targetImage);
-        smImageServiceMock.Setup(x => x.DownloadImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
-        smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
+        var targetImage = new AlbumImageDetail() { AlbumKey = "TestKey", ImageKey = "SomeKey1", FileName = "TestFile.JPG" };
+        var smImageServiceMock = new Mock<AlbumImageService>(smCoreMock.Object);
+        smImageServiceMock.Setup(x => x.GetImageDetail(
+            It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(targetImage);
+        smImageServiceMock.Setup(x => x.GetAlbumImageListShort(It.IsAny<string>())).ReturnsAsync([targetImage]);
+        smImageServiceMock.Setup(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
+        smCoreMock.Setup(x => x.AlbumImageService).Returns(smImageServiceMock.Object);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
-        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
-        albDetail.Images = new []{targetImage};
-        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+        smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
-        // Setup the Source Metadata (ImageContent) / CONTENTMETADATASERVICE
-        var targetMetadata = new ImageContent();
+        // Setup the Source Metadata (FileMetaContent) / CONTENTMETADATASERVICE
+        var targetMetadata = new FileMetaContent();
         var smContentServiceMock = new Mock<ContentMetadataService>();
         smContentServiceMock.Setup(x => x.DiscoverMetadata(It.IsAny<string>()))
             .ReturnsAsync(targetMetadata);
@@ -182,20 +183,20 @@ public class TargetAlbumRepositoryMediaProcessor
         var sourceMediaDataMock = new Mock<SourceMediaData>(fileSystemMock.Object, fsiMock.Object);
 
         // Setup the ImageUploaderService
-        var imageUploaded = new ImageUpload();
+        var imageUploaded = new ImageUploaderService();
         var smImageUploaderSvcMock = new Mock<ImageUploaderService>(smCoreMock.Object);
-        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>())).ReturnsAsync(imageUploaded);
+        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>())).ReturnsAsync(It.IsAny<string>());
         smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
 
         // Scenario Setup - Setup the length and size fields to be different, but the source is not 0
         fiMock.SetupGet(x => x.Length).Returns(1);
-        targetImage.SizeBytes = 2;
+        targetImage.ArchivedSize = 2;
         // Scenario Setup - Setup the checksum to be  different
         sourceMediaDataMock.Setup(x => x.LoadMd5Checksum()).ReturnsAsync("ChecksumData");
-        targetImage.MD5Sum = "ChecksumOrigData";
+        targetImage.ArchivedMD5 = "ChecksumOrigData";
         // Scenario Setup - Mark the date on the file and the local file to be the same
         fiMock.SetupGet(x => x.LastWriteTime).Returns(DateTime.Parse("2020-01-01"));
-        targetImage.LastUpdatedDate = DateTime.Parse("2020-01-01").ToString();
+        targetImage.LastUpdated = DateTime.Parse("2020-01-01");
 
         ////////////////////////////////////////////////
         // Perform the test AS NORMAL
@@ -208,7 +209,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()));
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()));
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -223,7 +224,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -240,7 +241,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -257,7 +258,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
     }
 
@@ -269,29 +270,29 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
-        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", Filename = "TestFile.JPG" };
-        var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
-        smImageServiceMock.Setup(x => x.GetImageInfo(
-            It.IsAny<long>(), It.IsAny<string>())).ReturnsAsync(targetImage);
-        smImageServiceMock.Setup(x => x.DownloadImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
-        smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
+        var targetImage = new AlbumImageDetail() { AlbumKey = "TestKey", ImageKey = "SomeKey1", FileName = "TestFile.JPG" };
+        var smImageServiceMock = new Mock<AlbumImageService>(smCoreMock.Object);
+        smImageServiceMock.Setup(x => x.GetImageDetail(
+            It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(targetImage);
+        smImageServiceMock.Setup(x => x.GetAlbumImageListShort(It.IsAny<string>())).ReturnsAsync([targetImage]);
+        smImageServiceMock.Setup(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
+        smCoreMock.Setup(x => x.AlbumImageService).Returns(smImageServiceMock.Object);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
-        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
-        albDetail.Images = new []{targetImage};
-        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+        smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
-        // Setup the Source Metadata (ImageContent) / CONTENTMETADATASERVICE
-        var targetMetadata = new ImageContent();
+        // Setup the Source Metadata (FileMetaContent) / CONTENTMETADATASERVICE
+        var targetMetadata = new FileMetaContent();
         var smContentServiceMock = new Mock<ContentMetadataService>();
         smContentServiceMock.Setup(x => x.DiscoverMetadata(It.IsAny<string>()))
             .ReturnsAsync(targetMetadata);
@@ -308,19 +309,19 @@ public class TargetAlbumRepositoryMediaProcessor
         var sourceMediaDataMock = new Mock<SourceMediaData>(fileSystemMock.Object, fsiMock.Object);
 
         // Setup the ImageUploaderService
-        var imageUploaded = new ImageUpload();
+        var imageUploaded = new ImageUploaderService();
         var smImageUploaderSvcMock = new Mock<ImageUploaderService>(smCoreMock.Object);
-        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>())).ReturnsAsync(imageUploaded);
+        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>())).ReturnsAsync(It.IsAny<string>());
         smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
 
         // Scenario Setup - Setup the length and size fields to be different, but the source is not 0
         fiMock.SetupGet(x => x.Length).Returns(1);
-        targetImage.SizeBytes = 2;
+        targetImage.ArchivedSize = 2;
         // Scenario Setup - Setup the checksum to be  different
         sourceMediaDataMock.Setup(x => x.LoadMd5Checksum()).ReturnsAsync("ChecksumData");
-        targetImage.MD5Sum = "ChecksumOrigData";
+        targetImage.ArchivedMD5 = "ChecksumOrigData";
         // Scenario Setup - Source file is image dated before the target date (implies it was reprocessed by smugmug)
-        targetImage.LastUpdatedDate = DateTime.Parse("2020-01-02").ToString();
+        targetImage.LastUpdated = DateTime.Parse("2020-01-02");
         fiMock.SetupGet(x => x.LastWriteTime).Returns(DateTime.Parse("2020-01-01"));
 
         ////////////////////////////////////////////////
@@ -334,7 +335,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()));
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()));
         smImageServiceMock.Invocations.Clear();    
 
         ////////////////////////////////////////////////
@@ -347,7 +348,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()), Times.Never());
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()), Times.Never());
         smImageServiceMock.Invocations.Clear();    
 
         ////////////////////////////////////////////////
@@ -364,7 +365,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()), Times.Never());
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()), Times.Never());
         smImageServiceMock.Invocations.Clear();    
 
         ////////////////////////////////////////////////
@@ -381,7 +382,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.DownloadImage(targetImage, It.IsAny<string>()), Times.Never());
+        smImageServiceMock.Verify(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>()), Times.Never());
         smImageServiceMock.Invocations.Clear();    
     }
 
@@ -393,30 +394,29 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Image (ImageDetail)
-        var targetImage = new ImageDetail() { ImageKey = "SomeKey1", Filename = "TestFile.JPG" };
-        var smImageServiceMock = new Mock<ImageService>(smCoreMock.Object);
-        smImageServiceMock.Setup(x => x.GetImageInfo(
-            It.IsAny<long>(), It.IsAny<string>())).ReturnsAsync(targetImage);
-        smImageServiceMock.Setup(x => x.UpdateImage(targetImage)).ReturnsAsync(true);
-        smImageServiceMock.Setup(x => x.DownloadImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
-        smCoreMock.Setup(x => x.ImageService).Returns(smImageServiceMock.Object);
+        var targetImage = new AlbumImageDetail() { AlbumKey = "TestKey", ImageKey = "SomeKey1", FileName = "TestFile.JPG" };
+        var smImageServiceMock = new Mock<AlbumImageService>(smCoreMock.Object);
+        smImageServiceMock.Setup(x => x.GetImageDetail(
+            It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(targetImage);
+        smImageServiceMock.Setup(x => x.GetAlbumImageListShort(It.IsAny<string>())).ReturnsAsync([targetImage]);
+        smImageServiceMock.Setup(x => x.DownloadPrimaryImage(targetImage, It.IsAny<string>())).ReturnsAsync(true);            
+        smCoreMock.Setup(x => x.AlbumImageService).Returns(smImageServiceMock.Object);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
-        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
-        albDetail.Images = new []{targetImage};
-        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+        smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
-        // Setup the Source Metadata (ImageContent) / CONTENTMETADATASERVICE
-        var targetMetadata = new ImageContent();
+        // Setup the Source Metadata (FileMetaContent) / CONTENTMETADATASERVICE
+        var targetMetadata = new FileMetaContent();
         var smContentServiceMock = new Mock<ContentMetadataService>();
         smContentServiceMock.Setup(x => x.DiscoverMetadata(It.IsAny<string>()))
             .ReturnsAsync(targetMetadata);
@@ -433,17 +433,17 @@ public class TargetAlbumRepositoryMediaProcessor
         var sourceMediaDataMock = new Mock<SourceMediaData>(fileSystemMock.Object, fsiMock.Object);
 
         // Setup the ImageUploaderService
-        var imageUploaded = new ImageUpload();
+        var imageUploaded = new ImageUploaderService();
         var smImageUploaderSvcMock = new Mock<ImageUploaderService>(smCoreMock.Object);
-        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>())).ReturnsAsync(imageUploaded);
+        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>())).ReturnsAsync(It.IsAny<string>());
         smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
 
         // Scenario Setup - Size, Dates and checksum match
         fiMock.SetupGet(x => x.Length).Returns(1);
-        targetImage.SizeBytes = 1;
+        targetImage.ArchivedSize = 1;
         sourceMediaDataMock.Setup(x => x.LoadMd5Checksum()).ReturnsAsync("ChecksumData");
-        targetImage.MD5Sum = "ChecksumData";
-        targetImage.LastUpdatedDate = DateTime.Parse("2020-01-01").ToString();
+        targetImage.ArchivedMD5 = "ChecksumData";
+        targetImage.LastUpdated = DateTime.Parse("2020-01-01");
         fiMock.SetupGet(x => x.LastWriteTime).Returns(DateTime.Parse("2020-01-01"));
 
         // Scenario Setup - Make keywords different
@@ -460,7 +460,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.UpdateImage(targetImage));
+        smImageServiceMock.Verify(x => x.UpdateAlbumImage(targetImage));
         smImageServiceMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -474,7 +474,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.UpdateImage(targetImage), Times.Never());
+        smImageServiceMock.Verify(x => x.UpdateAlbumImage(targetImage), Times.Never());
         smImageServiceMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -492,7 +492,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.UpdateImage(targetImage), Times.Never());
+        smImageServiceMock.Verify(x => x.UpdateAlbumImage(targetImage), Times.Never());
         smImageServiceMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -510,7 +510,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageServiceMock.Verify(x => x.UpdateImage(targetImage));
+        smImageServiceMock.Verify(x => x.UpdateAlbumImage(targetImage));
         smImageServiceMock.Invocations.Clear();
     }
 
@@ -522,20 +522,20 @@ public class TargetAlbumRepositoryMediaProcessor
         };
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         var folderConfig = new FolderSyncPathsConfig(configuration);
-        var smCoreMock = new Mock<SmugMugCore.Net.Core.SmugMugCore>(new object[]{string.Empty, string.Empty, string.Empty, string.Empty});
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
         var uploadThrottler = new SemaphoreSlim(1);
 
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
-        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object);
+        var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
-        smAlbumServiceMock.Setup(x => x.GetAlbumList(It.IsAny<string[]>()))
+        smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
         smCoreMock.Setup(x => x.AlbumService).Returns(smAlbumServiceMock.Object);
 
-        // Setup the Source Metadata (ImageContent) / CONTENTMETADATASERVICE
-        var targetMetadata = new ImageContent();
+        // Setup the Source Metadata (FileMetaContent) / CONTENTMETADATASERVICE
+        var targetMetadata = new FileMetaContent();
         var smContentServiceMock = new Mock<ContentMetadataService>();
         smContentServiceMock.Setup(x => x.DiscoverMetadata(It.IsAny<string>()))
             .ReturnsAsync(targetMetadata);
@@ -552,9 +552,9 @@ public class TargetAlbumRepositoryMediaProcessor
         var sourceMediaDataMock = new Mock<SourceMediaData>(fileSystemMock.Object, fsiMock.Object);
 
         // Setup the ImageUploaderService
-        var imageUploaded = new ImageUpload();
+        var imageUploaded = new ImageUploaderService();
         var smImageUploaderSvcMock = new Mock<ImageUploaderService>(smCoreMock.Object);
-        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>())).ReturnsAsync(imageUploaded);
+        smImageUploaderSvcMock.Setup(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>())).ReturnsAsync(It.IsAny<string>());
         smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
 
         ////////////////////////////////////////////////
@@ -573,7 +573,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()));
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()));
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -592,7 +592,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -612,7 +612,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -632,7 +632,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()));
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()));
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -652,7 +652,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -673,10 +673,8 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<int>(), It.IsAny<long>(), It.IsAny<ImageContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadUpdatedImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
-
-
     }
 }
 

@@ -229,6 +229,6 @@ public class AlbumImageServiceTest
         // Cleanup file
         fi.Delete();
 
-        Assert.AreEqual(testAlbumImage.OriginalSize, actual);
+        Assert.AreEqual(testAlbumImage.ArchivedSize, actual);
     }
 }

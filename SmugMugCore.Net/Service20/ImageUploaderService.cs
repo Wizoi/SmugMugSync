@@ -10,11 +10,13 @@ namespace SmugMugCore.Net.Service20
 {
     public class ImageUploaderService
     {
-        private readonly Core20.SmugMugCore _core;
+        private readonly Core20.SmugMugCore? _core;
         private readonly string Version = "2.0";
         public readonly string API_UPLOADER_ENDPOINT = "https://upload.smugmug.com/";
 
-        internal ImageUploaderService(Core20.SmugMugCore core)
+        public ImageUploaderService() : this(null) { }
+
+        public ImageUploaderService(Core20.SmugMugCore? core)
         {
             _core = core;
         }

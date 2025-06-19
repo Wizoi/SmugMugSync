@@ -16,8 +16,9 @@ namespace SmugMugCore.Net.Core20
         string userName,
         string defaultUploadFolder)
     {
-        public bool EnableRequestLogging { get; set; } = System.Diagnostics.Debugger.IsAttached;
+        public SmugMugCore() : this("", "", "", "", "", "") { }
 
+        public bool EnableRequestLogging { get; set; } = System.Diagnostics.Debugger.IsAttached;
 
         #region Properties for Services
         private readonly System.Collections.Generic.Dictionary<string, object> _serviceCatalog = new();

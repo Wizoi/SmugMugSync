@@ -5,6 +5,7 @@ using SmugMugCore.Net.Service20;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -177,15 +178,15 @@ namespace SmugMugCoreSync.Repositories
 
                 foreach (var file in sourceFiles)
                 {
-                    sourceFileNameLookup.Add(file.FileNameBase, file);
+                    sourceFileNameLookup.Add(file.FileNameBase.ToUpper(), file);
                 }
                 List<AlbumImageDetail> dupeFileNameList = [];
                 foreach (var file in targetFiles)
                 {
-                    if (targetFileNameLookup.ContainsKey(file.FileName))
+                    if (targetFileNameLookup.ContainsKey(file.FileNameBase.ToUpper()))
                         dupeFileNameList.Add(file);
                     else
-                        targetFileNameLookup.Add(file.FileName, file);
+                        targetFileNameLookup.Add(file.FileNameBase.ToUpper(), file);
                 }
 
                 //
@@ -493,6 +494,7 @@ namespace SmugMugCoreSync.Repositories
             return isMetadataUpdated;
         }
 
+
         public async static Task<bool> IsRedownloadNeeded(SmugMugCore.Net.Core20.SmugMugCore core, SourceMediaData sourceImage, AlbumImageDetail targetImage)
         {
             var smugImage = await core.AlbumImageService.GetImageDetail(targetImage.AlbumKey, targetImage.ImageKey);
@@ -503,14 +505,26 @@ namespace SmugMugCoreSync.Repositories
             else
             {
                 // TODO: need to fix this.
-                var tsUpdated = sourceImage.LastWriteTime - smugImage.LastUpdated;
-                //if ((tsUpdated.TotalMilliseconds < 0) && smugImage.MD5Sum != (await sourceImage.LoadMd5Checksum()))
+                if (smugImage.LastUpdated != null)
                 {
-                    return true;
+                    TimeSpan tsUpdated = sourceImage.LastWriteTime.Subtract(ConvertFromDateTimeOffset((DateTimeOffset)smugImage.LastUpdated));
+                    if ((tsUpdated.TotalMilliseconds < 0) && smugImage.ArchivedMD5 != (await sourceImage.LoadMd5Checksum()))
+                    {
+                        return true;
+                    }
                 }
+                return false;
             }
+        }
 
-            return false;
+        private static DateTime ConvertFromDateTimeOffset(DateTimeOffset dateTime)
+        {
+            if (dateTime.Offset.Equals(TimeSpan.Zero))
+                return dateTime.UtcDateTime;
+            else if (dateTime.Offset.Equals(TimeZoneInfo.Local.GetUtcOffset(dateTime.DateTime)))
+                return DateTime.SpecifyKind(dateTime.DateTime, DateTimeKind.Local);
+            else
+                return dateTime.DateTime;
         }
 
         private async static Task<bool> UploadNewMedia(SmugMugCore.Net.Core20.SmugMugCore core, AlbumDetail targetAlbum, FileMetaContent targetMetadata)
@@ -520,7 +534,11 @@ namespace SmugMugCoreSync.Repositories
 
         private async static Task<bool> UploadMedia(SmugMugCore.Net.Core20.SmugMugCore core, AlbumDetail targetAlbum, AlbumImageDetail? targetImage, FileMetaContent targetMetadata)
         {
-            string targetImageKey = targetImage.ImageKey ?? string.Empty;
+            string targetImageKey = String.Empty;
+            if (targetImage != null)
+            {
+                targetImageKey = targetImage.ImageKey;
+            }
 
             try
             {

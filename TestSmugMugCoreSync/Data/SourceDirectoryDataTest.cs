@@ -27,7 +27,7 @@ public class DirectoryInfoTests
         Assert.IsFalse(sourceDirectoryData.IsLinked, "The object should not be linked.");
         Assert.AreEqual(0, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("", sourceDirectoryData.AlbumKey, "Album Key should be empty");
-        Assert.AreEqual("FOODIRECTORY", sourceDirectoryData.FolderName, "Foldername shoul be the foo directory");
+        Assert.AreEqual("FOODIRECTORY", sourceDirectoryData.FolderName, "Foldername should be the foo directory");
     }
 
     [TestMethod]
@@ -101,7 +101,7 @@ public class DirectoryInfoTests
         xmlSystemMock.Setup(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XElement>()));
 
         var sourceDirectoryData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
-        sourceDirectoryData.LinkToAlbum(1, "fooBarAlbum");
+        sourceDirectoryData.LinkToAlbum("fooBarAlbum");
 
         xmlSystemMock.Verify(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XElement>()));
         Assert.IsTrue(sourceDirectoryData.IsLinked, "The object should be linked.");

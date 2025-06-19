@@ -8,6 +8,8 @@ namespace SmugMugCore.Net.Data20
         /// Field used to determine if this image is in a deleted state during processing
         /// </summary>
         public bool IsDeleted { get; set; }
+        
+        public string FileNameBase { get { return Path.GetFileNameWithoutExtension(this.FileName);  }}
 
         [JsonPropertyName("ThumbnailUrl")]
         public string? ThumbnailUrl { get; set; } 
