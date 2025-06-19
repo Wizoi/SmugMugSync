@@ -83,12 +83,46 @@ public class ImageUploaderServiceTest
         var imageUploaderService = core.ImageUploaderService;
         var contentService = core.ContentMetadataService;
 
-        string albumUri = _albumTest.Uri;
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = await contentService.DiscoverMetadata(filename);
 
-        string imageUri = await imageUploaderService.UploadNewImage(albumUri, content);
+        string imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, content);
         Assert.IsNotNull(imageUri);
+    }
+
+    /// <summary>
+    /// Upload a new image using the Image Uploader Service
+    /// </summary>
+    [TestMethod()]
+    [DeploymentItem(@"Content\TestImage.jpg")]
+    [DeploymentItem(@"Content\TestScannedImage.jpg")]
+    public async Task UploadUpdatedImageTest()
+    {
+        if (this.TestContext == null)
+            Assert.Fail("FATAL ERROR: TextContext is not properly set by the test runner.");
+        if (_albumTest == null)
+            Assert.Fail("FATAL ERROR: Album to test is not properly set by the test runner.");
+
+        var core = Utility.RetrieveSmugMugCore20();
+        var imageUploaderService = core.ImageUploaderService;
+        var contentService = core.ContentMetadataService;
+        var albumImageService = core.AlbumImageService;
+
+        string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
+        var content = await contentService.DiscoverMetadata(filename);
+        string imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, content);
+        Assert.IsNotNull(imageUri);
+
+        // Load the images for the album, and change the loaded image's title
+        var albumImagesLoaded = await albumImageService.GetImageDetail(imageUri);
+
+        string filenameUpdated = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestScannedImage.jpg");
+        var contentUpdated = await contentService.DiscoverMetadata(filename);
+        string imageUriUpdated = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, albumImagesLoaded.ImageKey, albumImagesLoaded.Serial, content);
+        Assert.IsNotNull(imageUriUpdated);
+
+        Thread.Sleep(1000); // Adding time for SmugMug Site to persist changes to cache
+        Assert.AreEqual(imageUri, imageUriUpdated);
     }
 
     /// <summary>
@@ -117,7 +151,7 @@ public class ImageUploaderServiceTest
         // Check JPG
         string filenameJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         fileContent = await contentService.DiscoverMetadata(filenameJPG);
-        imageUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
         Assert.AreEqual("TestImage.jpg", imageLoaded.FileName);
         Assert.AreEqual("Pets; Pepper; Activity; Snow", imageLoaded.Keywords, "Keywords");
@@ -125,7 +159,7 @@ public class ImageUploaderServiceTest
         // Check JPEG
         string filenameJPEG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestJpegImage.jpeg");
         fileContent = await contentService.DiscoverMetadata(filenameJPEG);
-        imageUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
         Assert.AreEqual("TestJpegImage.jpeg", imageLoaded.FileName);
         Assert.AreEqual("Pets; Pepper; Activity; Snow", imageLoaded.Keywords, "Keywords");
@@ -133,7 +167,7 @@ public class ImageUploaderServiceTest
         // Check PNG
         string filenamePNG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestPngImage.png");
         fileContent = await contentService.DiscoverMetadata(filenamePNG);
-        imageUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
         Assert.AreEqual("TestPngImage.png", imageLoaded.FileName);
         Assert.AreEqual("", imageLoaded.Keywords, "Keywords"); // File format does not save metadata
@@ -141,7 +175,7 @@ public class ImageUploaderServiceTest
         // Check Scanned JPG
         string filenameScannedJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestScannedImage.jpg");
         fileContent = await contentService.DiscoverMetadata(filenameScannedJPG);
-        imageUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
         Assert.AreEqual("TestScannedImage.jpg", imageLoaded.FileName);
         Assert.AreEqual("Family; Idzi; Bob Idzi; Holidays; Christmas", imageLoaded.Keywords, "Keywords");
@@ -174,7 +208,7 @@ public class ImageUploaderServiceTest
         // Check MOV
         string filenameMOV = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideo.mov");
         fileContent = await contentService.DiscoverMetadata(filenameMOV);
-        videoUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        videoUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         videoLoaded = await albumImageService.GetImageDetail(videoUri);
         Assert.AreEqual("TestVideo.mov", videoLoaded.FileName);
         Assert.AreEqual("Scenic; Animals; Activity; Cruise", videoLoaded.Keywords, "Keywords");
@@ -182,7 +216,7 @@ public class ImageUploaderServiceTest
         // Check MP4
         string filenameMP4 = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMp4.mp4");
         fileContent = await contentService.DiscoverMetadata(filenameMP4);
-        videoUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        videoUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         videoLoaded = await albumImageService.GetImageDetail(videoUri);
         Assert.AreEqual("TestVideoMp4.MP4", videoLoaded.FileName);
         Assert.AreEqual("", videoLoaded.Keywords, "Keywords"); // File format does not save metadata
@@ -190,7 +224,7 @@ public class ImageUploaderServiceTest
         // Check MOV
         string filenameMPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoMpg.mpg");
         fileContent = await contentService.DiscoverMetadata(filenameMPG);
-        videoUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        videoUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         videoLoaded = await albumImageService.GetImageDetail(videoUri);
         Assert.AreEqual("TestVideoMpg.mpg", videoLoaded.FileName);
         Assert.AreEqual("", videoLoaded.Keywords, "Keywords"); // File format does not save metadata
@@ -198,7 +232,7 @@ public class ImageUploaderServiceTest
         // Check WMV
         string filenameWMV = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestVideoWmv.wmv");
         fileContent = await contentService.DiscoverMetadata(filenameWMV);
-        videoUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        videoUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         videoLoaded = await albumImageService.GetImageDetail(videoUri);
         Assert.AreEqual("TestVideoWmv.wmv", videoLoaded.FileName);
         Assert.AreEqual("Activity; Snow; Pets; Pepper", videoLoaded.Keywords, "Keywords");
@@ -228,7 +262,7 @@ public class ImageUploaderServiceTest
         // Check BMP
         string filenameBMP = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestBmpImage.bmp");
         fileContent = await contentService.DiscoverMetadata(filenameBMP);
-        imageUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
     }
 
@@ -256,7 +290,7 @@ public class ImageUploaderServiceTest
         // Check TIF
         string filenameTIF = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestTifImage.tif");
         fileContent = await contentService.DiscoverMetadata(filenameTIF);
-        imageUri = await imageUploaderService.UploadNewImage(_albumTest.Uri, fileContent);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
     }
 }

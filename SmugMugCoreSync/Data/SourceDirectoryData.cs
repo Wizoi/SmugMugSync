@@ -22,14 +22,12 @@ namespace SmugMugCoreSync.Data
             FolderName = System.IO.Path.GetFileName(directory.FullName);
             Path = directory.FullName;
             AlbumKey = string.Empty;
-            AlbumId = 0;
             IsLinked = false;
             ReadIni();
         }
 
         public IDirectoryInfo DirectoryInfo { get; private set; }
         public string FolderName { get; set; }
-        public int AlbumId { get; private   set; }
         public string AlbumKey { get; private set; }
         public string Path { get; private set; }
 
@@ -109,9 +107,7 @@ namespace SmugMugCoreSync.Data
         private XElement GenerateSyncXmNode()
         {
             System.Xml.Linq.XElement root = System.Xml.Linq.XElement.Parse("<smugMugSyncData />");
-            var elementAlbumId = new System.Xml.Linq.XElement("albumId") { Value = AlbumId.ToString() };
             var elementAlbumKey = new System.Xml.Linq.XElement("albumKey") { Value = AlbumKey };
-            root.Add(elementAlbumId);
             root.Add(elementAlbumKey);
             return root;
         }

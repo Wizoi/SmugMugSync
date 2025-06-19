@@ -9,7 +9,7 @@ namespace SmugMugCore.Net.Service20
     public class AlbumImageService
     {
         public readonly string API_ALBUM_IMAGE_SEARCH = "/api/v2/album/{0}!images";
-        public readonly string API_ALBUM_IMAGE_LOOKUP = "/api/v2/album/{0}/image/{1}";
+        public readonly string API_ALBUM_IMAGE_LOOKUP = "/api/v2/album/{0}/image/{1}-{2}";
         public readonly string API_ALBUM_IMAGE_DOWNLOAD = "/api/v2/album/{0}/image/{1}!download";
 
         private readonly Core20.SmugMugCore? _core;
@@ -27,9 +27,9 @@ namespace SmugMugCore.Net.Service20
         // <param name="albumId">The id for a specific album</param>
         // <param name="albumKey">The key for a specific album</param>
         // <returns></returns>
-        public async virtual Task<Data20.AlbumImageDetail> GetImageDetail(string albumKey, string imageKey)
+        public async virtual Task<Data20.AlbumImageDetail> GetImageDetail(string albumKey, string imageKey, int imageKeySerial)
         {
-            return await GetImageDetail(string.Format(API_ALBUM_IMAGE_LOOKUP, albumKey, imageKey));
+            return await GetImageDetail(string.Format(API_ALBUM_IMAGE_LOOKUP, albumKey, imageKey, imageKeySerial));
         }
 
         // <summary>
@@ -60,7 +60,7 @@ namespace SmugMugCore.Net.Service20
         public virtual async Task<Data20.AlbumImageDetail[]> GetAlbumImageListShort(string albumKey)
         {
             return await GetAlbumImageList(albumKey,
-                new string[] { "FileName", "Title", "Caption",  "Keywords", "AlbumKey", "ImageKey", "ArchivedSize", "ArchivedMD5", "ArchivedUri" },
+                new string[] { "FileName", "Title", "Caption",  "Keywords", "AlbumKey", "ImageKey", "ArchivedSize", "ArchivedMD5", "ArchivedUri", "Serial" },
                 300);
         }
 

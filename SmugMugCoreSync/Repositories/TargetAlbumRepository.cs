@@ -438,7 +438,7 @@ namespace SmugMugCoreSync.Repositories
                     else
                     {
                         Trace.WriteLine("    > Redownloading (remote more recent): " + sourceImage.FullFileName);
-                        var smugImage = await _smCore.AlbumImageService.GetImageDetail(targetImage.AlbumKey, targetImage.ImageKey);
+                        var smugImage = await _smCore.AlbumImageService.GetImageDetail(targetImage.AlbumKey, targetImage.ImageKey, targetImage.Serial);
                         isRedownloaded = await _smCore.AlbumImageService.DownloadPrimaryImage(smugImage, sourceImage.FullFileName);
                     }
                     break;
@@ -497,7 +497,7 @@ namespace SmugMugCoreSync.Repositories
 
         public async static Task<bool> IsRedownloadNeeded(SmugMugCore.Net.Core20.SmugMugCore core, SourceMediaData sourceImage, AlbumImageDetail targetImage)
         {
-            var smugImage = await core.AlbumImageService.GetImageDetail(targetImage.AlbumKey, targetImage.ImageKey);
+            var smugImage = await core.AlbumImageService.GetImageDetail(targetImage.AlbumKey, targetImage.ImageKey, targetImage.Serial);
             if (smugImage.LastUpdated == null)
             {
                 return true;
@@ -535,15 +535,17 @@ namespace SmugMugCoreSync.Repositories
         private async static Task<bool> UploadMedia(SmugMugCore.Net.Core20.SmugMugCore core, AlbumDetail targetAlbum, AlbumImageDetail? targetImage, FileMetaContent targetMetadata)
         {
             string targetImageKey = String.Empty;
+            int targetImageSerial = 0;
             if (targetImage != null)
             {
                 targetImageKey = targetImage.ImageKey;
+                targetImageSerial = targetImage.Serial;
             }
 
             try
             {
                 // Attempt #1
-                _ = await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumKey, targetImageKey, targetMetadata);
+                _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
                 return true;
             }
             catch (HttpRequestException httpReqEx)
@@ -551,7 +553,7 @@ namespace SmugMugCoreSync.Repositories
                 // Non-SmugMugException - Retry just once (possibly network related)
                 Trace.WriteLine($"    > RETRY (Failed: {targetMetadata.FileInfo?.Name}) = {httpReqEx.Message}");
                 System.Threading.Thread.Sleep(1000);
-                _ = await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumKey, targetImageKey, targetMetadata);
+                _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
                 return true;
             }
             catch (SmugMugException smugEx)
@@ -567,7 +569,7 @@ namespace SmugMugCoreSync.Repositories
                     // Attempt #2 (then blow up and escalate higher)
                     Trace.WriteLine("    > RETRY ERROR " + smugEx.ErrorCode + " Query=" + smugEx.ErrorMessage);
                     System.Threading.Thread.Sleep(1000);
-                    _ = await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumKey, targetImageKey, targetMetadata);
+                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
                     return true;
                 }
             }
@@ -576,7 +578,7 @@ namespace SmugMugCoreSync.Repositories
                 // Attempt #2 (then blow up and escalate higher)
                 Trace.WriteLine($"    > RETRY (Failed: {targetMetadata.FileInfo?.Name}) = {ex.Message}");
                 System.Threading.Thread.Sleep(1000);
-                _ = await core.ImageUploaderService.UploadUpdatedImage(targetAlbum.AlbumKey, targetImageKey, targetMetadata);
+                _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
                 return true;
             }
         }

@@ -528,7 +528,7 @@ public class SourceFolderRepositoryTest
         directoryInfoMock1.SetupGet(x => x.FullName).Returns("A:\\DIRECTORY1");
         fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(true);   
         fileSystemMock.Setup(x => x.File.ReadAllText("A:\\DIRECTORY1\\.SMUGMUG.INI")).Returns(
-            "<smugMugSyncData><albumId>1</albumId><albumKey>someKey</albumKey></smugMugSyncData>");   
+            "<smugMugSyncData><albumKey>someKey</albumKey></smugMugSyncData>");   
 
         var sourceDirData1 = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock1.Object);
 
@@ -536,7 +536,7 @@ public class SourceFolderRepositoryTest
         directoryInfoMock2.SetupGet(x => x.FullName).Returns("A:\\DIRECTORY2");
         fileSystemMock.Setup(x => x.File.Exists("A:\\DIRECTORY2\\.SMUGMUG.INI")).Returns(true);   
         fileSystemMock.Setup(x => x.File.ReadAllText("A:\\DIRECTORY2\\.SMUGMUG.INI")).Returns(
-            "<smugMugSyncData><albumId>2</albumId><albumKey>someOtherKey</albumKey></smugMugSyncData>");   
+            "<smugMugSyncData><albumKey>someOtherKey</albumKey></smugMugSyncData>");   
 
         var sourceDirData2 = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock2.Object);
 
@@ -566,7 +566,7 @@ public class SourceFolderRepositoryTest
         // Verify when they are linked, we can retrieve them
         var actualFolder = sourceFolderRepo.RetrieveLinkedFolderByKey("someKey");
         Assert.IsNotNull(actualFolder);
-        Assert.AreEqual(1, actualFolder.AlbumId, "Album should be found and match the id");
+        Assert.AreEqual("someKey", actualFolder.AlbumKey, "Album should be found and match the key");
 
         var noActualFolder = sourceFolderRepo.RetrieveLinkedFolderByKey("someKeyMiss");
         Assert.IsNull(noActualFolder);

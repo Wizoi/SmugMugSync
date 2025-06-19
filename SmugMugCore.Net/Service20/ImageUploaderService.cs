@@ -22,22 +22,37 @@ namespace SmugMugCore.Net.Service20
         }
 
         /// <summary>
-        /// Uploads a new image
+        /// Upload a new Image to an Album
         /// </summary>
-        /// <param name="albumId"></param>
+        /// <param name="albumKey"></param>
         /// <param name="imageMetadata"></param>
-        public async virtual Task<string> UploadNewImage(string albumUri, Data20.FileMetaContent imageMetadata)
+        /// <returns></returns>
+        public async virtual Task<string> UploadAlbumImage(string albumKey, Data20.FileMetaContent imageMetadata)
         {
-            return await this.UploadUpdatedImage(albumUri, string.Empty, imageMetadata);
+            var album = await _core.AlbumService.GetAlbumDetail(albumKey);
+            return await this.UploadAlbumImage(new UriMetadata() { Uri = album.Uri }, null, imageMetadata);
         }
-        
+
+        /// <summary>
+        /// Upload an updated image, Look up the required album and image URIs from the main objects before uploading. 
+        /// </summary>
+        /// <param name="albumKey"></param>
+        /// <param name="imageKey"></param>
+        /// <param name="imageMetadata"></param>
+        /// <returns></returns>
+        public async virtual Task<string> UploadAlbumImage(string albumKey, string imageKey, int imageKeySerial, Data20.FileMetaContent imageMetadata)
+        {
+            var albumImage = await _core.AlbumImageService.GetImageDetail(albumKey, imageKey, imageKeySerial);
+            return await this.UploadAlbumImage(albumImage.Uris.Album, albumImage.Uris.Image, imageMetadata);
+        }
+
         /// <summary>
         /// Uploads the image
         /// </summary>
         /// <param name="albumId"></param>
         /// <param name="imageId"></param>
         /// <param name="imageMetadata"></param>
-        public async virtual Task<string> UploadUpdatedImage(string albumUri, string imageUri, Data20.FileMetaContent imageMetadata)
+        private async Task<string> UploadAlbumImage(UriMetadata albumUri, UriMetadata? imageUri, Data20.FileMetaContent imageMetadata)
         {
             if (imageMetadata.FileInfo == null)
                 throw new ApplicationException("Error - Image with no filename detected.");
@@ -55,18 +70,20 @@ namespace SmugMugCore.Net.Service20
             // Required Params
             request.AddHeader("X-Smug-Version", Version);
             request.AddHeader("X-Smug-ResponseType", "JSON");
-            request.AddHeader("X-Smug-AlbumUri", albumUri);
+            request.AddHeader("X-Smug-AlbumUri", albumUri.Uri);
+            if (imageUri != null)
+                request.AddHeader("X-Smug-ImageUri", imageUri.Uri);
 
             // Additional Params
             if (imageMetadata.Title != null)
-                request.AddHeader("X-Smug-Caption", imageMetadata.Title);
-            else if (imageMetadata.Caption != null)
+                request.AddHeader("X-Smug-Title", imageMetadata.Title);
+            else
+                request.AddHeader("X-Smug-Title", "");
+            if (imageMetadata.Caption != null)
                 request.AddHeader("X-Smug-Caption", imageMetadata.Caption);
             else
                 request.AddHeader("X-Smug-Caption", "");
             request.AddHeader("X-Smug-FileName", imageMetadata.FileInfo.Name);
-            if (!string.IsNullOrEmpty(imageUri))
-                request.AddHeader("X-Smug-ImageID", imageUri);
             if (imageMetadata.Keywords != null)
                 request.AddHeader("X-Smug-Keywords", string.Join(";", imageMetadata.Keywords));
             if (imageMetadata.GeoAltitude != 0)

@@ -25,7 +25,6 @@ public class DirectoryInfoTests
         var sourceDirectoryData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
 
         Assert.IsFalse(sourceDirectoryData.IsLinked, "The object should not be linked.");
-        Assert.AreEqual(0, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("", sourceDirectoryData.AlbumKey, "Album Key should be empty");
         Assert.AreEqual("FOODIRECTORY", sourceDirectoryData.FolderName, "Foldername should be the foo directory");
     }
@@ -39,14 +38,14 @@ public class DirectoryInfoTests
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.File.ReadAllText(It.IsAny<string>())).Returns(
-            "<smugMugSyncData><albumId>1</albumId><albumKey>someKey</albumKey></smugMugSyncData>");   
+            "<smugMugSyncData><albumKey>someKey</albumKey></smugMugSyncData>");   
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var sourceDirectoryData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
 
         Assert.IsTrue(sourceDirectoryData.IsLinked, "The object should be linked.");
-        Assert.AreEqual(1, sourceDirectoryData.AlbumId, "Album ID should be 0");
+        Assert.AreEqual("someKey", sourceDirectoryData.AlbumKey, "Album Key should match");
         Assert.AreEqual("someKey", sourceDirectoryData.AlbumKey, "Album Key should be empty");
     }
 
@@ -76,14 +75,13 @@ public class DirectoryInfoTests
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.File.ReadAllText(It.IsAny<string>())).Returns(
-            "<smugMugSyncData><albumIdFoo>1</albumIdFoo><albumKeyBar>someKey</albumKeyBar></smugMugSyncData>");   
+            "<smugMugSyncData><albumKeyBar>someKey</albumKeyBar></smugMugSyncData>");   
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var sourceDirectoryData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
 
         Assert.IsFalse(sourceDirectoryData.IsLinked, "The object should not be linked.");
-        Assert.AreEqual(0, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("", sourceDirectoryData.AlbumKey, "Album Key should be empty");
     }
 
@@ -105,7 +103,6 @@ public class DirectoryInfoTests
 
         xmlSystemMock.Verify(x => x.OutputXmlToFile(It.IsAny<string>(), It.IsAny<XElement>()));
         Assert.IsTrue(sourceDirectoryData.IsLinked, "The object should be linked.");
-        Assert.AreEqual(1, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("fooBarAlbum", sourceDirectoryData.AlbumKey, "Album Key should be empty");
     }
 
@@ -118,18 +115,16 @@ public class DirectoryInfoTests
         var fileSystemMock = new Mock<IFileSystem>();
         fileSystemMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(true);   
         fileSystemMock.Setup(x => x.File.ReadAllText(It.IsAny<string>())).Returns(
-            "<smugMugSyncData><albumId>1</albumId><albumKey>someKey</albumKey></smugMugSyncData>");   
+            "<smugMugSyncData><albumKey>someKey</albumKey></smugMugSyncData>");   
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
         var sourceDirectoryData = new SourceDirectoryData(fileSystemMock.Object, xmlSystemMock.Object, directoryInfoMock.Object);
         Assert.IsTrue(sourceDirectoryData.IsLinked, "The object should be linked.");
-        Assert.AreEqual(1, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("someKey", sourceDirectoryData.AlbumKey, "Album Key should be empty");
 
         sourceDirectoryData.UnlinkFromAlbum();
         Assert.IsFalse(sourceDirectoryData.IsLinked, "The object should not be linked.");
-        Assert.AreEqual(0, sourceDirectoryData.AlbumId, "Album ID should be 0");
         Assert.AreEqual("", sourceDirectoryData.AlbumKey, "Album Key should be empty");
     }    
 }
