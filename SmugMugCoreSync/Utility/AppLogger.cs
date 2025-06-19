@@ -45,7 +45,7 @@ namespace SmugMugCoreSync.Utility
             // Purge oldest if we have too many files
             PurgeLocation(_logFolder, _filePurgeCount);
 
-            // Apends an underscore for formatting
+            // Appends an underscore for formatting
             if (logSuffix.Length > 0)
                 logSuffix += "_";
 
@@ -81,14 +81,14 @@ namespace SmugMugCoreSync.Utility
                 Trace.WriteLine("*** EXCEPTION DETECTED ***");
 
                 string extendedDetails = string.Empty;
-                if (e.ExceptionObject is SmugMug.Net.Core.SmugMugException smugMugException)
+                if (e.ExceptionObject is SmugMugCore.Net.Core20.SmugMugException smugMugException)
                 {
-                    var paramData = smugMugException.ParamData?.GenerateCollection();
+                    var paramData = smugMugException.RequestObject.Parameters;
                     if (paramData != null)
                     {
                         foreach (var keyPair in paramData)
                         {
-                            extendedDetails += keyPair.Key + ":" + keyPair.Value + "\r\n";
+                            extendedDetails += $" {keyPair.Name} : {keyPair.Value} \r\n";
                         }
 
                         if (paramData.Count > 0)
@@ -97,8 +97,8 @@ namespace SmugMugCoreSync.Utility
                         }
                     }
 
-                    extendedDetails += "\r\nDetails (if available): " + smugMugException.RequestDetail;
-                    extendedDetails += "\r\nQuerystring: " + smugMugException.QueryString;
+                    extendedDetails += $"\r\nDetails (if available): {smugMugException.ErrorCode} : {smugMugException.ErrorMessage}";
+                    extendedDetails += $"\r\nResource: {smugMugException.RequestObject.Resource}";
                 }
 
                 Trace.WriteLine(Environment.NewLine + e.ExceptionObject.ToString() + extendedDetails);
@@ -142,7 +142,7 @@ namespace SmugMugCoreSync.Utility
         }
 
         /// <summary>
-        /// Write the message to the logfile
+        /// Write the message to the log file
         /// </summary>
         /// <param name="logMessage"></param>
         public void WriteLog(string? logMessage)
@@ -186,7 +186,7 @@ namespace SmugMugCoreSync.Utility
         }
 
         /// <summary>
-        /// Displays the logfile in the selected editor
+        /// Displays the log file in the selected editor
         /// </summary>
         public void OpenLogFile()
         {

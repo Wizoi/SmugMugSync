@@ -1,4 +1,12 @@
 {
     "dotnet.defaultSolution": "Smugmug.sln",
     "coverage-gutters.showLineCoverage": true,
+    "cSpell.words": [
+        "ALBUMSERVICE",
+        "CONTENTMETADATASERVICE",
+        "filterurl",
+        "Newtonsoft",
+        "NONELOG",
+        "Pricelist"
+    ],
 }

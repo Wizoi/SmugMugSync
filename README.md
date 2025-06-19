@@ -57,6 +57,8 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 
 1. Setup Extensions: C#, C# Dev Kit, .NET Install Tool, Code Spell Checker, Coverage Gutters
 1. Install the Microsoft .NET SDK 9.X (should be triggered via VS Code)
+1. Setup RestSharp (dotnet add package RestSharp --version 112.1.0)
+1. Setup Newtonsoft (dotnet add package Newtonsoft.Json --version 13.0.3)
 
 ### Testing
 1. A task exists to run tests, which includes coverage.
