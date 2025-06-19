@@ -1,4 +1,4 @@
-﻿namespace TestSmugMugCore20NetAPI.Configuration
+﻿namespace TestSmugMugCore.Configuration
 {
     public class KeySecretsConfig
     {

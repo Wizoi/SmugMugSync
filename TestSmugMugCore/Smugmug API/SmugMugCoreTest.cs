@@ -1,4 +1,4 @@
-﻿namespace TestSmugMugCore20NetAPI;
+﻿namespace TestSmugMugCore.SmugMugAPI;
 
 /// <summary>
 ///This is a test class for SmugMugCoreTest and is intended

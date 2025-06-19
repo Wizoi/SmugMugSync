@@ -14,12 +14,13 @@
             "label": "dotnet: build"
         },
         {
-            "label": "Test with Coverage",
+            "label": "Test with Coverage (XUnit) ",
             "dependsOn": [],
             "command": "dotnet",
             "type": "process",
             "args": [
                 "test",
+                "report-dir:\"./CoverageReport\"",
                 "--collect:\"XPlat Code Coverage\""
             ],
             "problemMatcher": "$msCompile",
@@ -29,7 +30,23 @@
             }
         },
         {
-            "label": "Generate Coverage Report",
+            "label": "Test with Coverage (Cobertura)",
+            "dependsOn": [],
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "/p:CollectCoverage=true",
+                "/p:CoverletOutputFormat=cobertura"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Generate Coverage Report (Cobertura)",
             "dependsOn": [],
             "command": "reportgenerator",
             "type": "process",
@@ -67,6 +84,12 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "type": "dotnet",
+            "task": "clean",
+            "problemMatcher": [],
+            "label": "dotnet: clean"
         }
     ]
 }

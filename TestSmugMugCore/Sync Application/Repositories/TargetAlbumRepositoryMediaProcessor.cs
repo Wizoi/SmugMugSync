@@ -16,7 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Markup;
 using System.Xml.Linq;
 
-namespace TestSmugMugCoreSync;
+namespace TestSmugMugCore.SyncApplication.RepositoryTests;
 
 [TestClass]
 public class TargetAlbumRepositoryMediaProcessor

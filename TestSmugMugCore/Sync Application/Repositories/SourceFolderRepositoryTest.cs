@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
 
-namespace TestSmugMugCoreSync;
+namespace TestSmugMugCore.SyncApplication.RepositoryTests;
 
 [TestClass]
 public class SourceFolderRepositoryTest
@@ -383,7 +383,7 @@ public class SourceFolderRepositoryTest
         fileSystemMock.Setup(x => x.File.Exists("A:\\Foo\\Bar\\.SMUGMUG.INI")).Returns(false);   
         fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo")).Returns(directoryInfoMock.Object);           
         fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo\\Bar")).Returns(subDirectoryInfoMock.Object);           
-        fileSystemMock.Setup(x => x.Directory.GetDirectories("A:\\Foo")).Returns(new []{"A:\\Foo\\Bar"});
+        fileSystemMock.Setup(x => x.Directory.GetDirectories("A:\\Foo")).Returns(["A:\\Foo\\Bar"]);
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
@@ -442,7 +442,7 @@ public class SourceFolderRepositoryTest
         fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo")).Returns(directoryInfoMock.Object);           
         fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo\\Bar")).Returns(subDirectoryInfoMock1.Object);           
         fileSystemMock.Setup(x => x.DirectoryInfo.New("A:\\Foo\\Cat")).Returns(subDirectoryInfoMock2.Object);           
-        fileSystemMock.Setup(x => x.Directory.GetDirectories("A:\\Foo")).Returns(new []{"A:\\Foo\\Bar", "A:\\Foo\\Cat"});
+        fileSystemMock.Setup(x => x.Directory.GetDirectories("A:\\Foo")).Returns(["A:\\Foo\\Bar", "A:\\Foo\\Cat"]);
 
         var xmlSystemMock = new Mock<XmlSystem>();
 
@@ -628,6 +628,6 @@ public class SourceFolderRepositoryTest
         var outputData = sourceFolderRepo.LoadFolderMediaFiles(sourceDirData);
 
         Assert.AreEqual("FILENAME.JPG", outputData[0].FileName, "JPG Filename");
-        Assert.AreEqual(1, outputData.Count(), "1 Directory should be returned, other filtered due to being a TXT file.");
+        Assert.AreEqual(1, outputData.Length, "1 Directory should be returned, other filtered due to being a TXT file.");
     }
 }

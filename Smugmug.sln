@@ -7,9 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7550}") = "SmugMugCore.Net", "SmugMugC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7551}") = "SmugMugCoreSync", "SmugMugCoreSync\SmugMugCoreSync.csproj", "{AD218138-2144-44E7-95DD-5CC4DF5EFC7C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7553}") = "TestSmugMugCore20NetAPI", "TestSmugMugCore20NetAPI\TestSmugMugCore20NetAPI.csproj", "{AD2C0D6F-F4DA-47E7-818B-E3ED1B72563E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSmugMugCoreSync", "TestSmugMugCoreSync\TestSmugMugCoreSync.csproj", "{1C051BFC-B2AB-4AC8-8E2E-74B290B93D5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7553}") = "TestSmugMugCore", "TestSmugMugCore\TestSmugMugCore.csproj", "{AD2C0D6F-F4DA-47E7-818B-E3ED1B72563E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{AD2C0D6F-F4DA-47E7-818B-E3ED1B72563E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD2C0D6F-F4DA-47E7-818B-E3ED1B72563E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD2C0D6F-F4DA-47E7-818B-E3ED1B72563E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C051BFC-B2AB-4AC8-8E2E-74B290B93D5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C051BFC-B2AB-4AC8-8E2E-74B290B93D5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C051BFC-B2AB-4AC8-8E2E-74B290B93D5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C051BFC-B2AB-4AC8-8E2E-74B290B93D5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

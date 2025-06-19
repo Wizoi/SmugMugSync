@@ -4,7 +4,7 @@ using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
 using SmugMugCore.Net.Service20;
 
-namespace TestSmugMugCore20NetAPI;
+namespace TestSmugMugCore.SmugMugAPI;
 
 /// <summary>
 ///This is a test class for ImageUploaderServiceTest and is intended
@@ -43,11 +43,14 @@ public class ImageUploaderServiceTest
         var albumService = core.AlbumService;
         var albumToCreate = new AlbumDetail()
         {
-            Name = "ImageUploaderAlbumTest" + Random.Shared.Next(100).ToString()
+            Name = "ImageUploaderAlbumTest" + Random.Shared.Next(1000).ToString()
         };
         var createAlbumTask = albumService.CreateAlbum(albumToCreate);
         createAlbumTask.Wait();
         _albumTest = createAlbumTask.Result;
+
+        // Give API time to persist images.
+        Thread.Sleep(1000);
     }
 
     /// <summary>
@@ -64,6 +67,9 @@ public class ImageUploaderServiceTest
             var cleanupAlbumTask = albumService.DeleteAlbum(_albumTest);
             cleanupAlbumTask.Wait();
             _ = cleanupAlbumTask.Result;
+
+            // Give API time to clean up.
+            Thread.Sleep(1000);
         }
     }
 

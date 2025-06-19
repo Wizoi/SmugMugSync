@@ -1,6 +1,6 @@
 ﻿using System.Transactions;
 
-namespace TestSmugMugCore20NetAPI;
+namespace TestSmugMugCore;
 
 public class Utility
 {

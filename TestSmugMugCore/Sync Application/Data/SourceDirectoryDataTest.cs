@@ -6,7 +6,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Runtime.CompilerServices;
 
-namespace TestSmugMugCoreSync;
+namespace TestSmugMugCore.SyncApplication.DataTests;
 
 [TestClass]
 public class DirectoryInfoTests

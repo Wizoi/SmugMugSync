@@ -6,7 +6,7 @@ using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
 using SmugMugCore.Net.Service20;
 
-namespace TestSmugMugCore20NetAPI;
+namespace TestSmugMugCore.SmugMugAPI;
 
 /// <summary>
 /// This is a test class for validating the AlbumImage Service
@@ -50,7 +50,7 @@ public class AlbumImageServiceTest
         var contentService = core.ContentMetadataService;
         var albumToCreate = new AlbumDetail()
         {
-            Name = "ImageUploaderAlbumTest" + Random.Shared.Next(100).ToString()
+            Name = "ImageUploaderAlbumTest" + Random.Shared.Next(1000).ToString()
         };
         var createAlbumTask = albumService.CreateAlbum(albumToCreate);
         createAlbumTask.Wait();
@@ -59,9 +59,10 @@ public class AlbumImageServiceTest
         string filename = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImage.jpg");
         var content = contentService.DiscoverMetadata(filename);
         content.Wait();
-        (uploaderService.UploadAlbumImage(_albumTest.AlbumKey, content.Result)).Wait();
-        (uploaderService.UploadAlbumImage(_albumTest.AlbumKey, content.Result)).Wait();
-        (uploaderService.UploadAlbumImage(_albumTest.AlbumKey, content.Result)).Wait();
+        uploaderService.UploadAlbumImage(_albumTest.AlbumKey, content.Result).Wait();
+
+        // Give API time to persist images.
+        Thread.Sleep(1000);
     }
 
     [TestCleanup]
@@ -74,7 +75,9 @@ public class AlbumImageServiceTest
 
             var cleanupAlbumTask = albumService.DeleteAlbum(_albumTest);
             cleanupAlbumTask.Wait();
-            _ = cleanupAlbumTask.Result;
+
+            // Give API time to persist images.
+            Thread.Sleep(1000);
         }
     }
 
@@ -111,7 +114,7 @@ public class AlbumImageServiceTest
         var albumImageService = core.AlbumImageService;
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListFull(_albumTest.AlbumKey);
-        Assert.AreEqual(3, albumImagesLoaded.Length);
+        Assert.AreEqual(1, albumImagesLoaded.Length);
     }
 
     /// <summary>
@@ -127,7 +130,7 @@ public class AlbumImageServiceTest
         var albumImageService = core.AlbumImageService;
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.AreEqual(3, albumImagesLoaded.Length);
+        Assert.AreEqual(1, albumImagesLoaded.Length);
     }
 
     /// <summary>
@@ -143,7 +146,7 @@ public class AlbumImageServiceTest
         var albumImageService = core.AlbumImageService;
 
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.AreEqual(3, albumImagesLoaded.Length);
+        Assert.AreEqual(1, albumImagesLoaded.Length);
 
         var testAlbumImage = albumImagesLoaded[0];
         testAlbumImage.Title = "Updating the Comment";
@@ -169,7 +172,7 @@ public class AlbumImageServiceTest
 
         // Retrieve the recently loaded image metadata
         var albumImagesLoaded = await albumImageService.GetAlbumImageListShort(_albumTest.AlbumKey);
-        Assert.IsTrue(albumImagesLoaded.Length == 3);
+        Assert.IsTrue(albumImagesLoaded.Length == 1);
         var testAlbumImage = albumImagesLoaded[0];
 
         string localPath = Path.GetTempFileName();

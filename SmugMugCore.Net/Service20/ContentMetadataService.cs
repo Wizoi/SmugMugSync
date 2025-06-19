@@ -26,7 +26,7 @@ public partial class ContentMetadataService
         {
             try
             {
-                content= this.GetMetadataPropertiesWithMetadataExtractorLibrary(filepath);
+                content = this.GetMetadataPropertiesWithMetadataExtractorLibrary(filepath);
             }
             catch (MetadataExtractor.ImageProcessingException)
             {

@@ -1,35 +1,21 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using SmugMugCore.Net.Core20;
+﻿using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
 using SmugMugCore.Net.Service20;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Data;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing.Text;
-using System.IO.Abstractions;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Documents;
-using System.Windows.Forms.VisualStyles;
-using System.Xml.Linq;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace SmugMugCoreSync.Repositories
 {
     public class TargetAlbumRepository
     {
-        private readonly FolderSyncPathsConfig _folderSyncPathsConfig;
-        private readonly SmugMugCore.Net.Core20.SmugMugCore _smCore;
+        private readonly FolderSyncPathsConfig? _folderSyncPathsConfig;
+        private readonly SmugMugCore.Net.Core20.SmugMugCore? _smCore;
         private readonly Dictionary<string, AlbumDetail> _targetAlbums = [];
 
-        public TargetAlbumRepository(SmugMugCore.Net.Core20.SmugMugCore core, FolderSyncPathsConfig folderConfig)
+        public TargetAlbumRepository() : this(null, null) { }
+        
+        public TargetAlbumRepository(SmugMugCore.Net.Core20.SmugMugCore? core, FolderSyncPathsConfig? folderConfig)
         {
             _smCore = core;
             _folderSyncPathsConfig = folderConfig;

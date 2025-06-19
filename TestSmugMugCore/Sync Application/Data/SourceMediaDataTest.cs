@@ -2,7 +2,7 @@ using Moq;
 using SmugMugCoreSync.Data;
 using System.IO.Abstractions;
 
-namespace TestSmugMugCoreSync;
+namespace TestSmugMugCore.SyncApplication.DataTests;
 
 [TestClass]
 public class SourceMediaDataTest

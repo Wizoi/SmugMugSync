@@ -16,21 +16,16 @@ using System.Runtime.CompilerServices;
 using System.Windows.Markup;
 using System.Xml.Linq;
 
-namespace TestSmugMugCoreSync;
+namespace TestSmugMugCore.SyncApplication.RepositoryTests;
 
 [TestClass]
 public class TargetAlbumRepositoryTest
 {
 
-    private Mock<SmugMugCore.Net.Core20.SmugMugCore> MockSmugMugCore()
-    {
-        return new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
-    }
-
     [TestMethod]
     public void ConstructorTest()
     {
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var inMemorySettings = new Dictionary<string, string?> {
             {"rootLocal", "A:\\FOODIRECTORY"},
@@ -53,7 +48,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -79,7 +74,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "TestTitle";
@@ -106,7 +101,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -133,7 +128,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail1 = new AlbumDetail();
         albDetail1.Title = "2023 - TestTitle";
@@ -162,7 +157,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryRuntimeSettings = new Dictionary<string, string?> { };
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         // Mocks to setup the Source Folder Repo
         var fileSystemMock = new Mock<IFileSystem>();
@@ -198,7 +193,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryRuntimeSettings = new Dictionary<string, string?> { };
         var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryRuntimeSettings).Build());
 
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         // Mocks to setup the Source Folder Repo
         var fileSystemMock = new Mock<IFileSystem>();
@@ -244,7 +239,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryFolderSettings = new Dictionary<string, string?> { { "rootLocal", "A:\\FOODIRECTORY" } };
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
 
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -317,7 +312,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryFolderSettings = new Dictionary<string, string?> { { "rootLocal", "A:\\FOODIRECTORY" } };
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
 
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var albDetail1 = new AlbumDetail();
         albDetail1.Title = "2023 - TestTitle 1";
@@ -404,7 +399,7 @@ public class TargetAlbumRepositoryTest
         var inMemoryFolderSettings = new Dictionary<string, string?> { { "rootLocal", "A:\\FOODIRECTORY" } };
         var folderConfig = new FolderSyncPathsConfig(new ConfigurationBuilder().AddInMemoryCollection(inMemoryFolderSettings).Build());
 
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -481,7 +476,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -526,7 +521,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -579,7 +574,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -642,7 +637,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -707,7 +702,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -775,7 +770,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
@@ -842,7 +837,7 @@ public class TargetAlbumRepositoryTest
         var folderConfig = new FolderSyncPathsConfig(configuration);
 
         // Setup: Populate an album to load
-        var smCoreMock = MockSmugMugCore();
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
         albDetail.Title = "2023 - TestTitle";
