@@ -1,6 +1,6 @@
 # SmugMug Sync for Windows
 
-This project is a command line application which keeps folders from a source windows folder in sync with Albums on the photo sharing service [SmugMug](https://www.smugmug.com/) using their [SmugMug API 1.3.0](https://api.smugmug.com/services/api/json/1.3).
+This project is a command line application which keeps folders from a source windows folder in sync with Albums on the photo sharing service [SmugMug](https://www.smugmug.com/) using their [SmugMug API 2.0](https://api.smugmug.com/api/v2/doc/index.html).
 
 ## Project Goals
 
@@ -28,10 +28,11 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 
 ## Changelog
 
+2025-06 - App updated to use SmugMug API 2.0, and upgraded for .Net Core 9.0
+2023-09 - App was rewritten to use .Net Core 7.0, VS Code, and includes full unit testing. Integration tests for the core library, and Moq testing for the primary application. Split out the secrets and made it more shareable.
 2012 - App initially written with .Net 4.6.
        + various years of tweaks
 
-2023-09 - App was rewritten to use .Net Core 7.0, VS Code, and includes full unit testing. Integration tests for the core library, and Moq testing for the primary application. Split out the secrets and made it more shareable.
 
 ## How to use Sync Tool
 
@@ -47,16 +48,12 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
        SmugMugCoreSync::UserAuthToken 
        SmugMugCoreSync::UserAuthSecret
 
-## Future Plans
-
-1. Move from the 1.3 API to 2.0 API
-
 ## Code Details
 
 ### Dependencies
 
 1. Setup Extensions: C#, C# Dev Kit, .NET Install Tool, Code Spell Checker, Coverage Gutters
-1. Install the Microsoft .NET SDK 9.X (should be triggered via VS Code)
+1. Install the Microsoft .NET Desktop SDK 9.X (should be triggered via VS Code)
 1. Setup RestSharp (dotnet add package RestSharp --version 112.1.0)
 1. Setup Newtonsoft (dotnet add package Newtonsoft.Json --version 13.0.3)
 
