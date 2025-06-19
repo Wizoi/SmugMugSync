@@ -96,7 +96,9 @@ namespace SmugMugCore.Net.Service20
                         throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
                     }
 
-                    albumList.AddRange(rawResponse.Response.AlbumDetail);
+                    if (rawResponse.Response.AlbumDetail != null)
+                        albumList.AddRange(rawResponse.Response.AlbumDetail);
+
                     if (rawResponse.Response.Pages.NextPage != null)
                     {
                         nextPageLink = rawResponse.Response.Pages.NextPage;
@@ -146,7 +148,7 @@ namespace SmugMugCore.Net.Service20
             // NiceName is required, make sure it is setup
             if (album.NiceName == null || album.NiceName.Length == 0)
             {
-                album.NiceName = string.Concat(album.Name.Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c))).Replace(" ", "-");
+                album.NiceName = string.Concat(album.Name.Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c) || (c == '-'))).Replace(" ", "-").Replace("--", "-");
             }
 
             string albumData = JsonSerializer.Serialize(album, new JsonSerializerOptions
@@ -162,7 +164,7 @@ namespace SmugMugCore.Net.Service20
             request.AddHeader("Content-Type", "application/json");
             request.AddBody(albumData);
 
-            var restResponse = await core.QueryService(request);
+            var restResponse = await core.PostService(request);
             if (restResponse.IsSuccessful)
             {
                 var jsonDoc = JsonDocument.Parse(restResponse.Content);

@@ -1,17 +1,28 @@
 using System.Text.Json.Serialization;
+using MetadataExtractor.Formats.Tiff;
 
 namespace SmugMugCore.Net.Data20
 {
     public class AlbumDetail
     {
+        private string _niceName = string.Empty;
+
         [JsonPropertyName("NiceName")]
-        public string? NiceName { get; set; } 
+        public string? NiceName {
+            get { return _niceName; }
+            set
+            {
+                if (string.IsNullOrEmpty(value) && value.Length > 60)
+                {
+                    _niceName = value[..60];
+                }
+                else
+                    _niceName = value;            
+            }
+        } 
 
         [JsonPropertyName("UrlName")]
         public string? UrlName { get; set; } 
-
-        [JsonPropertyName("Title")] 
-        public string? Title { get; set; }
 
         [JsonPropertyName("Name")] 
         public string? Name { get; set; }

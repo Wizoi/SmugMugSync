@@ -44,7 +44,7 @@ public class TargetAlbumRepositoryMediaProcessor
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
@@ -159,7 +159,7 @@ public class TargetAlbumRepositoryMediaProcessor
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
@@ -285,7 +285,7 @@ public class TargetAlbumRepositoryMediaProcessor
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
@@ -409,7 +409,7 @@ public class TargetAlbumRepositoryMediaProcessor
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});
@@ -528,7 +528,7 @@ public class TargetAlbumRepositoryMediaProcessor
         // Setup the Target Album (AlbumDetail) / ALBUMSERVICE
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new []{albDetail});

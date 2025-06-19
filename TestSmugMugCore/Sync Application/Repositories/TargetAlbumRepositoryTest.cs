@@ -51,7 +51,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -77,7 +77,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "TestTitle";
+        albDetail.Name = "TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -104,7 +104,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -131,11 +131,11 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail1 = new AlbumDetail();
-        albDetail1.Title = "2023 - TestTitle";
+        albDetail1.Name = "2023 - TestTitle";
         albDetail1.AlbumKey = "TestKey1";
 
         var albDetail2 = new AlbumDetail();
-        albDetail2.Title = "2023 - TestTitle 2";
+        albDetail2.Name = "2023 - TestTitle 2";
         albDetail2.AlbumKey = "TestKey2";
 
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
@@ -215,7 +215,7 @@ public class TargetAlbumRepositoryTest
         // Album to Mock Load  
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestNonMatchKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -242,7 +242,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestNonMatchKey";
 
         // Mocks to setup the Source Folder Repo
@@ -315,11 +315,11 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var albDetail1 = new AlbumDetail();
-        albDetail1.Title = "2023 - TestTitle 1";
+        albDetail1.Name = "2023 - TestTitle 1";
         albDetail1.AlbumKey = "TestNonMatchKey1";
 
         var albDetail2 = new AlbumDetail();
-        albDetail2.Title = "2023 - TestTitle 2";
+        albDetail2.Name = "2023 - TestTitle 2";
         albDetail2.AlbumKey = "TestNonMatchKey2";
 
         // Mocks to setup the Source Folder Repo
@@ -402,7 +402,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
 
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestNonMatchKey";
 
         // Mocks to setup the Source Folder Repo
@@ -479,7 +479,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -524,7 +524,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -577,7 +577,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         smAlbumServiceMock.Setup(x => x.GetAlbumListNamesOnly(It.IsAny<string>()))
             .ReturnsAsync(new[] { albDetail });
@@ -640,7 +640,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         var albImageDetail = new AlbumImageDetail() {
             ImageKey = "SomeKey", FileName = "TestFile.JPG", Uris = new AlbumImageUris() { Image = new UriMetadata() { Uri = "Test URI" } }
@@ -705,7 +705,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         var albImageDetail1 = new AlbumImageDetail() {
             ImageKey = "SomeKey1", FileName = "TestFile.JPG", Uris = new AlbumImageUris() { Image = new UriMetadata() { Uri = "URI TestFile.JPG" } }
@@ -773,7 +773,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         var albImageDetail1 = new AlbumImageDetail() {
             ImageKey = "SomeKey2", FileName = "Filename.JPG", Uris = new AlbumImageUris() { Image = new UriMetadata() { Uri = "URI Filename.JPG" } }
@@ -840,7 +840,7 @@ public class TargetAlbumRepositoryTest
         var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>([string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty]);
         var smAlbumServiceMock = new Mock<AlbumService>(smCoreMock.Object, "", "");
         var albDetail = new AlbumDetail();
-        albDetail.Title = "2023 - TestTitle";
+        albDetail.Name = "2023 - TestTitle";
         albDetail.AlbumKey = "TestKey";
         var albImageDetail1 = new AlbumImageDetail() {
             ImageKey = "SomeKey2", FileName = "Filename.JPG", Uris = new AlbumImageUris() { Image = new UriMetadata() { Uri = "URI Filename.JPG" } }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Web;
+using System.Windows.Forms.VisualStyles;
 using RestSharp;
 using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
@@ -126,7 +127,9 @@ namespace SmugMugCore.Net.Service20
                         throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
                     }
 
-                    albumImageList.AddRange(rawResponse.Response.AlbumImages);
+                    if (rawResponse.Response.AlbumImages != null)
+                        albumImageList.AddRange(rawResponse.Response.AlbumImages);
+                        
                     if (rawResponse.Response.Pages.NextPage != null)
                     {
                         nextPageLink = rawResponse.Response.Pages.NextPage;
