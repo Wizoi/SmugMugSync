@@ -1,4 +1,6 @@
-﻿using SmugMugCore.Net.Core20;
+﻿using RestSharp;
+using RestSharp.Authenticators;
+using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
 using SmugMugCoreSync.Configuration;
 using SmugMugCoreSync.Repositories;
@@ -29,7 +31,7 @@ internal class Program
 
         if (args.Any() && args[0] == "GENERATEKEYS")
         {
-         //   _ = await GenerateUserAccessTokens(keySettings.ApiKey, keySettings.ApiSecret);
+            _ = await GenerateUserAccessTokens(keySettings.ApiKey, keySettings.ApiSecret);
         }
         else
         {
@@ -53,40 +55,61 @@ internal class Program
     /// <summary>
     /// Authenticates against SmugMug to get the user's access key
     /// </summary>
-/*
     static async Task<bool> GenerateUserAccessTokens(string smugMugApiKey, string smugMugSecret)
     {
-        Console.WriteLine("Create new instance of OAuth Manager");
-        var manager = new OAuthManager(smugMugApiKey, smugMugSecret);
+        Console.WriteLine("1. Acquire a request token from SmugMug to request authentication");
+        var forRequestAuthOptions = new RestClientOptions("https://secure.smugmug.com/services/oauth/1.0a")
+        {
+            Authenticator = OAuth1Authenticator.ForRequestToken(smugMugApiKey, smugMugSecret, "oob"),
+            AutomaticDecompression = System.Net.DecompressionMethods.All,
+            PreAuthenticate = true
+            
+        };
+        var forRequestClient = new RestClient(forRequestAuthOptions);
+        var forRequestRestRequest = new RestRequest("getRequestToken", Method.Post);
+        var forRequestResponse = forRequestClient.Execute(forRequestRestRequest);
 
-        Console.WriteLine("Acquire a request token from SmugMug");
-        var requestToken = await manager.AcquireRequestToken(new Uri("https://api.smugmug.com/services/oauth/getRequestToken.mg"), HttpMethod.Get, new());
+        Console.WriteLine("3. Retrieve user token and secret");
+        var forRequestResponseData = System.Web.HttpUtility.ParseQueryString(forRequestResponse.Content);
+        string initialRequestToken = forRequestResponseData["oauth_token"];
+        string initialRequestTokenSecret = forRequestResponseData["oauth_token_secret"];
 
+        Console.WriteLine("4. Have user authorize token");
         Console.WriteLine("Browser should open, please authorize request token to continue.");
-        Process.Start(new ProcessStartInfo($"https://api.smugmug.com/services/oauth/authorize.mg?oauth_token={requestToken.Token}&Access=Full&Permissions=Modify") { UseShellExecute = true });
-
+        string authorizationUrl = $"https://api.smugmug.com/services/oauth/1.0a/authorize?oauth_token={initialRequestToken}&Access=Full&Permissions=Modify";
+        Process.Start(new ProcessStartInfo(authorizationUrl) { UseShellExecute = true });
         Console.WriteLine("Please enter you credentials into the browser before continuing");
-        Console.WriteLine("Press enter to continue...");
-        Console.ReadLine();
+        Console.Write("Press enter your verification code and press enter: ");
+        string verifier = Console.ReadLine();
 
         // Recreate the Oauth Manager with the new token    
-        manager = new OAuthManager(smugMugApiKey, smugMugSecret, requestToken.Token, requestToken.TokenSecret);
-        var accessToken = await manager.AcquireAccessToken(new Uri("https://api.smugmug.com/services/oauth/getAccessToken.mg"), HttpMethod.Get, requestToken.TokenSecret, new());
+        var forAccessAuthOptions = new RestClientOptions("https://api.smugmug.com/services/oauth/1.0a")
+        {
+            Authenticator = OAuth1Authenticator.ForAccessToken(smugMugApiKey, smugMugSecret, initialRequestToken, initialRequestTokenSecret),
+            PreAuthenticate = true
+        };
+        var forAccessClient = new RestClient(forAccessAuthOptions);
+        var forAccessRestRequest = new RestRequest("getAccessToken", Method.Get);
+        forAccessRestRequest.AddParameter("oauth_verifier", verifier);
+        var forAccessResponse = forAccessClient.Execute(forAccessRestRequest);
+        var forAccessResponseData = System.Web.HttpUtility.ParseQueryString(forAccessResponse.Content);
+        string finalRequestToken = forAccessResponseData["oauth_token"];
+        string finalRequestTokenSecret = forAccessResponseData["oauth_token_secret"];
 
-        Console.WriteLine(string.Format("User Access Token: {0}", accessToken.Token));
-        Console.WriteLine(string.Format("User Access Secret: {0}", accessToken.TokenSecret));
-        Console.WriteLine("Press enter to continue.");
+
+        Console.WriteLine($"User Access Token: {finalRequestToken}");
+        Console.WriteLine($"User Access Secret: {finalRequestTokenSecret}");
+        Console.WriteLine("Press enter to test this with an a Ping API.");
         Console.ReadLine();
 
-        Console.WriteLine("Verifying access to SmugMug with New Keys...");
-        var smCore = new SmugMugCore.Net.Core.SmugMugCore(
-            userAuthToken: accessToken.Token, userAuthSecret: accessToken.TokenSecret,
-            apiKey: smugMugApiKey, apiSecret: smugMugSecret);
+        Console.WriteLine("5. Verifying access to SmugMug with New Keys...");
+        var smCore = new SmugMugCore.Net.Core20.SmugMugCore(
+            userAuthToken: finalRequestToken, userAuthSecret: finalRequestTokenSecret,
+            apiKey: smugMugApiKey, apiSecret: smugMugSecret, string.Empty, string.Empty);
         var checkAccess = await smCore.PingService();
-        Console.WriteLine($" -> Is Valid? {checkAccess.ToString()}");
+        Console.WriteLine($" -> Is successful? {checkAccess.ToString()}");
         Console.ReadLine();
 
         return true;
     }
-*/
 }

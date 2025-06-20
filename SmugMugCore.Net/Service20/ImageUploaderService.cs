@@ -93,7 +93,21 @@ namespace SmugMugCore.Net.Service20
             if (imageMetadata.GeoLongitude != 0)
                 request.AddHeader("X-Smug-Longitude", imageMetadata.GeoLongitude.ToString());
 
-            request.AddFile("upload", fileInfo.FullName);
+            // Setting a very large timeout as some videos can take an hour or so to download
+            request.Timeout = TimeSpan.FromHours(6);
+
+            request.AddFile(
+                name: "file", // This is the name of the parameter on the server-side for the file
+                getFile: () => 
+                {
+                    // Streaming the file during the upload to save memory for the big videos
+                    return fileInfo.OpenRead();
+                },
+                fileName: fileInfo.Name,
+                contentType: RestSharp.ContentType.Binary,
+                options: null
+            );       
+            
             var restResponse = await _core.PostService(request);
             if (restResponse.IsSuccessful)
             {
