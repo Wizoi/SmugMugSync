@@ -65,7 +65,7 @@ namespace SmugMugCoreSync.Repositories
                     CanShare = true,
                     Privacy = "Public",
                     Geography = true,
-                    Name = f.FolderName
+                    Name = f.FolderName,
                 };
 
                 switch (runtimeFlags.TargetCreate)

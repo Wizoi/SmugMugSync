@@ -116,11 +116,11 @@ public class AlbumServiceTest
             CanShare = true,
             Privacy = "Public",
             Geography = true,
-            Name = "CreateAlbumTest: New Test Album!@#"
+            Name = "CreateAlbumTest:: New Test Album!@#1234567890123456789012345678901",
         };
         var actual = await albumService.CreateAlbum(album);
         Assert.AreEqual(album.Name, actual.Name, "Created album title does not match the given title");
-        Assert.AreEqual("CreateAlbumTest-New-Test-Album", actual.NiceName, "Verify the nicename is clean and url safe");
+        Assert.AreEqual("CreateAlbumTest-New-Test-Album123456789012345678901234567890", actual.UrlName, "Verify the nicename is clean and url safe");
 
         // Clean up Album 
         await albumService.DeleteAlbum(actual);

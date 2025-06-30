@@ -146,9 +146,9 @@ namespace SmugMugCore.Net.Service20
         public async virtual Task<Data20.AlbumDetail> CreateAlbum(Data20.AlbumDetail album)
         {
             // NiceName is required, make sure it is setup
-            if (album.NiceName == null || album.NiceName.Length == 0)
+            if (album.UrlName == null || album.UrlName.Length == 0)
             {
-                album.NiceName = string.Concat(album.Name.Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c) || (c == '-'))).Replace(" ", "-").Replace("--", "-");
+                album.UrlName = string.Concat(album.Name.Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c) || (c == '-'))).Replace(" ", "-").Replace("--", "-");
             }
 
             string albumData = JsonSerializer.Serialize(album, new JsonSerializerOptions

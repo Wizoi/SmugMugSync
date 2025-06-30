@@ -5,24 +5,26 @@ namespace SmugMugCore.Net.Data20
 {
     public class AlbumDetail
     {
-        private string _niceName = string.Empty;
-
-        [JsonPropertyName("NiceName")]
-        public string? NiceName {
-            get { return _niceName; }
-            set
-            {
-                if (string.IsNullOrEmpty(value) && value.Length > 60)
-                {
-                    _niceName = value[..60];
-                }
-                else
-                    _niceName = value;            
-            }
-        } 
+        private string _urlName = string.Empty;
 
         [JsonPropertyName("UrlName")]
-        public string? UrlName { get; set; } 
+        public string? UrlName {
+            get { return _urlName; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    if (value.Length > 60)
+                    {
+                        _urlName = value[..60];
+                    }
+                    else
+                    {
+                        _urlName = value;
+                    }
+                }
+            }
+        } 
 
         [JsonPropertyName("Name")] 
         public string? Name { get; set; }
