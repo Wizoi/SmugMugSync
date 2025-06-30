@@ -37,11 +37,11 @@ namespace SmugMugCoreSync.Repositories
             else if (folderConfig.RootRemote.Length > 0 && fileSystem.Directory.Exists(folderConfig.RootRemote))
                 _rootSyncFolder = folderConfig.RootRemote;
             else
-                throw new Exception("Invalid local or remote folders for reading source fiels.");
+                throw new Exception("Invalid local or remote folders for reading source files.");
 
             Trace.WriteLine($"** Root Path: {_rootSyncFolder}");
 
-            // Load the Hashtables for skipping folders and extensions. Capitalize these and add the period for the extension for 1:1 with a file extension
+            // Load the Hash tables for skipping folders and extensions. Capitalize these and add the period for the extension for 1:1 with a file extension
             _directoriesToSkip = folderConfig.FolderNamesToSkip.Select(x => x.ToUpper()).ToHashSet();
             _extensionsToSkip = folderConfig.ExtensionsToSkip.Select(x => "." + x.ToUpper()).ToHashSet();
 
@@ -108,7 +108,7 @@ namespace SmugMugCoreSync.Repositories
                 else
                     return false;
             }
-            else // When there are no folders, recursively loop through the subfolders
+            else // When there are no folders, recursively loop through the folders
             {
                 // If there are a  lot of directories, process them in parallel 
                 var directories = _filesystem.Directory.GetDirectories(rootSyncFolder).ToList();

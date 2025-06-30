@@ -485,7 +485,7 @@ namespace SmugMugCoreSync.Repositories
                 // TODO: need to fix this.
                 if (smugImage.LastUpdated != null)
                 {
-                    TimeSpan tsUpdated = sourceImage.LastWriteTime.Subtract(ConvertFromDateTimeOffset((DateTimeOffset)smugImage.LastUpdated));
+                    TimeSpan tsUpdated = sourceImage.LastWriteTime.Subtract(((DateTimeOffset) smugImage.LastUpdated).LocalDateTime);
                     if ((tsUpdated.TotalMilliseconds < 0) && smugImage.ArchivedMD5 != (await sourceImage.LoadMd5Checksum()))
                     {
                         return true;

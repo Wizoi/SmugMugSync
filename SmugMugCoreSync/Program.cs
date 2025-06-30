@@ -49,6 +49,7 @@ internal class Program
             _ = await remoteAlbums.SyncNewFolders(appSettings.RuntimeFlags, sourceFolders);
             _ = await remoteAlbums.SyncExistingFolders(appSettings.RuntimeFlags, sourceFolders);
             _ = await remoteAlbums.SyncFolderFiles(appSettings.RuntimeFlags, sourceFolders);
+            Trace.Write("Completing Sync.");
         }
     }
 
