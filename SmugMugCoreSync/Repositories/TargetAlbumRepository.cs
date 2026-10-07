@@ -457,7 +457,22 @@ namespace SmugMugCoreSync.Repositories
                         else
                         {
                             Trace.WriteLine("    > Updating Metadata: " + targetImage.FileName);
-                            _ = await _smCore.AlbumImageService.UpdateAlbumImage(targetImage);
+                            try
+                            {
+                                // Attempt #1
+                                _ = await _smCore.AlbumImageService.UpdateAlbumImage(targetImage);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Attempt #2 (then blow up and escalate higher)
+                                // SmugMug intermittently rejects PATCH requests with oauth_problem=nonce_used,
+                                // a new request is created on retry which generates a new nonce.
+                                Trace.WriteLine($"    > RETRY (Failed Metadata: {targetImage.FileName}) = {ex.Message}");
+
+                                System.Threading.Thread.Sleep(1000);
+
+                                _ = await _smCore.AlbumImageService.UpdateAlbumImage(targetImage);
+                            }
                             return true;
                         }
                         break;
