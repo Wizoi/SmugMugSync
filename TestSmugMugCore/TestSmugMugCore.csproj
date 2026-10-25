@@ -16,6 +16,14 @@
     <None Remove="Content\TestJpegImage.jpeg" />
     <None Remove="Content\TestPngImage.png" />
     <None Remove="Content\TestScannedImage.JPG" />
+    <None Remove="Content\TestImageWithXPKeywords.jpg" />
+    <None Remove="Content\TestImageWithIPTCKeywords.jpg" />
+    <None Remove="Content\TestImageWithLightroomKeywords.jpg" />
+    <None Remove="Content\TestImageWithXPTitleCaption.jpg" />
+    <None Remove="Content\TestImageWithAsciiXPTitleCaption.jpg" />
+    <None Remove="Content\TestImageWithIPTCTitleCaption.jpg" />
+    <None Remove="Content\TestImageWithLightroomTitleCaption.jpg" />
+    <None Remove="Content\TestImageWithCaptionOnly.jpg" />
     <None Remove="Content\TestTifImage.tif" />
     <None Remove="Content\TestVideo.MOV" />
     <None Remove="Content\TestVideoMp4.mp4" />
@@ -37,6 +45,30 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\TestScannedImage.JPG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithXPKeywords.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithIPTCKeywords.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithLightroomKeywords.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithXPTitleCaption.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithAsciiXPTitleCaption.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithIPTCTitleCaption.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithLightroomTitleCaption.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithCaptionOnly.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\TestTifImage.tif">

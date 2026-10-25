@@ -6,6 +6,8 @@ using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using MetadataExtractor.Formats.QuickTime;
+using MetadataExtractor.Formats.Iptc;
+using MetadataExtractor.Formats.Xmp;
 
 namespace SmugMugCore.Net.Service20;
 
@@ -102,6 +104,7 @@ public partial class ContentMetadataService
     {
         IEnumerable<MetadataExtractor.Directory> directories = MetadataExtractor.ImageMetadataReader.ReadMetadata(filepath);
         var content = new FileMetaContent();
+        string? imageDescription = null;
 
         var exifDirTags = directories.OfType<MetadataExtractor.Formats.Exif.ExifIfd0Directory>();
         if (exifDirTags.Any())
@@ -112,12 +115,14 @@ public partial class ContentMetadataService
                 if (exifTags.TryGetDateTime(ExifIfd0Directory.TagDateTime, out DateTime exifDateTime))
                     content.DateTaken = exifDateTime;
             }
+            if (exifTags.HasTagName(ExifIfd0Directory.TagWinTitle))
+                content.Title = GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinTitle);
             if (exifTags.HasTagName(ExifIfd0Directory.TagImageDescription))
-                content.Title = exifTags.GetDescription(ExifIfd0Directory.TagImageDescription);
+                imageDescription = exifTags.GetDescription(ExifIfd0Directory.TagImageDescription);
             if (exifTags.HasTagName(ExifIfd0Directory.TagWinComment))
-                content.Caption = exifTags.GetDescription(ExifIfd0Directory.TagWinComment);
+                content.Caption = GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinComment);
             if (exifTags.HasTagName(ExifIfd0Directory.TagWinKeywords))
-                content.Keywords = SplitTagString(exifTags.GetDescription(ExifIfd0Directory.TagWinKeywords) ?? "");
+                content.Keywords = SplitTagString(GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinKeywords) ?? "");
 
             bool foundOrientation = exifTags.TryGetUInt16(ExifIfd0Directory.TagOrientation, out ushort exifOrientation);
             if (foundOrientation)
@@ -125,6 +130,33 @@ public partial class ContentMetadataService
                 content.Orientation = (ImageContentOrientation)exifOrientation;
             }
         }
+
+        // Fallback to the standard keyword fields if the Windows keywords (XPKeywords) are not written
+        if (content.Keywords.Length == 0)
+        {
+            var standardKeywords = GetStandardKeywords(directories);
+            if (standardKeywords.Length > 0)
+                content.Keywords = SplitTagString(string.Join(";", standardKeywords));
+        }
+
+        // Fallback to the standard title/caption fields if the Windows ones (XPTitle, XPComment) are not written
+        var xmpMeta = directories.OfType<XmpDirectory>().FirstOrDefault()?.XmpMeta;
+        var iptcTags = directories.OfType<IptcDirectory>().FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(content.Title))
+            content.Title = FirstNonEmpty(GetXmpLocalizedText(xmpMeta, "title"), iptcTags?.GetDescription(IptcDirectory.TagObjectName));
+
+        // Windows Photo Gallery also writes the title to dc:description and the IPTC caption, so skip those when it is the title.
+        if (string.IsNullOrWhiteSpace(content.Caption))
+        {
+            string? standardCaption = FirstNonEmpty(GetXmpLocalizedText(xmpMeta, "description"), iptcTags?.GetDescription(IptcDirectory.TagCaption));
+            if (standardCaption?.Trim() != content.Title?.Trim())
+                content.Caption = standardCaption;
+        }
+
+        // The EXIF ImageDescription is used as the title by Windows Photo Gallery, but other tools (ie: Lightroom)
+        // write the caption there, so only use it as the title when it is not the caption.
+        if (string.IsNullOrWhiteSpace(content.Title) && (imageDescription?.Trim() != content.Caption?.Trim()))
+            content.Title = FirstNonEmpty(imageDescription);
 
         // Second level of detail sometimes provided
         var exifDetailDirTags = directories.OfType<MetadataExtractor.Formats.Exif.ExifSubIfdDirectory>();
@@ -149,6 +181,75 @@ public partial class ContentMetadataService
 
 
         return content;
+    }
+
+    /// <summary>
+    /// Read the keywords from the standard fields and combine them, in order:
+    /// XMP dc:subject (IPTC Core Keywords), IPTC IIM Keywords, then Lightroom's XMP lr:hierarchicalSubject (ie: People|Kevin Idzi).
+    /// All are combined as Lightroom only writes the groupings (ie: People) to lr:hierarchicalSubject.
+    /// </summary>
+    /// <param name="directories">Metadata read from the file</param>
+    /// <returns>Keywords using / for the hierarchy, empty if none found</returns>
+    private static string[] GetStandardKeywords(IEnumerable<MetadataExtractor.Directory> directories)
+    {
+        var xmpMeta = directories.OfType<XmpDirectory>().FirstOrDefault()?.XmpMeta;
+        var iptcTags = directories.OfType<IptcDirectory>().FirstOrDefault();
+
+        return GetXmpArrayValues(xmpMeta, "http://purl.org/dc/elements/1.1/", "subject")
+            .Concat(iptcTags?.GetStringArray(IptcDirectory.TagKeywords)?.Where(x => !string.IsNullOrWhiteSpace(x)) ?? [])
+            .Concat(GetXmpArrayValues(xmpMeta, "http://ns.adobe.com/lightroom/1.0/", "hierarchicalSubject").Select(x => x.Replace('|', '/')))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Read a Windows XP tag (ie: XPTitle, XPComment, XPKeywords). Windows writes these as UCS-2 bytes,
+    /// but some tools write them as ASCII/UTF-8 text which would otherwise be decoded as garbled UCS-2.
+    /// </summary>
+    private static string? GetWindowsXpText(ExifIfd0Directory exifTags, int tagType)
+    {
+        if (exifTags.GetObject(tagType) is StringValue stringValue)
+            return stringValue.ToString(System.Text.Encoding.UTF8).TrimEnd('\0');
+
+        return exifTags.GetDescription(tagType);
+    }
+
+    /// <summary>
+    /// Read the default language text of an XMP Dublin Core property (ie: dc:title, dc:description)
+    /// </summary>
+    private static string? GetXmpLocalizedText(XmpCore.IXmpMeta? xmpMeta, string propName)
+    {
+        const string dcSchemaNs = "http://purl.org/dc/elements/1.1/";
+        if (xmpMeta == null || !xmpMeta.DoesPropertyExist(dcSchemaNs, propName))
+            return null;
+
+        return xmpMeta.GetLocalizedText(dcSchemaNs, propName, null, "x-default")?.Value;
+    }
+
+    /// <summary>
+    /// Returns the first value that is not empty, or null if none are found
+    /// </summary>
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+    }
+
+    /// <summary>
+    /// Read the values of an XMP array property (ie: dc:subject)
+    /// </summary>
+    private static string[] GetXmpArrayValues(XmpCore.IXmpMeta? xmpMeta, string schemaNs, string propName)
+    {
+        if (xmpMeta == null || !xmpMeta.DoesPropertyExist(schemaNs, propName))
+            return [];
+
+        var values = new List<string>();
+        int itemCount = xmpMeta.CountArrayItems(schemaNs, propName);
+        for (int i = 1; i <= itemCount; i++)
+        {
+            string? value = xmpMeta.GetArrayItem(schemaNs, propName, i)?.Value;
+            if (!string.IsNullOrWhiteSpace(value))
+                values.Add(value);
+        }
+        return values.ToArray();
     }
 
     /// <summary>

@@ -139,6 +139,14 @@ public class ImageUploaderServiceTest
     [DeploymentItem(@"Content\TestJpegImage.jpeg")]
     [DeploymentItem(@"Content\TestPngImage.png")]
     [DeploymentItem(@"Content\TestScannedImage.jpg")]
+    [DeploymentItem(@"Content\TestImageWithXPKeywords.jpg")]
+    [DeploymentItem(@"Content\TestImageWithIPTCKeywords.jpg")]
+    [DeploymentItem(@"Content\TestImageWithLightroomKeywords.jpg")]
+    [DeploymentItem(@"Content\TestImageWithXPTitleCaption.jpg")]
+    [DeploymentItem(@"Content\TestImageWithAsciiXPTitleCaption.jpg")]
+    [DeploymentItem(@"Content\TestImageWithIPTCTitleCaption.jpg")]
+    [DeploymentItem(@"Content\TestImageWithLightroomTitleCaption.jpg")]
+    [DeploymentItem(@"Content\TestImageWithCaptionOnly.jpg")]
     public async Task UploadNewImageTest_Verify_Images()
     {
         if (this.TestContext == null)
@@ -185,6 +193,79 @@ public class ImageUploaderServiceTest
         imageLoaded = await albumImageService.GetImageDetail(imageUri);
         Assert.AreEqual("TestScannedImage.jpg", imageLoaded.FileName);
         Assert.AreEqual("Family; Idzi; Bob Idzi; Holidays; Christmas", imageLoaded.Keywords, "Keywords");
+        Assert.AreEqual("Test Scanned Photo", imageLoaded.Title, "Title");
+        // Windows Photo Gallery writes the title to the caption fields (dc:description, IPTC Caption), so no caption is sent.
+        // SmugMug fills an empty caption from the file on upload, so verify what the sync reads instead.
+        Assert.AreEqual("", fileContent.Caption ?? "", "Caption");
+
+        // Check JPG with keywords only in the Windows XPKeywords
+        string filenameWithXPKeywordsJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithXPKeywords.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithXPKeywordsJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithXPKeywords.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pets; Pepper; Activity; Snow", imageLoaded.Keywords, "Keywords");
+
+        // Check JPG with keywords only in the IPTC Keywords (SmugMug would merge them as PetsPepper)
+        string filenameWithIPTCKeywordsJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithIPTCKeywords.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithIPTCKeywordsJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithIPTCKeywords.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pets; Pepper; Activity; Snow", imageLoaded.Keywords, "Keywords");
+
+        // Check JPG with Lightroom's keywords, names only in dc:subject/IPTC and the groupings in lr:hierarchicalSubject (ie: Pets|Pepper)
+        string filenameWithLightroomKeywordsJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithLightroomKeywords.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithLightroomKeywordsJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithLightroomKeywords.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pepper; Snow; Pets; Activity", imageLoaded.Keywords, "Keywords");
+
+        // Check JPG with the title/caption only in the Windows XPTitle/XPComment
+        string filenameWithXPTitleCaptionJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithXPTitleCaption.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithXPTitleCaptionJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithXPTitleCaption.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pepper", imageLoaded.Title, "Title");
+        Assert.AreEqual("Pepper in the snow", imageLoaded.Caption, "Caption");
+
+        // Check JPG with the Windows XPTitle/XPComment written as ASCII instead of UCS-2 (would be garbled as 敐灰牥)
+        string filenameWithAsciiXPTitleCaptionJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithAsciiXPTitleCaption.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithAsciiXPTitleCaptionJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithAsciiXPTitleCaption.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pepper", imageLoaded.Title, "Title");
+        Assert.AreEqual("Pepper in the snow", imageLoaded.Caption, "Caption");
+
+        // Check JPG with the title/caption only in the IPTC Object Name/Caption
+        string filenameWithIPTCTitleCaptionJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithIPTCTitleCaption.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithIPTCTitleCaptionJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithIPTCTitleCaption.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pepper", imageLoaded.Title, "Title");
+        Assert.AreEqual("Pepper in the snow", imageLoaded.Caption, "Caption");
+
+        // Check JPG with Lightroom's title/caption, title in dc:title/IPTC and the caption also in the EXIF ImageDescription
+        string filenameWithLightroomTitleCaptionJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithLightroomTitleCaption.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithLightroomTitleCaptionJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithLightroomTitleCaption.jpg", imageLoaded.FileName);
+        Assert.AreEqual("Pepper", imageLoaded.Title, "Title");
+        Assert.AreEqual("Pepper in the snow", imageLoaded.Caption, "Caption");
+
+        // Check JPG with only a caption (ie: TagPup), the caption in the EXIF ImageDescription is not used as the title
+        string filenameWithCaptionOnlyJPG = System.IO.Path.Combine(TestContext.TestDeploymentDir, "TestImageWithCaptionOnly.jpg");
+        fileContent = await contentService.DiscoverMetadata(filenameWithCaptionOnlyJPG);
+        imageUri = await imageUploaderService.UploadAlbumImage(_albumTest.AlbumKey, fileContent);
+        imageLoaded = await albumImageService.GetImageDetail(imageUri);
+        Assert.AreEqual("TestImageWithCaptionOnly.jpg", imageLoaded.FileName);
+        Assert.AreEqual("", imageLoaded.Title, "Title");
+        Assert.AreEqual("Pepper in the snow", imageLoaded.Caption, "Caption");
     }
 
 
