@@ -75,17 +75,11 @@ namespace SmugMugCore.Net.Service20
                 request.AddHeader("X-Smug-ImageUri", imageUri.Uri);
 
             // Additional Params
-            if (imageMetadata.Title != null)
-                request.AddHeader("X-Smug-Title", imageMetadata.Title);
-            else
-                request.AddHeader("X-Smug-Title", "");
-            if (imageMetadata.Caption != null)
-                request.AddHeader("X-Smug-Caption", imageMetadata.Caption);
-            else
-                request.AddHeader("X-Smug-Caption", "");
+            request.AddHeader("X-Smug-Title", CleanHeaderValue(imageMetadata.Title));
+            request.AddHeader("X-Smug-Caption", CleanHeaderValue(imageMetadata.Caption));
             request.AddHeader("X-Smug-FileName", imageMetadata.FileInfo.Name);
             if (imageMetadata.Keywords != null)
-                request.AddHeader("X-Smug-Keywords", string.Join(";", imageMetadata.Keywords));
+                request.AddHeader("X-Smug-Keywords", CleanHeaderValue(string.Join(";", imageMetadata.Keywords)));
             if (imageMetadata.GeoAltitude != 0)
                 request.AddHeader("X-Smug-Altitude", imageMetadata.GeoAltitude.ToString());
             if (imageMetadata.GeoLatitude != 0)
@@ -121,6 +115,26 @@ namespace SmugMugCore.Net.Service20
             }
 
             throw new Exception("Error uploading image: " + restResponse.ErrorMessage);
+        }
+
+        /// <summary>
+        /// Clean a value sent as an upload header. Control characters (ie: NUL) are rejected by SmugMug with a 400 Bad Request,
+        /// and new lines are not allowed in a header, so line breaks become spaces and other control characters are removed.
+        /// </summary>
+        public static string CleanHeaderValue(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return "";
+
+            var builder = new StringBuilder(value.Length);
+            foreach (char c in value.Replace("\r\n", " "))
+            {
+                if (c == '\r' || c == '\n' || c == '\t')
+                    builder.Append(' ');
+                else if (!char.IsControl(c))
+                    builder.Append(c);
+            }
+            return builder.ToString().Trim();
         }
 
         /// <summary>

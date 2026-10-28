@@ -208,9 +208,27 @@ public partial class ContentMetadataService
     private static string? GetWindowsXpText(ExifIfd0Directory exifTags, int tagType)
     {
         if (exifTags.GetObject(tagType) is StringValue stringValue)
-            return stringValue.ToString(System.Text.Encoding.UTF8).TrimEnd('\0');
+            return DecodeWindowsXpBytes(stringValue.Bytes);
 
         return exifTags.GetDescription(tagType);
+    }
+
+    /// <summary>
+    /// Decode the bytes of a Windows XP tag stored as an ASCII type. Some tools still write UCS-2 bytes there
+    /// (ie: "P\0a\0r\0k\0"), which decoded as UTF-8 would leave NULs in the text and fail the upload headers.
+    /// </summary>
+    public static string DecodeWindowsXpBytes(byte[] bytes)
+    {
+        // A NUL before the terminator only happens with UCS-2 text
+        int length = bytes.Length;
+        while (length > 0 && bytes[length - 1] == 0)
+            length--;
+        bool isUcs2 = Array.IndexOf(bytes, (byte)0, 0, length) >= 0;
+
+        if (isUcs2)
+            return System.Text.Encoding.Unicode.GetString(bytes, 0, Math.Min(bytes.Length, length + (length % 2))).Replace("\0", "");
+
+        return System.Text.Encoding.UTF8.GetString(bytes, 0, length);
     }
 
     /// <summary>
