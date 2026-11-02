@@ -79,7 +79,7 @@ namespace SmugMugCore.Net.Service20
             request.AddHeader("X-Smug-Caption", CleanHeaderValue(imageMetadata.Caption));
             request.AddHeader("X-Smug-FileName", imageMetadata.FileInfo.Name);
             if (imageMetadata.Keywords != null)
-                request.AddHeader("X-Smug-Keywords", CleanHeaderValue(string.Join(";", imageMetadata.Keywords)));
+                request.AddHeader("X-Smug-Keywords", CleanHeaderValue(ContentMetadataService.JoinKeywordsForSmugMug(imageMetadata.Keywords)));
             if (imageMetadata.GeoAltitude != 0)
                 request.AddHeader("X-Smug-Altitude", imageMetadata.GeoAltitude.ToString());
             if (imageMetadata.GeoLatitude != 0)

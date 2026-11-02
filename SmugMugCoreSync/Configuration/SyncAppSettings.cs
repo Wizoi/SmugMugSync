@@ -4,13 +4,26 @@ namespace SmugMugCoreSync.Configuration
 {
     public class SyncAppSettings
     {
-        public SyncAppSettings()
+        /// <summary>
+        /// Short command line switches for common settings, any setting can also be overridden by its full name
+        /// (ie: --filter 2026 or --folderSyncPaths:filterFolderName=2026)
+        /// </summary>
+        private static readonly Dictionary<string, string> CommandLineSwitches = new()
+        {
+            { "--filter", "folderSyncPaths:filterFolderName" },
+            { "-f", "folderSyncPaths:filterFolderName" }
+        };
+
+        public SyncAppSettings() : this([]) { }
+
+        public SyncAppSettings(string[] args)
         {
             var builder = new ConfigurationBuilder();
 
             builder.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("appsettings.dev.json", optional: true, reloadOnChange: true);
+                .AddJsonFile("appsettings.dev.json", optional: true, reloadOnChange: true)
+                .AddCommandLine(args, CommandLineSwitches);
 
             var rootConfig = builder.Build();
 

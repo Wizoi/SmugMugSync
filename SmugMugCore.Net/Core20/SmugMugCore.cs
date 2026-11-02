@@ -112,18 +112,45 @@ namespace SmugMugCore.Net.Core20
         public async Task<RestResponse> QueryService(RestRequest request)
         {
             RestResponse response;
-            using (var client = this.Authenticate())
+            int attempt = 1;
+            while (true)
             {
-                response = await client.ExecuteAsync(request);
+                using (var client = this.Authenticate())
+                {
+                    response = await client.ExecuteAsync(request);
+                }
+
+                // Queries are safe to repeat, so retry the transient failures (ie: a dropped connection is status code 0)
+                if (response.IsSuccessful || attempt >= QueryRetryDelays.Length + 1 || !IsTransientFailure(response))
+                    break;
+
+                System.Diagnostics.Trace.WriteLine($"    > RETRY (Query {request.Resource}) = status code: {response.StatusCode}, Error: {response.ErrorMessage}");
+                await Task.Delay(QueryRetryDelays[attempt - 1]);
+                attempt++;
             }
 
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                throw new Exception($"Query Request failed with status code: {response.StatusCode}, Content: {response.Content}");
+                throw new Exception($"Query Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
             }
             else
                 return response;
+        }
+
+        /// <summary>
+        /// Delay before each retry of a query
+        /// </summary>
+        private static readonly TimeSpan[] QueryRetryDelays = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10)];
+
+        /// <summary>
+        /// Failures that may work when retried: no response (network), throttled, or a server error
+        /// </summary>
+        private static bool IsTransientFailure(RestResponse response)
+        {
+            return response.StatusCode == 0
+                || response.StatusCode == HttpStatusCode.TooManyRequests
+                || (int)response.StatusCode >= 500;
         }
 
         /// <summary>

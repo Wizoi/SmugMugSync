@@ -40,6 +40,7 @@ namespace SmugMugCoreSync.Repositories
                 throw new Exception("Invalid local or remote folders for reading source files.");
 
             Trace.WriteLine($"** Root Path: {_rootSyncFolder}");
+            Trace.WriteLine($"** Folder Filter: {folderConfig.FilterFolderName}");
 
             // Load the Hash tables for skipping folders and extensions. Capitalize these and add the period for the extension for 1:1 with a file extension
             _directoriesToSkip = folderConfig.FolderNamesToSkip.Select(x => x.ToUpper()).ToHashSet();

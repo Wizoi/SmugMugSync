@@ -42,6 +42,10 @@ Overall, I have 50k files, and this tool will in about 30s minus the new folder 
 1. Put your user keys into the appsettings.json file or Environment Variables.
 1. Settings to drive app are all in appsettings.json, instructions will be coming shortly.
 
+### Command Line Overrides (these will override the appsettings file values)
+       --filter 2026 (or -f 2026)          Only sync the folders/albums containing this name (folderSyncPaths:filterFolderName)
+       --section:setting=value             Any other setting by its full name (ie: --runtimeFlags:targetUpdate=Normal)
+
 ### Environment Variables for User and API Keys (these will override the appsettings file values, restart VSCode after adding)
        SmugMugCoreSync::ApiKey
        SmugMugCoreSync::ApiSecret

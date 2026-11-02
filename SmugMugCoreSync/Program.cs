@@ -18,7 +18,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        var appSettings = new SyncAppSettings();
+        var appSettings = new SyncAppSettings(args);
         var keySettings = appSettings.KeySecrets;
         var appLogger = new AppLogger(appSettings.Logging);
         appLogger.SetupAppLog();

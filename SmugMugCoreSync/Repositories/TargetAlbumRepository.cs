@@ -444,7 +444,7 @@ namespace SmugMugCoreSync.Repositories
             {
                 targetImage.Title = sourceXmlMetadata.Title;
                 targetImage.Caption = sourceXmlMetadata.Caption;
-                targetImage.Keywords = string.Join(";", sourceXmlMetadata.Keywords);
+                targetImage.Keywords = ContentMetadataService.JoinKeywordsForSmugMug(sourceXmlMetadata.Keywords);
 
                 // If this is a video, then only update the titles and keywords.
                 switch (runtimeFlags.TargetUpdate)

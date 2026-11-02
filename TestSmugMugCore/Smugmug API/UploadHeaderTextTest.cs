@@ -38,6 +38,25 @@ public class UploadHeaderTextTest
     }
 
     [TestMethod()]
+    public void JoinKeywordsForSmugMug_SingleKeywordKeptWhole()
+    {
+        // Without the ; SmugMug splits a single keyword on the spaces (ie: John Doe -> John; Doe)
+        Assert.AreEqual("John Doe;", ContentMetadataService.JoinKeywordsForSmugMug(["John Doe"]));
+        Assert.AreEqual("John Doe;Running", ContentMetadataService.JoinKeywordsForSmugMug(["John Doe", "Running"]));
+        Assert.AreEqual("", ContentMetadataService.JoinKeywordsForSmugMug([]));
+    }
+
+    [TestMethod()]
+    public void AreKeywordsDifferent_IgnoresSmugMugQuotes()
+    {
+        // SmugMug stores a single keyword with spaces in quotes (ie: "John Doe")
+        var service = new ContentMetadataService();
+        var source = new FileMetaContent() { Keywords = ["John Doe"] };
+        Assert.IsFalse(service.AreKeywordsDifferent(source, "\"John Doe\""));
+        Assert.IsTrue(service.AreKeywordsDifferent(source, "John; Doe"));
+    }
+
+    [TestMethod()]
     public void CleanHeaderValue_RemovesControlCharacters()
     {
         Assert.AreEqual("", ImageUploaderService.CleanHeaderValue(null));

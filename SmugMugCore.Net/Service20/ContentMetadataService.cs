@@ -244,11 +244,12 @@ public partial class ContentMetadataService
     }
 
     /// <summary>
-    /// Returns the first value that is not empty, or null if none are found
+    /// Returns the first value that is not empty, or null if none are found.
+    /// NULs are removed as some tools write an empty IPTC field as a single NUL (ie: Object Name = \0).
     /// </summary>
     private static string? FirstNonEmpty(params string?[] values)
     {
-        return values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+        return values.Select(x => x?.Replace("\0", "")).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
     }
 
     /// <summary>
@@ -278,7 +279,7 @@ public partial class ContentMetadataService
     private string[] SplitTagString(string tagList)
     {
         // Example: Family\Idzi\Kevin Idzi;Scenic\Wildlife -> two elements where the semi-colon splits
-        var rawTagData = TagSplitRegex().Split(tagList.Replace("; ", ";"));
+        var rawTagData = TagSplitRegex().Split(tagList.Replace("\0", "").Replace("; ", ";"));
         var tagData = new List<string>();
 
         // For each unique element, split the parts where we have hte \ adding more detail and grouping
@@ -321,7 +322,7 @@ public partial class ContentMetadataService
         if (targetKeywordString.Length == 0)
             targetKeywordList = [];
         else
-            targetKeywordList = TagSplitRegex().Split(targetKeywordString);
+            targetKeywordList = TagSplitRegex().Split(targetKeywordString).Select(x => x.Trim().Trim('"')).ToArray();
 
         var sourceKeywordList = sourceImage.Keywords.Select(x => x.Trim()).Where(x => x.Length > 0);
 
@@ -332,6 +333,18 @@ public partial class ContentMetadataService
             return true;
 
         return false;
+    }
+
+    /// <summary>
+    /// Join the keywords to send to SmugMug. A single keyword ends with a ; as SmugMug otherwise splits it
+    /// on the spaces (ie: John Doe -> John; Doe), with the ; SmugMug keeps it whole and quotes it ("John Doe").
+    /// </summary>
+    /// <param name="keywords">Keywords to join</param>
+    /// <returns>Keywords separated by ;</returns>
+    public static string JoinKeywordsForSmugMug(string[] keywords)
+    {
+        string keywordList = string.Join(";", keywords);
+        return keywords.Length == 1 ? keywordList + ";" : keywordList;
     }
 
     /// <summary>
