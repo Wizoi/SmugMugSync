@@ -112,36 +112,81 @@ namespace SmugMugCore.Net.Core20
         public async Task<RestResponse> QueryService(RestRequest request)
         {
             RestResponse response;
-            int attempt = 1;
-            while (true)
+            string? invalidJsonError;
+            for (int attempt = 0; ; attempt++)
             {
                 using (var client = this.Authenticate())
                 {
                     response = await client.ExecuteAsync(request);
                 }
+                invalidJsonError = response.IsSuccessful ? GetInvalidJsonError(response) : null;
 
-                // Queries are safe to repeat, so retry the transient failures (ie: a dropped connection is status code 0)
-                if (response.IsSuccessful || attempt >= QueryRetryDelays.Length + 1 || !IsTransientFailure(response))
+                // Queries are safe to repeat, so retry the transient failures (ie: a dropped connection is status code 0,
+                // or SmugMug occasionally returns a garbled JSON response)
+                bool isTransient = (invalidJsonError != null) || (!response.IsSuccessful && IsTransientFailure(response));
+                if (!isTransient || attempt >= RetryDelays.Length)
                     break;
 
-                System.Diagnostics.Trace.WriteLine($"    > RETRY (Query {request.Resource}) = status code: {response.StatusCode}, Error: {response.ErrorMessage}");
-                await Task.Delay(QueryRetryDelays[attempt - 1]);
-                attempt++;
+                await Task.Delay(RetryDelays[attempt]);
             }
 
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                throw new Exception($"Query Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+                throw new Exception($"Query Request failed {DescribeFailure(request, response)}");
+            }
+            else if (invalidJsonError != null)
+            {
+                throw new Exception($"Query Request returned invalid JSON ({invalidJsonError}) {DescribeFailure(request, response)}");
             }
             else
                 return response;
         }
 
         /// <summary>
-        /// Delay before each retry of a query
+        /// Delay before each retry of a request that may work when retried (ie: SmugMug is busy, or the connection dropped)
         /// </summary>
-        private static readonly TimeSpan[] QueryRetryDelays = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10)];
+        public static readonly TimeSpan[] RetryDelays = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10)];
+
+        /// <summary>
+        /// Check a JSON response can be parsed
+        /// </summary>
+        /// <returns>The parse error, or null if the response is valid (or not JSON)</returns>
+        private static string? GetInvalidJsonError(RestResponse response)
+        {
+            if (response.RawBytes == null || response.RawBytes.Length == 0 || !(response.ContentType?.Contains("json") ?? false))
+                return null;
+
+            try
+            {
+                using var _ = System.Text.Json.JsonDocument.Parse(response.RawBytes);
+                return null;
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Describe a failed request for the log: what was requested, the response, and SmugMug's request id (for SmugMug support)
+        /// </summary>
+        private static string DescribeFailure(RestRequest request, RestResponse response)
+        {
+            // Uploads all go to the same endpoint, the image being replaced is in a header
+            string? imageUri = request.Parameters.FirstOrDefault(p => p.Name == "X-Smug-ImageUri")?.Value?.ToString();
+            string? requestId = response.Headers?.FirstOrDefault(h => string.Equals(h.Name, "X-Request-ID", StringComparison.OrdinalIgnoreCase))?.Value?.ToString();
+
+            // Keep the log readable when the content is an HTML error page
+            string content = response.Content ?? "";
+            if (content.Length > 500)
+                content = content[..500] + "...";
+
+            return $"with status code: {response.StatusCode}, Request: {request.Method} {request.Resource}"
+                + (imageUri != null ? $" (Image: {imageUri})" : "")
+                + $", Content: {content}, Error: {response.ErrorMessage}"
+                + (requestId != null ? $", RequestId: {requestId}" : "");
+        }
 
         /// <summary>
         /// Failures that may work when retried: no response (network), throttled, or a server error
@@ -170,7 +215,7 @@ namespace SmugMugCore.Net.Core20
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                throw new Exception($"Post Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+                throw new Exception($"Post Request failed {DescribeFailure(request, response)}");
             }
             else
                 return response;
@@ -193,7 +238,7 @@ namespace SmugMugCore.Net.Core20
             // 3. Ensure a successful status code.
             if (!response.IsSuccessful)
             {
-                throw new Exception($"Patch Request failed with status code: {response.StatusCode}, Content: {response.Content}, Error: {response.ErrorMessage}");
+                throw new Exception($"Patch Request failed {DescribeFailure(request, response)}");
             }
             else
                 return response;

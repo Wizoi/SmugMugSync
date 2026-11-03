@@ -111,7 +111,7 @@ namespace SmugMugCore.Net.Service20
                 {
                     throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
                 }
-                return rawResponse.Image.AlbumImageUri;
+                return rawResponse.Image?.AlbumImageUri ?? throw new Exception("Error uploading image: no AlbumImageUri in the response: " + restResponse.Content);
             }
 
             throw new Exception("Error uploading image: " + restResponse.ErrorMessage);

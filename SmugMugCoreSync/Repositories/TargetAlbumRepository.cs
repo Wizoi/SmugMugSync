@@ -352,14 +352,12 @@ namespace SmugMugCoreSync.Repositories
                         try
                         {
                             Trace.WriteLine("    > Adding " + sourceImage.FileName);
-                            _ = await UploadNewMedia(_smCore, targetAlbum, sourceMetadata);
+                            return await UploadNewMedia(_smCore, targetAlbum, sourceMetadata);
                         }
                         finally
                         {
                             uploadThrottler.Release();
                         }
-
-                        return true;
                     case OperationLevel.NoneLog:
                         Trace.WriteLine("    >? Adding Suppressed: " + sourceImage.FileName);
                         break;
@@ -388,7 +386,24 @@ namespace SmugMugCoreSync.Repositories
                 {
                     case OperationLevel.Normal:
                         Trace.WriteLine("    > Updating Remote Media: " + sourceImage.FileName);
-                        _ = await UploadMedia(_smCore, targetAlbum, targetImage, sourceMetadata);
+                        string? replacedImageUri = await UploadMedia(_smCore, targetAlbum, targetImage, sourceMetadata);
+                        if (replacedImageUri != null)
+                        {
+                            // SmugMug ignores the title, caption and keywords headers when replacing an image, and imports the ones
+                            // embedded in the file instead (ie: Lightroom's People|John Doe becomes PeopleJohn Doe), so check the
+                            // replaced image and set them again only when they are different.
+                            // The replace changes the image's serial (ie: -0 to -1) and the old URI returns 401, so use the new URI.
+                            // SmugMug processes the replace after the upload returns, until then the new URI returns 404 or 401.
+                            try
+                            {
+                                var replacedImage = await RetryAsync(() => _smCore.AlbumImageService.GetImageDetail(replacedImageUri));
+                                _ = await UpdateMetadata(runtimeFlags, sourceMetadata, replacedImage);
+                            }
+                            catch (Exception ex)
+                            {
+                                Trace.WriteLine($"    > ERROR (Metadata not checked after replace, will update on the next sync: {targetImage.FileName}) = {ex.Message}");
+                            }
+                        }
                         return true;
                     case OperationLevel.NoneLog:
                         Trace.WriteLine("    >? Update Suppressed: " + sourceImage.FileName);
@@ -433,8 +448,6 @@ namespace SmugMugCoreSync.Repositories
         public virtual  async Task<bool> UpdateMetadata(RuntimeFlagsConfig runtimeFlags, FileMetaContent sourceXmlMetadata, AlbumImageDetail targetImage)
         {
             // Scenario 3: Not forcing binary update, but will always update metadata if different
-            bool isMetadataUpdated = false;
-
             bool isMetadataDifferent =
                 _smCore.ContentMetadataService.AreKeywordsDifferent(sourceXmlMetadata, targetImage.Keywords) ||
                 ((sourceXmlMetadata.Title ?? "") != System.Web.HttpUtility.HtmlDecode(targetImage.Title ?? "")) ||
@@ -442,10 +455,6 @@ namespace SmugMugCoreSync.Repositories
 
             if (isMetadataDifferent)
             {
-                targetImage.Title = sourceXmlMetadata.Title;
-                targetImage.Caption = sourceXmlMetadata.Caption;
-                targetImage.Keywords = ContentMetadataService.JoinKeywordsForSmugMug(sourceXmlMetadata.Keywords);
-
                 // If this is a video, then only update the titles and keywords.
                 switch (runtimeFlags.TargetUpdate)
                 {
@@ -459,19 +468,13 @@ namespace SmugMugCoreSync.Repositories
                             Trace.WriteLine("    > Updating Metadata: " + targetImage.FileName);
                             try
                             {
-                                // Attempt #1
-                                _ = await _smCore.AlbumImageService.UpdateAlbumImage(targetImage);
+                                await PatchMetadata(sourceXmlMetadata, targetImage);
                             }
                             catch (Exception ex)
                             {
-                                // Attempt #2 (then blow up and escalate higher)
-                                // SmugMug intermittently rejects PATCH requests with oauth_problem=nonce_used,
-                                // a new request is created on retry which generates a new nonce.
-                                Trace.WriteLine($"    > RETRY (Failed Metadata: {targetImage.FileName}) = {ex.Message}");
-
-                                System.Threading.Thread.Sleep(1000);
-
-                                _ = await _smCore.AlbumImageService.UpdateAlbumImage(targetImage);
+                                // Do not stop the sync, the metadata is compared and updated again on the next sync
+                                Trace.WriteLine($"    > ERROR (Metadata not updated, will update on the next sync: {targetImage.FileName}) = {ex.Message}");
+                                return false;
                             }
                             return true;
                         }
@@ -484,7 +487,41 @@ namespace SmugMugCoreSync.Repositories
                 }
             }
 
-            return isMetadataUpdated;
+            return false;
+        }
+
+        /// <summary>
+        /// Set the title, caption and keywords on the SmugMug image from the source file's metadata
+        /// </summary>
+        private async Task PatchMetadata(FileMetaContent sourceXmlMetadata, AlbumImageDetail targetImage)
+        {
+            targetImage.Title = sourceXmlMetadata.Title;
+            targetImage.Caption = sourceXmlMetadata.Caption;
+            targetImage.Keywords = ContentMetadataService.JoinKeywordsForSmugMug(sourceXmlMetadata.Keywords);
+
+            // SmugMug intermittently rejects PATCH requests with oauth_problem=nonce_used,
+            // a new request is created on each retry which generates a new nonce.
+            _ = await RetryAsync(() => _smCore.AlbumImageService.UpdateAlbumImage(targetImage));
+        }
+
+        /// <summary>
+        /// Run a request, retrying it quietly when it fails (ie: SmugMug is busy, or the connection dropped).
+        /// Only the last attempt's failure is escalated.
+        /// </summary>
+        /// <param name="canRetry">Optional check for failures that will not work on a retry</param>
+        private static async Task<T> RetryAsync<T>(Func<Task<T>> request, Func<Exception, bool>? canRetry = null)
+        {
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    return await request();
+                }
+                catch (Exception ex) when (attempt < SmugMugCore.Net.Core20.SmugMugCore.RetryDelays.Length && (canRetry?.Invoke(ex) ?? true))
+                {
+                    await Task.Delay(SmugMugCore.Net.Core20.SmugMugCore.RetryDelays[attempt]);
+                }
+            }
         }
 
 
@@ -522,76 +559,42 @@ namespace SmugMugCoreSync.Repositories
 
         private async static Task<bool> UploadNewMedia(SmugMugCore.Net.Core20.SmugMugCore core, AlbumDetail targetAlbum, FileMetaContent targetMetadata)
         {
-            return await UploadMedia(core, targetAlbum, null, targetMetadata);
+            return (await UploadMedia(core, targetAlbum, null, targetMetadata)) != null;
         }
 
-        private async static Task<bool> UploadMedia(SmugMugCore.Net.Core20.SmugMugCore core, AlbumDetail targetAlbum, AlbumImageDetail? targetImage, FileMetaContent targetMetadata)
+        /// <summary>
+        /// Upload a new image, or replace an existing image
+        /// </summary>
+        /// <returns>The uploaded album image's URI (a replace changes the image's serial), or null if the file was skipped</returns>
+        private async static Task<string?> UploadMedia(SmugMugCore.Net.Core20.SmugMugCore core, AlbumDetail targetAlbum, AlbumImageDetail? targetImage, FileMetaContent targetMetadata)
         {
-            string targetImageKey = String.Empty;
-            int targetImageSerial = 0;
-            if (targetImage != null)
+            async Task<string> Upload()
             {
-                targetImageKey = targetImage.ImageKey;
-                targetImageSerial = targetImage.Serial;
+                if (targetImage == null)
+                    return await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetMetadata);
+                else
+                    return await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImage.ImageKey, targetImage.Serial, targetMetadata);
             }
+
+            // Corrupt File (60) or Unknown File Type (64) - the file itself is rejected, so a retry will not help.
+            static bool IsFileRejected(Exception ex) => ex is SmugMugException smugEx && (smugEx.ErrorCode == 60 || smugEx.ErrorCode == 64);
 
             try
             {
-                // Attempt #1
-                if (targetImage == null)
-                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetMetadata);
-                else
-                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
-
-                return true;
+                // Other failures usually work on a retry (ie: network, or 35 Authorization error)
+                return await RetryAsync(Upload, ex => !IsFileRejected(ex));
             }
-            catch (HttpRequestException httpReqEx)
+            catch (SmugMugException smugEx) when (IsFileRejected(smugEx))
             {
-                // Non-SmugMugException - Retry just once (possibly network related)
-                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata.FileInfo?.Name}) = {httpReqEx.Message}");
-
-                System.Threading.Thread.Sleep(1000);
-
-                if (targetImage == null)
-                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetMetadata);
-                else
-                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
-                return true;
-            }
-            catch (SmugMugException smugEx)
-            {
-                // Unknown File Type - skip
-                if (smugEx.ErrorCode == 64)
-                {
-                    Trace.WriteLine("    > ERROR 64 (Invalid File Type): " + smugEx.ErrorMessage);
-                    throw new ApplicationException("Invalid File Type");
-                }
-                else
-                {
-                    // Attempt #2 (then blow up and escalate higher)
-                    Trace.WriteLine("    > RETRY ERROR " + smugEx.ErrorCode + " Query=" + smugEx.ErrorMessage);
-
-                    System.Threading.Thread.Sleep(1000);
-
-                    if (targetImage == null)
-                        _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetMetadata);
-                    else
-                        _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
-                    return true;
-                }
+                // Skip the file so the rest of the sync continues, it will be tried again on the next sync.
+                Trace.WriteLine($"    > SKIP (Error {smugEx.ErrorCode} {smugEx.ErrorMessage}): {targetMetadata.FileInfo?.Name}");
+                return null;
             }
             catch (Exception ex)
             {
-                // Attempt #2 (then blow up and escalate higher)
-                Trace.WriteLine($"    > RETRY (Failed: {targetMetadata.FileInfo?.Name}) = {ex.Message}");
-
-                System.Threading.Thread.Sleep(1000);
-
-                if (targetImage == null)
-                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetMetadata);
-                else
-                    _ = await core.ImageUploaderService.UploadAlbumImage(targetAlbum.AlbumKey, targetImageKey, targetImageSerial, targetMetadata);
-                return true;
+                // Blow up and escalate higher
+                Trace.WriteLine($"    > ERROR (Upload failed: {targetMetadata.FileInfo?.Name}) = {ex.Message}");
+                throw;
             }
         }
 

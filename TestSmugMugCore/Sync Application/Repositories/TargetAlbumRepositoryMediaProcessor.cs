@@ -554,7 +554,7 @@ public class TargetAlbumRepositoryMediaProcessor
         // Setup the ImageUploaderService
         var imageUploaded = new ImageUploaderService();
         var smImageUploaderSvcMock = new Mock<ImageUploaderService>(smCoreMock.Object);
-        smImageUploaderSvcMock.Setup(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>())).ReturnsAsync(It.IsAny<string>());
+        smImageUploaderSvcMock.Setup(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>())).ReturnsAsync("/api/v2/album/TestKey/image/ImageKey-0");
         smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
 
         ////////////////////////////////////////////////
@@ -573,7 +573,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>()));
+        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()));
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -592,7 +592,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -612,7 +612,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -632,7 +632,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(true, result, "Expected to process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>()));
+        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()));
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -652,7 +652,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
 
         ////////////////////////////////////////////////
@@ -673,7 +673,7 @@ public class TargetAlbumRepositoryMediaProcessor
             runtimeConfig, sourceMediaDataMock.Object, albDetail, uploadThrottler);
 
         Assert.AreEqual(false, result, "Expected to not process the remote media. ");
-        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<FileMetaContent>()), Times.Never());
+        smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
     }
 }
