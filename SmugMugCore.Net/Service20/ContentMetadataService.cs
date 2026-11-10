@@ -102,7 +102,7 @@ public partial class ContentMetadataService
 
     private FileMetaContent GetMetadataPropertiesWithMetadataExtractorLibrary(string filepath)
     {
-        IEnumerable<MetadataExtractor.Directory> directories = MetadataExtractor.ImageMetadataReader.ReadMetadata(filepath);
+        IEnumerable<MetadataExtractor.Directory> directories = ReadMetadataSkippingBadXmp(filepath);
         var content = new FileMetaContent();
         string? imageDescription = null;
 
@@ -181,6 +181,29 @@ public partial class ContentMetadataService
 
 
         return content;
+    }
+
+    /// <summary>
+    /// Read the metadata of a file. Some JPEGs have an XMP block that is only zeros (ie: space reserved by an older tool),
+    /// which MetadataExtractor fails on (OverflowException), so read those again without the XMP block.
+    /// </summary>
+    private static IEnumerable<MetadataExtractor.Directory> ReadMetadataSkippingBadXmp(string filepath)
+    {
+        try
+        {
+            return MetadataExtractor.ImageMetadataReader.ReadMetadata(filepath);
+        }
+        catch (Exception ex) when (ex is not MetadataExtractor.ImageProcessingException && IsJpeg(filepath))
+        {
+            var readersWithoutXmp = MetadataExtractor.Formats.Jpeg.JpegMetadataReader.AllReaders.Where(x => x is not XmpReader).ToList();
+            return MetadataExtractor.Formats.Jpeg.JpegMetadataReader.ReadMetadata(filepath, readersWithoutXmp);
+        }
+    }
+
+    private static bool IsJpeg(string filepath)
+    {
+        string extension = System.IO.Path.GetExtension(filepath).ToUpperInvariant();
+        return extension == ".JPG" || extension == ".JPEG";
     }
 
     /// <summary>
