@@ -57,6 +57,17 @@ public class UploadHeaderTextTest
     }
 
     [TestMethod()]
+    public void CleanAlbumName_RemovesApostrophes()
+    {
+        // Both the ASCII apostrophe and the Unicode ones (ie: ’ written by Word and phones) are removed
+        Assert.AreEqual("1999-11 - Kates Wedding", AlbumService.CleanAlbumName("1999-11 - Kate's Wedding"));
+        Assert.AreEqual("1999-11 - Kates Wedding", AlbumService.CleanAlbumName("1999-11 - Kate’s Wedding"));
+        Assert.AreEqual("Rock n Roll", AlbumService.CleanAlbumName("Rock ‘n’ Roll"));
+        Assert.AreEqual("2024-11 - Thanksgiving", AlbumService.CleanAlbumName("2024-11 - Thanksgiving"));
+        Assert.IsNull(AlbumService.CleanAlbumName(null));
+    }
+
+    [TestMethod()]
     public void CleanHeaderValue_RemovesControlCharacters()
     {
         Assert.AreEqual("", ImageUploaderService.CleanHeaderValue(null));

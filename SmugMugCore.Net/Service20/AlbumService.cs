@@ -150,6 +150,8 @@ namespace SmugMugCore.Net.Service20
         /// <returns>New Album Album object with Key Information</returns>
         public async virtual Task<Data20.AlbumDetail> CreateAlbum(Data20.AlbumDetail album)
         {
+            album.Name = CleanAlbumName(album.Name);
+
             // NiceName is required, make sure it is setup
             if (album.UrlName == null || album.UrlName.Length == 0)
             {
@@ -184,6 +186,17 @@ namespace SmugMugCore.Net.Service20
             throw new Exception("Failed to create album: " + album.Name + ", " + restResponse.ErrorMessage);
         }
         
+        /// <summary>
+        /// Clean a folder name to use as an album name. Apostrophes (ie: ' and the Unicode ’) in a folder name failed the sync, so they are removed.
+        /// </summary>
+        public static string? CleanAlbumName(string? name)
+        {
+            if (name == null)
+                return null;
+
+            return string.Concat(name.Where(c => c != '\'' && c != '’' && c != '‘' && c != 'ʼ'));
+        }
+
         // <summary>
         // Retrieve the information for an album
         // </summary>
