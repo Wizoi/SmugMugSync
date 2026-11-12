@@ -21,46 +21,27 @@ namespace SmugMugCore.Net.Core20
         public bool EnableRequestLogging { get; set; } = System.Diagnostics.Debugger.IsAttached;
 
         #region Properties for Services
-        private readonly System.Collections.Generic.Dictionary<string, object> _serviceCatalog = new();
+        // The services are used by the parallel uploads, so the catalog must be safe to add to from several threads at once
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, object> _serviceCatalog = new();
 
         public virtual AlbumService AlbumService
         {
-            get
-            {
-                string keyName = "AlbumService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumService(this, userName, defaultUploadFolder)); }
-                return (AlbumService)_serviceCatalog[keyName];
-            }
+            get { return (AlbumService)_serviceCatalog.GetOrAdd("AlbumService", _ => new AlbumService(this, userName, defaultUploadFolder)); }
         }
 
         public virtual AlbumImageService AlbumImageService
         {
-            get
-            {
-                string keyName = "AlbumImageService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new AlbumImageService(this)); }
-                return (AlbumImageService)_serviceCatalog[keyName];
-            }
+            get { return (AlbumImageService)_serviceCatalog.GetOrAdd("AlbumImageService", _ => new AlbumImageService(this)); }
         }
 
         public virtual ImageUploaderService ImageUploaderService
         {
-            get
-            {
-                string keyName = "ImageUploaderService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ImageUploaderService(this)); }
-                return (ImageUploaderService)_serviceCatalog[keyName];
-            }
+            get { return (ImageUploaderService)_serviceCatalog.GetOrAdd("ImageUploaderService", _ => new ImageUploaderService(this)); }
         }
 
         public virtual ContentMetadataService ContentMetadataService
         {
-            get
-            {
-                string keyName = "ContentMetadataService";
-                if (!_serviceCatalog.ContainsKey(keyName)) { _serviceCatalog.TryAdd(keyName, new ContentMetadataService()); }
-                return (ContentMetadataService)_serviceCatalog[keyName];
-            }
+            get { return (ContentMetadataService)_serviceCatalog.GetOrAdd("ContentMetadataService", _ => new ContentMetadataService()); }
         }
 
         #endregion Properties for Services
