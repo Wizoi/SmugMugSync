@@ -8,110 +8,115 @@ namespace SmugMugCore.Net.Service20
 {
     public class AlbumService(Core20.SmugMugCore? core, string userName, string uploadPath)
     {
-        public readonly string API_ALBUM_SEARCH = "/api/v2/album!search";
+        public readonly string API_USER_ALBUMS = "/api/v2/user/{0}!albums";
         public readonly string API_ALBUM_LOOKUP = "/api/v2/album/{0}";
         public readonly string API_ALBUM_NEW_LOCATION = "/api/v2/folder/user/{0}/{1}!albums";
-        public readonly string ROOT_SCOPE = "/api/v2/user/{0}";
 
 
         public AlbumService() : this(null, "", "") { }
 
         /// <summary>
-        /// Retrieve a list of albums for a given user with a field list.  Will return empty albums, and ignore the nickname, and album passwords
+        /// Retrieve all of the albums for the user, with all of their fields
         /// </summary>
-        /// <param name="fieldList">Extra fields to load in an album list (use data object fieldnames)</param>
         /// <returns></returns>
         public async virtual Task<Data20.AlbumDetail[]> GetAlbumListFull()
         {
-            return await GetAlbumList([], "", 200);
+            return await GetAlbumList([]);
         }
 
         /// <summary>
-        /// Retrieves album keys and titles for a given case insensitive search text
+        /// Retrieves album keys and names, for the albums with a name containing the text (case insensitive, empty for all albums)
         /// </summary>
-        /// <param name="searchText">case insensitive search term</param>
+        /// <param name="searchText">case insensitive text the album name contains</param>
         /// <returns></returns>
         public async virtual Task<Data20.AlbumDetail[]> GetAlbumListNamesOnly(string searchText)
         {
-            return await GetAlbumList(new[] { "AlbumKey", "Name" }, searchText, 1000);
+            var albums = await GetAlbumList(["AlbumKey", "Name"]);
+            return albums.Where(x => x.Name != null && x.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToArray();
         }
 
         /// <summary>
-        /// Retrieve a list of albums for a given user
+        /// Retrieve all of the albums for the user (user!albums). Album search (album!search) is not used, as it is a text search
+        /// which leaves out albums (ie: 32 of the 96 albums named 199).
+        /// SmugMug's paging is by position (start/count), so albums can be repeated or skipped when the order shifts between pages.
+        /// The albums are listed again until all of SmugMug's total is found.
         /// </summary>
-        /// <param name="returnEmpty">Return empty albums, categories and subcategories</param>
-        /// <param name="nickName">The NickName for a specific user</param>
-        /// <param name="sitePassword">The site password for a specific user</param>
         /// <param name="fieldList">Extra fields to load in an album list (use data object fieldnames)</param>
         /// <returns></returns>
-        private async Task<Data20.AlbumDetail[]> GetAlbumList(string[] fieldList, string searchText, int pagingCount)
+        /// <exception cref="Exception">if not every album is listed, as the sync would create the missing albums again</exception>
+        private async Task<Data20.AlbumDetail[]> GetAlbumList(string[] fieldList)
         {
-            // Setup Request
-            var initialRequest = new RestRequest(API_ALBUM_SEARCH, Method.Get);
-            initialRequest.AddParameter("Scope", string.Format(ROOT_SCOPE, userName), true);
-            initialRequest.AddParameter("count", pagingCount, false);
-            initialRequest.AddParameter("Text", searchText, true);
-            bool needsInitialRequest = true;
+            const int maxPasses = 3;
+            var albums = new Dictionary<string, AlbumDetail>();
+            int total = 0;
+            for (int pass = 1; pass <= maxPasses; pass++)
+            {
+                total = await AddAlbumListPages(fieldList, albums);
+                if (albums.Count >= total)
+                    return [.. albums.Values];
+            }
+
+            throw new Exception($"Only {albums.Count} of {total} albums were listed by SmugMug after {maxPasses} attempts.");
+        }
+
+        /// <summary>
+        /// Page through the user's albums, adding each to the albums found
+        /// </summary>
+        /// <returns>SmugMug's total number of albums</returns>
+        private async Task<int> AddAlbumListPages(string[] fieldList, Dictionary<string, AlbumDetail> albums)
+        {
+            // Setup Request (the page size is limited to 100 by SmugMug)
+            var initialRequest = new RestRequest(string.Format(API_USER_ALBUMS, userName), Method.Get);
+            initialRequest.AddParameter("count", 100, false);
+            initialRequest.AddParameter("Order", "Date Added (Descending)", true);
 
             // Add fields
             if (fieldList.Length > 0)
             {
                 initialRequest.AddParameter("_filter", string.Join(",", fieldList), true);
-                initialRequest.AddParameter("_filterurl", "", true);
+                initialRequest.AddParameter("_filteruri", "", true);
             }
 
             // Make Call
-            List<AlbumDetail> albumList = [];
-            string nextPageLink = string.Empty;
-            while (needsInitialRequest || (!string.IsNullOrEmpty(nextPageLink) && !needsInitialRequest))
+            int total = 0;
+            RestRequest? request = initialRequest;
+            while (request != null)
             {
-                RestRequest request;
-                if (needsInitialRequest)
+                var restResponse = await core.QueryService(request);
+                if (!restResponse.IsSuccessful)
+                    throw new Exception("Error loading album: " + restResponse.ErrorMessage);
+
+                var jsonDoc = JsonDocument.Parse(restResponse.Content);
+                var rawResponse = jsonDoc.RootElement.Deserialize<AlbumListResponse>();
+                if (rawResponse.Status == "fail")
                 {
-                    request = initialRequest;
-                    needsInitialRequest = false;
+                    throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
                 }
-                else
+
+                foreach (var album in rawResponse.Response.AlbumDetail ?? [])
                 {
-                    // Pull off the parameters
-                    var nextPageParams = nextPageLink.Substring(nextPageLink.IndexOf("?") + 1);
-                    var parametersCollection = HttpUtility.ParseQueryString(nextPageParams);
-                    request = new RestRequest(API_ALBUM_SEARCH, Method.Get);
-                    foreach (var param in parametersCollection.AllKeys)
+                    if (album.AlbumKey != null)
+                        albums.TryAdd(album.AlbumKey, album);
+                }
+
+                total = rawResponse.Response.Pages?.Total ?? 0;
+                string? nextPageLink = rawResponse.Response.Pages?.NextPage;
+                request = null;
+                if (!string.IsNullOrEmpty(nextPageLink))
+                {
+                    // Pass the parameters of the next page decoded, so they are not encoded twice (ie: Order has spaces)
+                    var nextPageParams = HttpUtility.ParseQueryString(nextPageLink.Substring(nextPageLink.IndexOf('?') + 1));
+                    request = new RestRequest(nextPageLink.Substring(0, nextPageLink.IndexOf('?')), Method.Get);
+                    foreach (var param in nextPageParams.AllKeys)
                     {
                         request.Parameters.AddParameter(
-                            RestSharp.Parameter.CreateParameter(param, parametersCollection[param], ParameterType.QueryString, true)
+                            RestSharp.Parameter.CreateParameter(param, nextPageParams[param], ParameterType.QueryString, true)
                         );
                     }
                 }
-
-                nextPageLink = string.Empty;
-                var restResponse = await core.QueryService(request);
-                if (restResponse.IsSuccessful)
-                {
-                    var jsonDoc = JsonDocument.Parse(restResponse.Content);
-                    var rawResponse = jsonDoc.RootElement.Deserialize<AlbumListResponse>();
-                    if (rawResponse.Status == "fail")
-                    {
-                        throw new SmugMugException(request, restResponse.Content, rawResponse.Method, rawResponse.ErrorCode, rawResponse.ErrorMessage);
-                    }
-
-                    if (rawResponse.Response.AlbumDetail != null)
-                        albumList.AddRange(rawResponse.Response.AlbumDetail);
-
-                    if (rawResponse.Response.Pages.NextPage != null)
-                    {
-                        nextPageLink = rawResponse.Response.Pages.NextPage;
-                    }
-                }
-                else
-                {
-                    throw new Exception("Error loading album: " + restResponse.ErrorMessage);
-                }
             }
 
-            // Return Results
-            return [.. albumList];
+            return total;
         }
 
         // <summary>
