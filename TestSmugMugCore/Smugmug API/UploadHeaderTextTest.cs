@@ -68,6 +68,16 @@ public class UploadHeaderTextTest
     }
 
     [TestMethod()]
+    public void BuildUrlName_SingleDashBetweenWords()
+    {
+        Assert.AreEqual("2012-02-06-Woodland-Park-Zoo", AlbumService.BuildUrlName("2012-02-06 - Woodland Park Zoo"));
+        Assert.AreEqual("2012-02-06-Woodland-Park-Zoo", AlbumService.BuildUrlName("2012-02-06 - Woodland-Park-Zoo"));
+        Assert.AreEqual("2012-02-06-Woodland-Park-Zoo", AlbumService.BuildUrlName("2012-02-06 -Woodland  Park- Zoo"));
+        Assert.AreEqual("1997-10-Kevin-Jenny-Jennys-Parents-Milwaukee", AlbumService.BuildUrlName("1997-10 - Kevin & Jenny - Jenny's Parents - Milwaukee"));
+        Assert.AreEqual("2021-Puppies", AlbumService.BuildUrlName("2021- Puppies"));
+    }
+
+    [TestMethod()]
     public void CleanHeaderValue_RemovesControlCharacters()
     {
         Assert.AreEqual("", ImageUploaderService.CleanHeaderValue(null));

@@ -155,7 +155,7 @@ namespace SmugMugCore.Net.Service20
             // NiceName is required, make sure it is setup
             if (album.UrlName == null || album.UrlName.Length == 0)
             {
-                album.UrlName = string.Concat(album.Name.Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c) || (c == '-'))).Replace(" ", "-").Replace("--", "-");
+                album.UrlName = BuildUrlName(album.Name);
             }
 
             string albumData = JsonSerializer.Serialize(album, new JsonSerializerOptions
@@ -186,6 +186,16 @@ namespace SmugMugCore.Net.Service20
             throw new Exception("Failed to create album: " + album.Name + ", " + restResponse.ErrorMessage);
         }
         
+        /// <summary>
+        /// Build the album's URL name from its name: only letters, digits and dashes, with each run of spaces and dashes
+        /// as a single dash (ie: "2012-02-06 - Woodland Park Zoo" -> "2012-02-06-Woodland-Park-Zoo", not 2012-02-06--Woodland-Park-Zoo)
+        /// </summary>
+        public static string BuildUrlName(string? name)
+        {
+            string urlName = string.Concat((name ?? "").Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c) || (c == '-')));
+            return System.Text.RegularExpressions.Regex.Replace(urlName, @"[\s-]+", "-").Trim('-');
+        }
+
         /// <summary>
         /// Clean a folder name to use as an album name. Apostrophes (ie: ' and the Unicode ’) in a folder name failed the sync, so they are removed.
         /// </summary>
