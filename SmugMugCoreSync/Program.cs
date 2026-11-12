@@ -7,8 +7,6 @@ using SmugMugCoreSync.Repositories;
 using SmugMugCoreSync.Utility;
 using System.Diagnostics;
 using System.IO.Abstractions;
-using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using static System.Formats.Asn1.AsnWriter;
 
 /*

@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Web;
-using System.Windows.Forms.VisualStyles;
 using RestSharp;
 using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
@@ -61,7 +60,7 @@ namespace SmugMugCore.Net.Service20
         public virtual async Task<Data20.AlbumImageDetail[]> GetAlbumImageListShort(string albumKey)
         {
             return await GetAlbumImageList(albumKey,
-                new string[] { "FileName", "Title", "Caption",  "Keywords", "AlbumKey", "ImageKey", "ArchivedSize", "ArchivedMD5", "ArchivedUri", "Serial" },
+                new string[] { "FileName", "Title", "Caption",  "Keywords", "AlbumKey", "ImageKey", "ArchivedSize", "ArchivedMD5", "ArchivedUri", "Serial", "DateTimeOriginal" },
                 300);
         }
 

@@ -1,13 +1,10 @@
-﻿using Microsoft.VisualBasic.Logging;
-using SmugMugCore.Net.Service20;
+﻿using SmugMugCore.Net.Service20;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Abstractions;
-using System.Security.RightsManagement;
 
 namespace SmugMugCoreSync.Data
 {

@@ -24,6 +24,7 @@
     <None Remove="Content\TestImageWithIPTCTitleCaption.jpg" />
     <None Remove="Content\TestImageWithLightroomTitleCaption.jpg" />
     <None Remove="Content\TestImageWithCaptionOnly.jpg" />
+    <None Remove="Content\TestImageWithXmpAndXPFields.jpg" />
     <None Remove="Content\TestTifImage.tif" />
     <None Remove="Content\TestVideo.MOV" />
     <None Remove="Content\TestVideoMp4.mp4" />
@@ -69,6 +70,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\TestImageWithCaptionOnly.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\TestImageWithXmpAndXPFields.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\TestTifImage.tif">

@@ -1,5 +1,4 @@
-﻿using System.Windows.Forms.VisualStyles;
-using NuGet.Frameworks;
+﻿using NuGet.Frameworks;
 using SmugMugCore.Net.Core20;
 using SmugMugCore.Net.Data20;
 using SmugMugCore.Net.Service20;

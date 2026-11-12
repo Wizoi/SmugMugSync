@@ -1,8 +1,6 @@
 ﻿using SmugMugCore.Net.Data20;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
-using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using MetadataExtractor.Formats.QuickTime;
@@ -32,155 +30,152 @@ public partial class ContentMetadataService
             }
             catch (MetadataExtractor.ImageProcessingException)
             {
-                content = this.GetMetadataPropertiesFromShell(filepath); 
+                // The file format is not read by MetadataExtractor (ie: WMV, MPG), so there is no metadata to read
+                content = new FileMetaContent();
             }
         }
         else
             throw new ApplicationException("File " + filepath + " is not found.");
 
+        content.IsVideo = IsVideoFile(filepath);
+        if (content.IsVideo && (content.VideoLength == TimeSpan.Zero) && (System.IO.Path.GetExtension(filepath).ToUpperInvariant() == ".WMV"))
+            content.VideoLength = GetWmvDuration(filepath);
+
         content.FileInfo = this.FileSystem.FileInfo.New(filepath);
         return content;
     }
 
-    private FileMetaContent GetMetadataPropertiesFromShell(string filepath)
-    {
-        var content = new FileMetaContent();
-        PopulateMetadataPropertiesFromShell(filepath, content);
-        return content;
-    }        
+    private static readonly HashSet<string> VideoExtensions = [".MOV", ".MP4", ".M4V", ".WMV", ".MPG", ".MPEG", ".MOD", ".AVI", ".3GP", ".MTS", ".M2TS"];
 
-    private void PopulateMetadataPropertiesFromShell(string filepath, FileMetaContent content)
+    private static bool IsVideoFile(string filepath)
     {
-        if (ShellObject.IsPlatformSupported)
+        return VideoExtensions.Contains(System.IO.Path.GetExtension(filepath).ToUpperInvariant());
+    }
+
+    /// <summary>
+    /// Read the duration of a WMV (ASF) video, which MetadataExtractor does not read, from the ASF File Properties Object
+    /// in the header: the play duration (100ns units) less the preroll (ms).
+    /// </summary>
+    /// <returns>The duration, or zero if it is not found</returns>
+    private TimeSpan GetWmvDuration(string filepath)
+    {
+        byte[] filePropertiesGuid = [0xA1, 0xDC, 0xAB, 0x8C, 0x47, 0xA9, 0xCF, 0x11, 0x8E, 0xE4, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65];
+
+        // The header objects are at the start of the file
+        byte[] header = new byte[64 * 1024];
+        int length;
+        using (var stream = this.FileSystem.File.OpenRead(filepath))
         {
-            ShellProperties? propertyCollection = null;
-
-            // Dispose for the file is unstable for windows as this shell object is not f
-            using var file = ShellObject.FromParsingName(filepath);
-            propertyCollection = file.Properties;
-            if (propertyCollection != null)
-            {
-                IShellProperty propertyTitle = propertyCollection.GetProperty("System.Title");
-                if (propertyTitle != null)
-                {
-                    content.Title = (string)propertyTitle.ValueAsObject;
-                }
-
-                IShellProperty propertyDuration = propertyCollection.GetProperty("System.Media.Duration");
-                if (propertyDuration != null)
-                {
-                    content.IsVideo = true;
-                    long duration = Convert.ToInt64(propertyDuration.ValueAsObject);
-                    var ts = new TimeSpan(duration);
-                    content.VideoLength = ts;
-                }
-
-                IShellProperty propertyDateTaken = propertyCollection.GetProperty("System.Document.DateCreated");
-                if (propertyDateTaken != null)
-                {
-                    content.DateTaken = (DateTime)propertyDateTaken.ValueAsObject;
-                }
-                else
-                {
-                    content.DateTaken = DateTime.MinValue;
-                }
-
-                content.Keywords = [];
-                IShellProperty propertyTags = propertyCollection.GetProperty("System.Keywords");
-                if (propertyTags != null)
-                {
-                    string[] dataTag = (string[])propertyTags.ValueAsObject;
-                    if (dataTag != null && dataTag.Any())
-                    {
-                        string keywordString = string.Join(";", (string[])propertyTags.ValueAsObject);
-                        content.Keywords = SplitTagString(keywordString);
-                    }
-                }
-            }
+            length = stream.Read(header, 0, header.Length);
         }
+
+        // ASF Header Object: GUID (16), size (8), object count (4), reserved (2), then each object: GUID (16), size (8), data
+        int offset = 30;
+        while (offset + 88 <= length)
+        {
+            long objectSize = BitConverter.ToInt64(header, offset + 16);
+            if (header.AsSpan(offset, 16).SequenceEqual(filePropertiesGuid))
+            {
+                long playDuration = BitConverter.ToInt64(header, offset + 64);
+                long preroll = BitConverter.ToInt64(header, offset + 80);
+                return TimeSpan.FromTicks(playDuration) - TimeSpan.FromMilliseconds(preroll);
+            }
+            if (objectSize < 24)
+                break;
+            offset += (int)Math.Min(objectSize, int.MaxValue);
+        }
+        return TimeSpan.Zero;
     }
 
     private FileMetaContent GetMetadataPropertiesWithMetadataExtractorLibrary(string filepath)
     {
         IEnumerable<MetadataExtractor.Directory> directories = ReadMetadataSkippingBadXmp(filepath);
         var content = new FileMetaContent();
-        string? imageDescription = null;
 
-        var exifDirTags = directories.OfType<MetadataExtractor.Formats.Exif.ExifIfd0Directory>();
-        if (exifDirTags.Any())
-        {
-            var exifTags = exifDirTags.First();
-            if (exifTags.HasTagName(ExifIfd0Directory.TagDateTime))
-            {
-                if (exifTags.TryGetDateTime(ExifIfd0Directory.TagDateTime, out DateTime exifDateTime))
-                    content.DateTaken = exifDateTime;
-            }
-            if (exifTags.HasTagName(ExifIfd0Directory.TagWinTitle))
-                content.Title = GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinTitle);
-            if (exifTags.HasTagName(ExifIfd0Directory.TagImageDescription))
-                imageDescription = exifTags.GetDescription(ExifIfd0Directory.TagImageDescription);
-            if (exifTags.HasTagName(ExifIfd0Directory.TagWinComment))
-                content.Caption = GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinComment);
-            if (exifTags.HasTagName(ExifIfd0Directory.TagWinKeywords))
-                content.Keywords = SplitTagString(GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinKeywords) ?? "");
-
-            bool foundOrientation = exifTags.TryGetUInt16(ExifIfd0Directory.TagOrientation, out ushort exifOrientation);
-            if (foundOrientation)
-            {
-                content.Orientation = (ImageContentOrientation)exifOrientation;
-            }
-        }
-
-        // Fallback to the standard keyword fields if the Windows keywords (XPKeywords) are not written
-        if (content.Keywords.Length == 0)
-        {
-            var standardKeywords = GetStandardKeywords(directories);
-            if (standardKeywords.Length > 0)
-                content.Keywords = SplitTagString(string.Join(";", standardKeywords));
-        }
-
-        // Fallback to the standard title/caption fields if the Windows ones (XPTitle, XPComment) are not written
         var xmpMeta = directories.OfType<XmpDirectory>().FirstOrDefault()?.XmpMeta;
         var iptcTags = directories.OfType<IptcDirectory>().FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(content.Title))
-            content.Title = FirstNonEmpty(GetXmpLocalizedText(xmpMeta, "title"), iptcTags?.GetDescription(IptcDirectory.TagObjectName));
+        var exifTags = directories.OfType<ExifIfd0Directory>().FirstOrDefault();
+        var exifDetailTags = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+        var quickTimeTags = directories.OfType<QuickTimeMovieHeaderDirectory>().FirstOrDefault();
+
+        // The XMP fields are read first (written by TagPup and Lightroom), then the Windows XP fields (Windows Photo Gallery), then IPTC
+        content.Title = FirstNonEmpty(GetXmpLocalizedText(xmpMeta, "title"), GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinTitle),
+            iptcTags?.GetDescription(IptcDirectory.TagObjectName));
 
         // Windows Photo Gallery also writes the title to dc:description and the IPTC caption, so skip those when it is the title.
-        if (string.IsNullOrWhiteSpace(content.Caption))
-        {
-            string? standardCaption = FirstNonEmpty(GetXmpLocalizedText(xmpMeta, "description"), iptcTags?.GetDescription(IptcDirectory.TagCaption));
-            if (standardCaption?.Trim() != content.Title?.Trim())
-                content.Caption = standardCaption;
-        }
+        string? NotTitle(string? caption) => (caption?.Trim() == content.Title?.Trim()) ? null : caption;
+        content.Caption = FirstNonEmpty(NotTitle(GetXmpLocalizedText(xmpMeta, "description")), GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinComment),
+            NotTitle(iptcTags?.GetDescription(IptcDirectory.TagCaption)));
 
         // The EXIF ImageDescription is used as the title by Windows Photo Gallery, but other tools (ie: Lightroom)
         // write the caption there, so only use it as the title when it is not the caption.
+        string? imageDescription = exifTags?.GetDescription(ExifIfd0Directory.TagImageDescription);
         if (string.IsNullOrWhiteSpace(content.Title) && (imageDescription?.Trim() != content.Caption?.Trim()))
             content.Title = FirstNonEmpty(imageDescription);
 
-        // Second level of detail sometimes provided
-        var exifDetailDirTags = directories.OfType<MetadataExtractor.Formats.Exif.ExifSubIfdDirectory>();
-        if (exifDetailDirTags.Any())
-        {
-            var exifDetailTags = exifDetailDirTags.First();
-            if (exifDetailTags.HasTagName(ExifSubIfdDirectory.TagDateTimeOriginal))
-                if (exifDetailTags.TryGetDateTime(ExifSubIfdDirectory.TagDateTimeOriginal, out DateTime exifDetailDateTime))
-                    content.DateTaken = exifDetailDateTime;
-        }
+        string[] keywords = GetXmpKeywords(xmpMeta);
+        if (keywords.Length == 0)
+            keywords = SplitTagString(GetWindowsXpText(exifTags, ExifIfd0Directory.TagWinKeywords) ?? "");
+        if (keywords.Length == 0)
+            keywords = iptcTags?.GetStringArray(IptcDirectory.TagKeywords)?.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray() ?? [];
+        content.Keywords = SplitTagString(string.Join(";", keywords));
 
-        var quickTimeMovieTags = directories.OfType<MetadataExtractor.Formats.QuickTime.QuickTimeMovieHeaderDirectory>();
-        if (quickTimeMovieTags.Any())
-        {
-            var quickTimeTags = quickTimeMovieTags.First();
-            if (quickTimeTags.HasTagName(QuickTimeMovieHeaderDirectory.TagCreated))
-                if (quickTimeTags.TryGetDateTime(QuickTimeMovieHeaderDirectory.TagCreated, out DateTime qtDetailDateTime))
-                    content.DateTaken = qtDetailDateTime;
+        // Date Taken: XMP, then EXIF (photos), then the QuickTime header (videos)
+        DateTime? dateTaken = GetXmpDateTaken(xmpMeta);
+        if ((dateTaken == null) && (exifDetailTags?.TryGetDateTime(ExifSubIfdDirectory.TagDateTimeOriginal, out DateTime exifDetailDateTime) ?? false))
+            dateTaken = exifDetailDateTime;
+        if ((dateTaken == null) && (exifTags?.TryGetDateTime(ExifIfd0Directory.TagDateTime, out DateTime exifDateTime) ?? false))
+            dateTaken = exifDateTime;
+        if ((dateTaken == null) && (quickTimeTags?.TryGetDateTime(QuickTimeMovieHeaderDirectory.TagCreated, out DateTime qtDetailDateTime) ?? false))
+            dateTaken = qtDetailDateTime;
+        content.DateTaken = dateTaken ?? DateTime.MinValue;
 
-            PopulateMetadataPropertiesFromShell(filepath, content);
-        }
+        if ((exifTags?.TryGetUInt16(ExifIfd0Directory.TagOrientation, out ushort exifOrientation) ?? false))
+            content.Orientation = (ImageContentOrientation)exifOrientation;
 
+        if (quickTimeTags?.GetObject(QuickTimeMovieHeaderDirectory.TagDuration) is TimeSpan duration)
+            content.VideoLength = duration;
 
         return content;
+    }
+
+    /// <summary>
+    /// Read the keywords from the XMP fields: dc:subject (IPTC Core Keywords) and Lightroom's lr:hierarchicalSubject (ie: People|Kevin Idzi).
+    /// Both are combined as Lightroom only writes the groupings (ie: People) to lr:hierarchicalSubject.
+    /// </summary>
+    /// <returns>Keywords using / for the hierarchy, empty if none found</returns>
+    private static string[] GetXmpKeywords(XmpCore.IXmpMeta? xmpMeta)
+    {
+        return GetXmpArrayValues(xmpMeta, "http://purl.org/dc/elements/1.1/", "subject")
+            .Concat(GetXmpArrayValues(xmpMeta, "http://ns.adobe.com/lightroom/1.0/", "hierarchicalSubject").Select(x => x.Replace('|', '/')))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Read the date taken from the XMP fields: exif:DateTimeOriginal, xmp:CreateDate, then photoshop:DateCreated.
+    /// These are usually ISO dates (ie: 2024-11-28T14:48:39), but some tools write the EXIF format (ie: 2024:11:28 14:48:39).
+    /// </summary>
+    private static DateTime? GetXmpDateTaken(XmpCore.IXmpMeta? xmpMeta)
+    {
+        if (xmpMeta == null)
+            return null;
+
+        var dateFields = new[] {
+            ("http://ns.adobe.com/exif/1.0/", "DateTimeOriginal"),
+            ("http://ns.adobe.com/xap/1.0/", "CreateDate"),
+            ("http://ns.adobe.com/photoshop/1.0/", "DateCreated") };
+        foreach (var (schemaNs, propName) in dateFields)
+        {
+            if (!xmpMeta.DoesPropertyExist(schemaNs, propName))
+                continue;
+
+            string? value = xmpMeta.GetPropertyString(schemaNs, propName);
+            if (DateTime.TryParseExact(value, "yyyy:MM:dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime exifFormatDate))
+                return exifFormatDate;
+            if (DateTimeOffset.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTimeOffset isoDate))
+                return isoDate.DateTime;
+        }
+        return null;
     }
 
     /// <summary>
@@ -207,33 +202,15 @@ public partial class ContentMetadataService
     }
 
     /// <summary>
-    /// Read the keywords from the standard fields and combine them, in order:
-    /// XMP dc:subject (IPTC Core Keywords), IPTC IIM Keywords, then Lightroom's XMP lr:hierarchicalSubject (ie: People|Kevin Idzi).
-    /// All are combined as Lightroom only writes the groupings (ie: People) to lr:hierarchicalSubject.
-    /// </summary>
-    /// <param name="directories">Metadata read from the file</param>
-    /// <returns>Keywords using / for the hierarchy, empty if none found</returns>
-    private static string[] GetStandardKeywords(IEnumerable<MetadataExtractor.Directory> directories)
-    {
-        var xmpMeta = directories.OfType<XmpDirectory>().FirstOrDefault()?.XmpMeta;
-        var iptcTags = directories.OfType<IptcDirectory>().FirstOrDefault();
-
-        return GetXmpArrayValues(xmpMeta, "http://purl.org/dc/elements/1.1/", "subject")
-            .Concat(iptcTags?.GetStringArray(IptcDirectory.TagKeywords)?.Where(x => !string.IsNullOrWhiteSpace(x)) ?? [])
-            .Concat(GetXmpArrayValues(xmpMeta, "http://ns.adobe.com/lightroom/1.0/", "hierarchicalSubject").Select(x => x.Replace('|', '/')))
-            .ToArray();
-    }
-
-    /// <summary>
     /// Read a Windows XP tag (ie: XPTitle, XPComment, XPKeywords). Windows writes these as UCS-2 bytes,
     /// but some tools write them as ASCII/UTF-8 text which would otherwise be decoded as garbled UCS-2.
     /// </summary>
-    private static string? GetWindowsXpText(ExifIfd0Directory exifTags, int tagType)
+    private static string? GetWindowsXpText(ExifIfd0Directory? exifTags, int tagType)
     {
-        if (exifTags.GetObject(tagType) is StringValue stringValue)
+        if (exifTags?.GetObject(tagType) is StringValue stringValue)
             return DecodeWindowsXpBytes(stringValue.Bytes);
 
-        return exifTags.GetDescription(tagType);
+        return exifTags?.GetDescription(tagType);
     }
 
     /// <summary>

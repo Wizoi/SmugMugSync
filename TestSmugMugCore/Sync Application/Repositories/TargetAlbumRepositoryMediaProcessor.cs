@@ -676,5 +676,84 @@ public class TargetAlbumRepositoryMediaProcessor
         smImageUploaderSvcMock.Verify(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()), Times.Never());
         smImageUploaderSvcMock.Invocations.Clear();
     }
-}
+    [TestMethod]
+    public async Task ProcessExistingRemoteMedia_Scenario2_UndatedVideo_UploadAgain()
+    {
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"rootLocal", "A:\\2023 - TestTitle"},
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        var folderConfig = new FolderSyncPathsConfig(configuration);
+        var smCoreMock = new Mock<SmugMugCore.Net.Core20.SmugMugCore>(new object[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty });
+        var uploadThrottler = new SemaphoreSlim(1);
+        var calls = new List<string>();
 
+        // Setup the Target Image, a video without a date taken on SmugMug
+        var targetImage = new AlbumImageDetail() { AlbumKey = "TestKey", ImageKey = "SomeKey1", FileName = "TestFile.MOV", Caption = "Song Row Row Row your Boat",
+            Uris = new AlbumImageUris() { Image = new UriMetadata() { Uri = "/api/v2/image/SomeKey1-0" } } };
+        var smImageServiceMock = new Mock<AlbumImageService>(smCoreMock.Object);
+        smImageServiceMock.Setup(x => x.DeleteImage(It.IsAny<string>())).Callback(() => calls.Add("Delete")).ReturnsAsync("/api/v2/image/SomeKey1-0");
+        smCoreMock.Setup(x => x.AlbumImageService).Returns(smImageServiceMock.Object);
+        var albDetail = new AlbumDetail() { Name = "2023 - TestTitle", AlbumKey = "TestKey" };
+
+        // Setup the Source Metadata, the video file has a date taken
+        var targetMetadata = new FileMetaContent() { IsVideo = true, DateTaken = new DateTime(2011, 5, 29), VideoLength = TimeSpan.FromMinutes(1) };
+        var smContentServiceMock = new Mock<ContentMetadataService>();
+        smContentServiceMock.Setup(x => x.DiscoverMetadata(It.IsAny<string>())).ReturnsAsync(targetMetadata);
+        smCoreMock.Setup(x => x.ContentMetadataService).Returns(smContentServiceMock.Object);
+
+        // Setup the Source Image (SourceMediaData)
+        var fileSystemMock = new Mock<IFileSystem>();
+        var fiMock = new Mock<IFileInfo>();
+        var fsiMock = new Mock<IFileSystemInfo>();
+        fsiMock.SetupGet(x => x.Name).Returns("TestFile.MOV");
+        fsiMock.SetupGet(x => x.FullName).Returns("TESTFILE.MOV");
+        fileSystemMock.Setup(x => x.FileInfo.New(It.IsAny<string>())).Returns(fiMock.Object);
+        fiMock.SetupGet(x => x.Length).Returns(1);
+        var sourceMediaDataMock = new Mock<SourceMediaData>(fileSystemMock.Object, fsiMock.Object);
+
+        // Setup the ImageUploaderService
+        var smImageUploaderSvcMock = new Mock<ImageUploaderService>(smCoreMock.Object);
+        smImageUploaderSvcMock.Setup(x => x.UploadAlbumImage(It.IsAny<string>(), It.IsAny<FileMetaContent>()))
+            .Callback(() => calls.Add("Upload")).ReturnsAsync("/api/v2/album/TestKey/image/NewKey-0");
+        smCoreMock.Setup(x => x.ImageUploaderService).Returns(smImageUploaderSvcMock.Object);
+
+        ////////////////////////////////////////////////
+        // Perform the test AS NORMAL: delete the video first, then upload it again, keeping the caption from SmugMug
+        var runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+            {"targetUpdate", "Normal"}, {"includeVideos", "true"} }).Build());
+        var targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        var result = await targetAlbumRepository.ProcessExistingRemoteMedia(runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+
+        Assert.AreEqual(true, result, "Expected to process the remote media. ");
+        CollectionAssert.AreEqual(new[] { "Delete", "Upload" }, calls, "Expected the video to be deleted, then uploaded again");
+        smImageServiceMock.Verify(x => x.DeleteImage("/api/v2/image/SomeKey1-0"));
+        Assert.AreEqual("Song Row Row Row your Boat", targetMetadata.Caption, "Expected the caption on SmugMug to be kept");
+        calls.Clear();
+
+        ////////////////////////////////////////////////
+        // Perform the test AS NONELOG: nothing is deleted or uploaded
+        runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+            {"targetUpdate", "NoneLog"}, {"includeVideos", "true"} }).Build());
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.ProcessExistingRemoteMedia(runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+        Assert.AreEqual(0, calls.Count, "Expected nothing to be deleted or uploaded");
+
+        ////////////////////////////////////////////////
+        // Perform the test with a date taken on SmugMug: nothing is deleted or uploaded
+        targetImage.DateTimeOriginal = new DateTimeOffset(2011, 5, 29, 0, 0, 0, TimeSpan.Zero);
+        runtimeConfig = new RuntimeFlagsConfig(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+            {"targetUpdate", "Normal"}, {"includeVideos", "true"} }).Build());
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.ProcessExistingRemoteMedia(runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+        Assert.AreEqual(0, calls.Count, "Expected a dated video to not be uploaded again");
+
+        ////////////////////////////////////////////////
+        // Perform the test with a dated video with different keywords: only the metadata is updated
+        smImageServiceMock.Setup(x => x.UpdateAlbumImage(It.IsAny<AlbumImageDetail>())).Callback(() => calls.Add("UpdateMetadata")).ReturnsAsync(new ImageDetail());
+        targetMetadata.Keywords = ["Music", "Accordion"];
+        targetAlbumRepository = new TargetAlbumRepository(smCoreMock.Object, folderConfig);
+        _ = await targetAlbumRepository.ProcessExistingRemoteMedia(runtimeConfig, sourceMediaDataMock.Object, albDetail, targetImage, uploadThrottler);
+        CollectionAssert.AreEqual(new[] { "UpdateMetadata" }, calls, "Expected only the metadata of a dated video to be updated");
+    }
+}

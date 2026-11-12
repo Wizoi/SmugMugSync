@@ -1,4 +1,3 @@
-using System.Windows.Forms.VisualStyles;
 using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NuGet.Frameworks;

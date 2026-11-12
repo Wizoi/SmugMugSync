@@ -275,21 +275,30 @@ namespace SmugMugCoreSync.Repositories
                     reDownloadImage = true;
                 }
 
-                // Scenario 2: FileLength is different (targetUpdate)
+                // Scenario 2: Video has no date taken on SmugMug, but the file has one. SmugMug only reads the date when
+                // a video is uploaded, and a video cannot be replaced, so delete it and upload it again.
+                if (!reDownloadImage && sourceMetadata.IsVideo && (targetImage.DateTimeOriginal == default) && (sourceMetadata.DateTaken.Year > 1970))
+                {
+                    _ = await ReuploadUndatedVideo(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
+                    return true;
+                }
+
+                // Scenario 3: FileLength is different (targetUpdate)
                 if (!reDownloadImage && sourceImage.IsImageUpdatable())
                 {
-                    if ((sourceImage.FileLength != targetImage.ArchivedSize) || runtimeFlags.ForceRefresh)
+                    // SmugMug's size and MD5 for a video are of its own converted copy, so they never match the file. A video is
+                    // also not redownloaded (it is lower quality), or uploaded again (SmugMug disallows refreshing), so only the metadata is updated.
+                    if (sourceMetadata.IsVideo)
                     {
-                        // Will not redownload a video based on the size being different, as it will be a 
-                        // lower quality. And Cannot re-upload a video 2x as SmugMug disallows refreshing, so skipping.
-                        if (!sourceMetadata.IsVideo)
-                        {
-                            reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
+                        _ = await UpdateMetadata(runtimeFlags, sourceMetadata, targetImage);
+                    }
+                    else if ((sourceImage.FileLength != targetImage.ArchivedSize) || runtimeFlags.ForceRefresh)
+                    {
+                        reDownloadImage = await IsRedownloadNeeded(_smCore, sourceImage, targetImage);
 
-                            if (!reDownloadImage)
-                            {
-                                _ = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
-                            }
+                        if (!reDownloadImage)
+                        {
+                            _ = await RefreshRemoteMedia(runtimeFlags, sourceImage, sourceMetadata, targetAlbum, targetImage);
                         }
                     }
                     else
@@ -324,23 +333,7 @@ namespace SmugMugCoreSync.Repositories
 
             if (sourceMetadata.IsVideo)
             {
-                if (sourceMetadata.VideoLength.TotalMinutes > 20)
-                {
-                    Trace.WriteLine("    > SKIP (Video too long, > 20 minutes): " + sourceImage.FileName);
-                    continueToAdd = false;
-                }
-                
-                if (sourceMetadata.FileInfo?.Length > 2000000000)
-                {
-                    Trace.WriteLine("    > SKIP (Video size too large, > 2.0 gigs): " + sourceImage.FileName);
-                    continueToAdd = false;
-                }
-                
-                if (!runtimeFlags.IncludeVideos)
-                {
-                    Trace.WriteLine("    > SKIP (Photos Only Enabled): " + sourceImage.FileName);
-                    continueToAdd = false;
-                }
+                continueToAdd = IsVideoUploadable(runtimeFlags, sourceImage, sourceMetadata);
             }
 
             if (continueToAdd)
@@ -416,6 +409,67 @@ namespace SmugMugCoreSync.Repositories
             return false;
         }
 
+        /// <summary>
+        /// Delete a video without a date taken on SmugMug and upload it again, so SmugMug reads the date from the file.
+        /// The video is deleted first, as SmugMug would otherwise have two copies with the same filename.
+        /// </summary>
+        public virtual async Task<bool> ReuploadUndatedVideo(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, FileMetaContent sourceMetadata, AlbumDetail targetAlbum, AlbumImageDetail targetImage)
+        {
+            switch (runtimeFlags.TargetUpdate)
+            {
+                case OperationLevel.Normal:
+                    if (!IsVideoUploadable(runtimeFlags, sourceImage, sourceMetadata))
+                        return false;
+
+                    // Keep the title, caption and keywords on SmugMug when the file does not have them, so they are not lost
+                    if (string.IsNullOrWhiteSpace(sourceMetadata.Title))
+                        sourceMetadata.Title = System.Web.HttpUtility.HtmlDecode(targetImage.Title);
+                    if (string.IsNullOrWhiteSpace(sourceMetadata.Caption))
+                        sourceMetadata.Caption = System.Web.HttpUtility.HtmlDecode(targetImage.Caption);
+                    if (sourceMetadata.Keywords.Length == 0 && !string.IsNullOrWhiteSpace(targetImage.Keywords))
+                        sourceMetadata.Keywords = targetImage.Keywords.Split(';').Select(x => x.Trim().Trim('"')).Where(x => x.Length > 0).ToArray();
+
+                    Trace.WriteLine("    > Uploading Video Again (no date taken on SmugMug): " + sourceImage.FileName);
+                    _ = await _smCore.AlbumImageService.DeleteImage(targetImage.Uris.Image.Uri);
+                    return await UploadNewMedia(_smCore, targetAlbum, sourceMetadata);
+                case OperationLevel.NoneLog:
+                    Trace.WriteLine("    >? Upload Video Again Suppressed (no date taken on SmugMug): " + sourceImage.FileName);
+                    break;
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check a video can be uploaded to SmugMug, logging why when it cannot
+        /// </summary>
+        private static bool IsVideoUploadable(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, FileMetaContent sourceMetadata)
+        {
+            bool isUploadable = true;
+
+            if (sourceMetadata.VideoLength.TotalMinutes > 20)
+            {
+                Trace.WriteLine("    > SKIP (Video too long, > 20 minutes): " + sourceImage.FileName);
+                isUploadable = false;
+            }
+
+            if (sourceMetadata.FileInfo?.Length > 2000000000)
+            {
+                Trace.WriteLine("    > SKIP (Video size too large, > 2.0 gigs): " + sourceImage.FileName);
+                isUploadable = false;
+            }
+
+            if (!runtimeFlags.IncludeVideos)
+            {
+                Trace.WriteLine("    > SKIP (Photos Only Enabled): " + sourceImage.FileName);
+                isUploadable = false;
+            }
+
+            return isUploadable;
+        }
+
         public virtual  async Task<bool> RedownloadMedia(RuntimeFlagsConfig runtimeFlags, SourceMediaData sourceImage, FileMetaContent sourceMetadata, AlbumImageDetail targetImage)
         {
             bool isRedownloaded = false;
@@ -447,7 +501,7 @@ namespace SmugMugCoreSync.Repositories
 
         public virtual  async Task<bool> UpdateMetadata(RuntimeFlagsConfig runtimeFlags, FileMetaContent sourceXmlMetadata, AlbumImageDetail targetImage)
         {
-            // Scenario 3: Not forcing binary update, but will always update metadata if different
+            // Scenario 4: Not forcing binary update, but will always update metadata if different
             bool isMetadataDifferent =
                 _smCore.ContentMetadataService.AreKeywordsDifferent(sourceXmlMetadata, targetImage.Keywords) ||
                 ((sourceXmlMetadata.Title ?? "") != System.Web.HttpUtility.HtmlDecode(targetImage.Title ?? "")) ||
